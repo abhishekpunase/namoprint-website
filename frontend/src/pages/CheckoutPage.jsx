@@ -104,7 +104,7 @@ export function CheckoutPage() {
     return () => {
       cancelled = true
     }
-  }, [syncToServer])
+  }, [])
 
   const totals = useMemo(
     () =>

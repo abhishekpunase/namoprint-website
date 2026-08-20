@@ -72,7 +72,6 @@ export default function TrophyProductDetailPage() {
   }, [slug])
 
   useEffect(() => {
-    if (!product) return
     trophyApi
       .list()
       .then((payload) => {
@@ -80,7 +79,7 @@ export default function TrophyProductDetailPage() {
         setRelatedProducts(items.slice(0, 4))
       })
       .catch(() => setRelatedProducts([]))
-  }, [slug, product])
+  }, [slug])
 
   const selectedOption = useMemo(
     () => product?.qualityOptions?.find((o) => o._id === selectedOptionId),

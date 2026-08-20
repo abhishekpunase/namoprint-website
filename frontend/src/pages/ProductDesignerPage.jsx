@@ -151,7 +151,7 @@ export function ProductDesignerPage({
     }
 
     loadRelated()
-  }, [product, slug])
+  }, [slug, product?._id, product?.productType])
 
   useEffect(() => {
     if (!product?.slug || catalogBase !== '/products') return
@@ -159,7 +159,7 @@ export function ProductDesignerPage({
     if (dedicatedBase) {
       navigate(`${dedicatedBase}/${product.slug}`, { replace: true })
     }
-  }, [product, catalogBase, navigate])
+  }, [product?._id, product?.slug, product?.productType, catalogBase, navigate])
 
   const variant = useMemo(
     () => product?.variants?.find((item) => item._id === variantId) || product?.variants?.[0],

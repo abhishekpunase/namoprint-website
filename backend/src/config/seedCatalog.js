@@ -83,7 +83,7 @@ const DEV_PRODUCTS = [
     personalization: { allowPhotoUpload: true, maxPhotos: 3, allowText: false, textFields: [] },
     mockup: {
       canvas: { width: 1024, height: 1536 },
-      frameImage: '/mockups/frame-collage.svg',
+      frameImage: '/products/mockups/frame-collage.svg',
       photoBoxes: [
         { id: 1, x: 75, y: 95, width: 515, height: 550 },
         { id: 2, x: 300, y: 500, width: 530, height: 440 },
@@ -185,6 +185,34 @@ const FALLBACK_STOREFRONT_PRODUCTS = [
       },
     ],
     isFeatured: false,
+    isActive: true,
+  },
+  {
+    title: 'Acrylic Mini Wall Gallery Set of 6',
+    slug: 'acrylic-mini-wall-gallery-set-of-6',
+    productType: 'acrylic-photo-mini-wall-gallery',
+    description: 'A curated set of six mini acrylic photo panels to build your own wall gallery.',
+    highlights: ['Set of 6 panels', 'Free layout guide', 'Easy peel-stick mounting'],
+    images: [],
+    attributes: { size: ['6x6 inch (x6)'], material: ['3mm Acrylic'], frameType: ['No Frame'] },
+    personalization: { allowPhotoUpload: true, maxPhotos: 6, allowText: false, textFields: [] },
+    mockup: {
+      canvas: { width: 1200, height: 900 },
+      photoBox: { x: 100, y: 100, width: 1000, height: 700, rotate: 0, borderRadius: 14 },
+    },
+    variants: [
+      {
+        sku: 'AMG-6X6-SET6',
+        size: '6x6 inch (x6)',
+        material: '3mm Acrylic',
+        frameType: 'No Frame',
+        price: 1599,
+        compareAtPrice: 2299,
+        stock: 30,
+        isActive: true,
+      },
+    ],
+    isFeatured: true,
     isActive: true,
   },
 ];

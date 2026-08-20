@@ -66,7 +66,6 @@ export default function CorporateGiftProductDetailPage() {
   }, [slug])
 
   useEffect(() => {
-    if (!product) return
     corporateGiftApi
       .list()
       .then((payload) => {
@@ -74,7 +73,7 @@ export default function CorporateGiftProductDetailPage() {
         setRelatedProducts(items.slice(0, 4))
       })
       .catch(() => setRelatedProducts([]))
-  }, [slug, product])
+  }, [slug])
 
   const selectedOption = useMemo(
     () => product?.qualityOptions?.find((o) => o._id === selectedOptionId),

@@ -20,6 +20,9 @@ export function resolveMediaUrl(url) {
   if (/^https?:\/\//i.test(trimmed)) return rewriteLocalhostUrl(trimmed)
   if (trimmed.startsWith('//')) return `https:${trimmed}`
   if (trimmed.startsWith('/')) {
+    if (trimmed.startsWith('/mockups/')) {
+      return `/products${trimmed}`
+    }
     if (FRONTEND_STATIC_PREFIXES.some((prefix) => trimmed.startsWith(prefix))) {
       return trimmed
     }

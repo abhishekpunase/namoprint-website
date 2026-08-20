@@ -172,7 +172,7 @@ export function CartPage() {
   useEffect(() => {
     if (!isAuthenticated) return
     syncToServer().catch(() => {})
-  }, [isAuthenticated, syncToServer])
+  }, [isAuthenticated])
 
   const totals = useMemo(
     () => calculateCheckoutTotals(subtotal, { couponCode, totalQuantity: count }),

@@ -19,6 +19,7 @@ import {
   ensurePenPrints,
   ensureUvDtfStickers,
   ensureProductLabelStickers,
+  ensureTShirtProducts,
   ensureHomeTestimonials,
   ensureHomeOfferMarquee,
 } from './config/seedDev.js';
@@ -31,8 +32,7 @@ async function runStartupSeed(label, fn) {
   }
 }
 
-const start = async () => {
-  await connectDb();
+async function seedAfterListen() {
   await ensureStoreSettings();
 
   if (shouldSeedDemoContent()) {
@@ -48,12 +48,18 @@ const start = async () => {
     await runStartupSeed('Pen prints', ensurePenPrints);
     await runStartupSeed('UV DTF stickers', ensureUvDtfStickers);
     await runStartupSeed('Product label stickers', ensureProductLabelStickers);
+    await runStartupSeed('T-shirt products', ensureTShirtProducts);
     await runStartupSeed('Home testimonials', ensureHomeTestimonials);
     await runStartupSeed('Home offer marquee', ensureHomeOfferMarquee);
   } else if (env.isProduction) {
     console.log('Production mode: demo seeds skipped (set SEED_ON_START=true to override).');
   }
+}
 
+const start = async () => {
+  await connectDb();
+
+  // Listen first so Vite's proxy is not refused while Atlas seeds run.
   const server = await listenWithRetry(app, env.port);
 
   const shutdown = async (label, { exitAfter = true } = {}) => {
@@ -70,7 +76,7 @@ const start = async () => {
     process.kill(process.pid, 'SIGUSR2');
   });
 
-  const host = env.isProduction ? env.apiBaseUrl : `http://localhost:${env.port}`;
+  const host = env.isProduction ? env.apiBaseUrl : `http://127.0.0.1:${env.port}`;
   console.log(`API running on ${host}`);
   if (env.isProduction) {
     console.log('Production mode: demo seeds disabled, SPA served from frontend/dist');
@@ -83,6 +89,8 @@ const start = async () => {
       console.warn('WARNING: frontend/dist not found — run "npm run build" in frontend before production start.');
     }
   }
+
+  await seedAfterListen();
 };
 
 function listenWithRetry(appInstance, port, maxAttempts = 10) {
@@ -91,7 +99,7 @@ function listenWithRetry(appInstance, port, maxAttempts = 10) {
 
     const tryListen = () => {
       attempt += 1;
-      const server = appInstance.listen(port);
+      const server = appInstance.listen(port, '0.0.0.0');
 
       server.once('listening', () => resolve(server));
 

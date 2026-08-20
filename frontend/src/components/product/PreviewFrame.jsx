@@ -946,13 +946,26 @@ export function PreviewFrame({
   minimal = false,
 }) {
   const emitOptionChange = onOptionsChange || onOptionChange
-  const collageMockup = resolveCollageMockup(product, variant, options)
+  const collageMockup = useMemo(
+    () => resolveCollageMockup(product, variant, options),
+    [product, variant, options],
+  )
   const liveBaseImage = getProductBaseImage(product)
   const useLiveProductImage = usesLiveProductImage(product)
   const allowPhotoUpload = product?.personalization?.allowPhotoUpload !== false
-  const photoBoxesList = resolvePreviewPhotoBoxes(product, variant, options)
-  const canvas = collageMockup?.canvas || product?.mockup?.canvas || { width: 1000, height: 1000 }
-  const box = photoBoxesList?.[0] || product?.mockup?.photoBox || { x: 120, y: 120, width: 760, height: 760, borderRadius: 20 }
+  const photoBoxesList = useMemo(
+    () => resolvePreviewPhotoBoxes(product, variant, options),
+    [product, variant, options],
+  )
+  const canvasW = Number(collageMockup?.canvas?.width || product?.mockup?.canvas?.width) || 1000
+  const canvasH = Number(collageMockup?.canvas?.height || product?.mockup?.canvas?.height) || 1000
+  const canvas = useMemo(() => ({ width: canvasW, height: canvasH }), [canvasW, canvasH])
+  const box = useMemo(
+    () =>
+      photoBoxesList?.[0] ||
+      product?.mockup?.photoBox || { x: 120, y: 120, width: 760, height: 760, borderRadius: 20 },
+    [photoBoxesList, product?.mockup?.photoBox],
+  )
   const rawFrameImage = useLiveProductImage
     ? null
     : resolveMediaUrl(collageMockup?.frameImage || getProductFrameImage(product, variant, options))
@@ -987,52 +1000,68 @@ export function PreviewFrame({
 
   const sourcePhotoBoxes = useMemo(
     () => (photoBoxesList?.length ? photoBoxesList : box?.width ? [box] : []),
-    [photoBoxesList, box?.x, box?.y, box?.width, box?.height, box?.borderRadius, box?.rotate],
+    [photoBoxesList, box],
   )
+  const sourceBoxesKey = useMemo(
+    () =>
+      sourcePhotoBoxes
+        .map((entry) => `${entry?.x}:${entry?.y}:${entry?.width}:${entry?.height}:${entry?.borderRadius}:${entry?.rotate}`)
+        .join('|'),
+    [sourcePhotoBoxes],
+  )
+  const sourcePhotoBoxesRef = useRef(sourcePhotoBoxes)
+  sourcePhotoBoxesRef.current = sourcePhotoBoxes
 
   useEffect(() => {
     let cancelled = false
-    if (!frameImage || !useFrameOverlay) {
-      resolveMockupLayout(null, canvas, sourcePhotoBoxes).then((layout) => {
-        if (!cancelled) setMockupLayout(layout)
-      })
-      return () => {
-        cancelled = true
-      }
-    }
-    resolveMockupLayout(frameImage, canvas, sourcePhotoBoxes).then((layout) => {
+    resolveMockupLayout(
+      frameImage && useFrameOverlay ? frameImage : null,
+      canvas,
+      sourcePhotoBoxesRef.current,
+    ).then((layout) => {
       if (!cancelled) setMockupLayout(layout)
     })
     return () => {
       cancelled = true
     }
-  }, [frameImage, canvas.width, canvas.height, useFrameOverlay, sourcePhotoBoxes, canvas])
+  }, [frameImage, canvas, useFrameOverlay, sourceBoxesKey])
 
   const layoutCanvas = mockupLayout.canvas || canvas
-  const layoutBoxes =
-    mockupLayout.photoBoxes?.length > 0
-      ? mockupLayout.photoBoxes
-      : photoBoxesList?.length
-        ? photoBoxesList
-        : box?.width
-          ? [box]
-          : []
+  const layoutBoxes = useMemo(() => {
+    if (mockupLayout.photoBoxes?.length > 0) return mockupLayout.photoBoxes
+    if (photoBoxesList?.length) return photoBoxesList
+    if (box?.width) return [box]
+    return []
+  }, [mockupLayout.photoBoxes, photoBoxesList, box])
   const layoutBox = layoutBoxes[0] || box
+  const layoutBoxesKey = useMemo(
+    () =>
+      layoutBoxes
+        .map((entry) => `${entry?.x}:${entry?.y}:${entry?.width}:${entry?.height}:${entry?.clipPath || ''}`)
+        .join('|'),
+    [layoutBoxes],
+  )
+
+  const layoutBoxesRef = useRef(layoutBoxes)
+  layoutBoxesRef.current = layoutBoxes
+  const layoutCanvasRef = useRef(layoutCanvas)
+  layoutCanvasRef.current = layoutCanvas
 
   const [clippedLayoutBoxes, setClippedLayoutBoxes] = useState(null)
 
   useEffect(() => {
-    if (!frameImage || !photosUnderFrame || !layoutBoxes.length || useCollageSlots) {
+    const boxes = layoutBoxesRef.current
+    if (!frameImage || !photosUnderFrame || !boxes.length || useCollageSlots) {
       setClippedLayoutBoxes(null)
       return undefined
     }
-    if (layoutBoxes.every((entry) => entry.clipPath)) {
+    if (boxes.every((entry) => entry.clipPath)) {
       setClippedLayoutBoxes(null)
       return undefined
     }
 
     let cancelled = false
-    inferSlotClipPathsFromFrame(frameImage, layoutBoxes, layoutCanvas)
+    inferSlotClipPathsFromFrame(frameImage, boxes, layoutCanvasRef.current)
       .then((enhanced) => {
         if (!cancelled) setClippedLayoutBoxes(enhanced)
       })
@@ -1043,24 +1072,25 @@ export function PreviewFrame({
     return () => {
       cancelled = true
     }
-  }, [frameImage, photosUnderFrame, layoutBoxes, layoutCanvas.width, layoutCanvas.height])
+  }, [frameImage, photosUnderFrame, layoutBoxesKey, useCollageSlots])
 
   const effectiveLayoutBoxes = clippedLayoutBoxes || layoutBoxes
   const effectiveLayoutBox = effectiveLayoutBoxes[0] || layoutBox
 
   useEffect(() => {
     if (!frameImage) {
-      setProcessedFrameUrl('')
+      setProcessedFrameUrl((current) => (current ? '' : current))
       return undefined
     }
-    const needsPunch = useCollageSlots && layoutBoxes?.length && shouldPunchFrameHoles(frameImage)
+    const boxes = layoutBoxesRef.current
+    const needsPunch = useCollageSlots && boxes?.length && shouldPunchFrameHoles(frameImage)
     if (!needsPunch) {
-      setProcessedFrameUrl(frameImage)
+      setProcessedFrameUrl((current) => (current === frameImage ? current : frameImage))
       return undefined
     }
 
     let cancelled = false
-    punchFrameHoles(frameImage, layoutBoxes, layoutCanvas)
+    punchFrameHoles(frameImage, boxes, layoutCanvasRef.current)
       .then((url) => {
         if (!cancelled) setProcessedFrameUrl(url)
       })
@@ -1071,7 +1101,7 @@ export function PreviewFrame({
     return () => {
       cancelled = true
     }
-  }, [frameImage, layoutBoxes, layoutCanvas.width, layoutCanvas.height, useCollageSlots])
+  }, [frameImage, layoutBoxesKey, useCollageSlots])
 
   const displayFrameUrl = processedFrameUrl || frameImage
 
@@ -1282,8 +1312,9 @@ export function PreviewFrame({
   const editingItem = textItems.find((it) => it.id === editingId)
   const activePhotoUrl = getPhotoSrc(0) || photos[0]?.url
 
+  const lastPreviewKey = useRef('')
   useEffect(() => {
-    onPreviewChange?.({
+    const payload = {
       frameColor: activeColor?.value,
       frameColorName: activeColor?.name,
       thickness: thickness.label,
@@ -1291,7 +1322,11 @@ export function PreviewFrame({
       orientation,
       size: selectedSize.label,
       textItems,
-    })
+    }
+    const key = JSON.stringify(payload)
+    if (key === lastPreviewKey.current) return
+    lastPreviewKey.current = key
+    onPreviewChange?.(payload)
   }, [activeColor, thickness, orientation, selectedSize, textItems, onPreviewChange])
 
   const stageShadow =

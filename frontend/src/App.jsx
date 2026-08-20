@@ -1,6 +1,5 @@
 import { Suspense, lazy } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { AdminLayout } from './components/layout/AdminLayout'
 import { AdminProtectedRoute } from './components/layout/AdminProtectedRoute'
 import { AppLayout } from './components/layout/AppLayout'
 import { CartSync } from './components/layout/CartSync'
@@ -9,115 +8,116 @@ import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
 import { WishlistProvider } from './context/WishlistContext'
 import { DesignProvider } from './context/DesignContext'
-import { AccountPage } from './pages/AccountPage'
-import { CartPage } from './pages/CartPage'
-import { WishlistPage } from './pages/WishlistPage'
-import { CatalogPage } from './pages/CatalogPage'
-import { CheckoutPage } from './pages/CheckoutPage'
-import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
-import { HomePage } from './pages/HomePage'
-import { LoginPage } from './pages/LoginPage'
-import { NotFoundPage } from './pages/NotFoundPage'
-import { OrdersPage } from './pages/OrdersPage'
-import { PaymentSuccessPage } from './pages/PaymentSuccessPage'
-import { ProductDesignerPage } from './pages/ProductDesignerPage'
-import { RegisterPage } from './pages/RegisterPage'
-import { ResetPasswordPage } from './pages/ResetPasswordPage'
-import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage'
-import { AdminCategoryCreatePage } from './pages/admin/AdminCategoryFormPage'
-import { AdminCategoryDetailPage, AdminCategoryEditRoutePage } from './pages/admin/AdminCategoryDetailPage'
-import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
-import { AdminLoginPage } from './pages/admin/AdminLoginPage'
-import { AdminOrdersPage } from './pages/admin/AdminOrdersPage'
-import { AdminOrderDetailPage } from './pages/admin/AdminOrderDetailPage'
-import { AdminProductsPage } from './pages/admin/AdminProductsPage'
-import { AdminProductCreatePage } from './pages/admin/AdminProductFormPage'
-import { AdminProductDetailPage, AdminProductEditRoutePage } from './pages/admin/AdminProductDetailPage'
-import { AdminUsersPage } from './pages/admin/AdminUsersPage'
-import { AdminUserDetailPage } from './pages/admin/AdminUserDetailPage'
-import { AdminCustomersPage } from './pages/admin/AdminCustomersPage'
-import { AdminCustomerDetailPage } from './pages/admin/AdminCustomerDetailPage'
-import { AdminSettingsPage, AdminSettingsIndexPage } from './pages/admin/AdminSettingsPage'
-import { AdminRolesPage } from './pages/admin/AdminRolesPage'
-import { AdminProfilePage } from './pages/admin/AdminProfilePage'
-import { AdminInventoryPage } from './pages/admin/AdminInventoryPage'
-import { AdminInventoryDetailPage } from './pages/admin/AdminInventoryDetailPage'
-import { AdminCouponsPage } from './pages/admin/AdminCouponsPage'
-import { AdminCouponDetailPage } from './pages/admin/AdminCouponDetailPage'
-import { AdminCouponCreatePage, AdminCouponEditPage } from './pages/admin/AdminCouponCreatePage'
-import { AdminMediaPage } from './pages/admin/AdminMediaPage'
-import { AdminGodProductsPage } from './pages/admin/AdminGodProductsPage'
-import { AdminNamePlateProductsPage } from './pages/admin/AdminNamePlateProductsPage'
-import { AdminCorporateGiftProductsPage } from './pages/admin/AdminCorporateGiftProductsPage'
-import { AdminBabyBirthFrameProductsPage } from './pages/admin/AdminBabyBirthFrameProductsPage'
-import { AdminTrophyProductsPage } from './pages/admin/AdminTrophyProductsPage'
-import { AdminPenPrintProductsPage } from './pages/admin/AdminPenPrintProductsPage'
-import { AdminUvDtfStickerProductsPage } from './pages/admin/AdminUvDtfStickerProductsPage'
-import { AdminProductLabelStickerProductsPage } from './pages/admin/AdminProductLabelStickerProductsPage'
-import { AdminTShirtProductsPage } from './pages/admin/AdminTShirtProductsPage'
-import { AdminWallWatchProductsPage } from './pages/admin/AdminWallWatchProductsPage'
-import { AdminHomeSlidesPage } from './pages/admin/AdminHomeSlidesPage'
-import { AdminHomeTestimonialsPage } from './pages/admin/AdminHomeTestimonialsPage'
-import { AdminHomeOfferMarqueePage } from './pages/admin/AdminHomeOfferMarqueePage'
-import { AdminCategoryCarouselPage } from './pages/admin/AdminCategoryCarouselPage'
-import { AdminProductReelsPage } from './pages/admin/AdminProductReelsPage'
-import { AdminIntegrationsPage } from './pages/admin/AdminIntegrationsPage'
-import { AdminReviewsPage } from './pages/admin/AdminReviewsPage'
+import FloatingWhatsApp from './components/layout/FloatingWhatsApp'
 
-const AdminAnalyticsPage = lazy(() =>
-  import('./pages/admin/AdminAnalyticsPage').then((m) => ({ default: m.AdminAnalyticsPage })),
-)
-const AdminNotificationsPage = lazy(() =>
-  import('./pages/admin/AdminNotificationsPage').then((m) => ({ default: m.AdminNotificationsPage })),
-)
-const AdminSystemPage = lazy(() =>
-  import('./pages/admin/AdminSystemPage').then((m) => ({ default: m.AdminSystemPage })),
-)
+const named = (loader, exportName) =>
+  lazy(() => loader().then((mod) => ({ default: mod[exportName] })))
 
-function AdminRouteFallback() {
+const AdminLayout = named(() => import('./components/layout/AdminLayout'), 'AdminLayout')
+
+const HomePage = named(() => import('./pages/HomePage'), 'HomePage')
+const CatalogPage = named(() => import('./pages/CatalogPage'), 'CatalogPage')
+const WishlistPage = named(() => import('./pages/WishlistPage'), 'WishlistPage')
+const ProductDesignerPage = named(() => import('./pages/ProductDesignerPage'), 'ProductDesignerPage')
+const CategoryPage = lazy(() => import('./pages/CategoryPage'))
+const AboutPage = named(() => import('./pages/AboutPage'), 'AboutPage')
+const ContactPage = named(() => import('./pages/ContactPage'), 'ContactPage')
+const BulkOrdersPage = named(() => import('./pages/Bulk-ordersPage'), 'BulkOrdersPage')
+const PrivacyPolicyPage = named(() => import('./pages/Privacy-policyPage'), 'PrivacyPolicyPage')
+const TermsAndConditionsPage = named(() => import('./pages/TermsAndConditionsPage'), 'TermsAndConditionsPage')
+const RefundPolicyPage = named(() => import('./pages/RefundPolicyPage'), 'RefundPolicyPage')
+const ShippingPolicyPage = named(() => import('./pages/ShippingPolicyPage'), 'ShippingPolicyPage')
+const FaqPage = named(() => import('./pages/FaqPage'), 'FaqPage')
+const LoginPage = named(() => import('./pages/LoginPage'), 'LoginPage')
+const RegisterPage = named(() => import('./pages/RegisterPage'), 'RegisterPage')
+const ForgotPasswordPage = named(() => import('./pages/ForgotPasswordPage'), 'ForgotPasswordPage')
+const ResetPasswordPage = named(() => import('./pages/ResetPasswordPage'), 'ResetPasswordPage')
+const CartPage = named(() => import('./pages/CartPage'), 'CartPage')
+const CheckoutPage = named(() => import('./pages/CheckoutPage'), 'CheckoutPage')
+const PaymentSuccessPage = named(() => import('./pages/PaymentSuccessPage'), 'PaymentSuccessPage')
+const AccountPage = named(() => import('./pages/AccountPage'), 'AccountPage')
+const OrdersPage = named(() => import('./pages/OrdersPage'), 'OrdersPage')
+const NotFoundPage = named(() => import('./pages/NotFoundPage'), 'NotFoundPage')
+
+const GodPhotosPage = lazy(() => import('./pages/GodPhotosPage'))
+const GodProductDetailPage = lazy(() => import('./pages/GodProductDetailPage'))
+const NamePlatePage = lazy(() => import('./pages/NamePlatePage'))
+const NamePlateProductDetailPage = lazy(() => import('./pages/NamePlateProductDetailPage'))
+const CorporateGiftPage = lazy(() => import('./pages/CorporateGiftPage'))
+const CorporateGiftProductDetailPage = lazy(() => import('./pages/CorporateGiftProductDetailPage'))
+const BabyBirthFramePage = lazy(() => import('./pages/BabyBirthFramePage'))
+const BabyBirthFrameProductDetailPage = lazy(() => import('./pages/BabyBirthFrameProductDetailPage'))
+const TrophyPage = lazy(() => import('./pages/TrophyPage'))
+const TrophyProductDetailPage = lazy(() => import('./pages/TrophyProductDetailPage'))
+const PenPrintPage = lazy(() => import('./pages/PenPrintPage'))
+const PenPrintProductDetailPage = lazy(() => import('./pages/PenPrintProductDetailPage'))
+const UvDtfStickerPage = lazy(() => import('./pages/UvDtfStickerPage'))
+const UvDtfStickerProductDetailPage = lazy(() => import('./pages/UvDtfStickerProductDetailPage'))
+const ProductLabelStickerPage = lazy(() => import('./pages/ProductLabelStickerPage'))
+const ProductLabelStickerProductDetailPage = lazy(() => import('./pages/ProductLabelStickerProductDetailPage'))
+const TShirtPage = lazy(() => import('./pages/TShirtPage'))
+const TShirtProductDetailPage = lazy(() => import('./pages/TShirtProductDetailPage'))
+const WallWatchPage = lazy(() => import('./pages/WallWatchPage'))
+const WallWatchDesignerPage = lazy(() => import('./pages/WallWatchDesignerPage'))
+
+const AdminLoginPage = named(() => import('./pages/admin/AdminLoginPage'), 'AdminLoginPage')
+const AdminDashboardPage = named(() => import('./pages/admin/AdminDashboardPage'), 'AdminDashboardPage')
+const AdminOrdersPage = named(() => import('./pages/admin/AdminOrdersPage'), 'AdminOrdersPage')
+const AdminOrderDetailPage = named(() => import('./pages/admin/AdminOrderDetailPage'), 'AdminOrderDetailPage')
+const AdminProductsPage = named(() => import('./pages/admin/AdminProductsPage'), 'AdminProductsPage')
+const AdminProductCreatePage = named(() => import('./pages/admin/AdminProductFormPage'), 'AdminProductCreatePage')
+const AdminProductDetailPage = named(() => import('./pages/admin/AdminProductDetailPage'), 'AdminProductDetailPage')
+const AdminProductEditRoutePage = named(() => import('./pages/admin/AdminProductDetailPage'), 'AdminProductEditRoutePage')
+const AdminGodProductsPage = named(() => import('./pages/admin/AdminGodProductsPage'), 'AdminGodProductsPage')
+const AdminNamePlateProductsPage = named(() => import('./pages/admin/AdminNamePlateProductsPage'), 'AdminNamePlateProductsPage')
+const AdminCorporateGiftProductsPage = named(() => import('./pages/admin/AdminCorporateGiftProductsPage'), 'AdminCorporateGiftProductsPage')
+const AdminBabyBirthFrameProductsPage = named(() => import('./pages/admin/AdminBabyBirthFrameProductsPage'), 'AdminBabyBirthFrameProductsPage')
+const AdminTrophyProductsPage = named(() => import('./pages/admin/AdminTrophyProductsPage'), 'AdminTrophyProductsPage')
+const AdminPenPrintProductsPage = named(() => import('./pages/admin/AdminPenPrintProductsPage'), 'AdminPenPrintProductsPage')
+const AdminUvDtfStickerProductsPage = named(() => import('./pages/admin/AdminUvDtfStickerProductsPage'), 'AdminUvDtfStickerProductsPage')
+const AdminProductLabelStickerProductsPage = named(
+  () => import('./pages/admin/AdminProductLabelStickerProductsPage'),
+  'AdminProductLabelStickerProductsPage',
+)
+const AdminTShirtProductsPage = named(() => import('./pages/admin/AdminTShirtProductsPage'), 'AdminTShirtProductsPage')
+const AdminWallWatchProductsPage = named(() => import('./pages/admin/AdminWallWatchProductsPage'), 'AdminWallWatchProductsPage')
+const AdminCategoriesPage = named(() => import('./pages/admin/AdminCategoriesPage'), 'AdminCategoriesPage')
+const AdminCategoryCreatePage = named(() => import('./pages/admin/AdminCategoryFormPage'), 'AdminCategoryCreatePage')
+const AdminCategoryDetailPage = named(() => import('./pages/admin/AdminCategoryDetailPage'), 'AdminCategoryDetailPage')
+const AdminCategoryEditRoutePage = named(() => import('./pages/admin/AdminCategoryDetailPage'), 'AdminCategoryEditRoutePage')
+const AdminUsersPage = named(() => import('./pages/admin/AdminUsersPage'), 'AdminUsersPage')
+const AdminUserDetailPage = named(() => import('./pages/admin/AdminUserDetailPage'), 'AdminUserDetailPage')
+const AdminCustomersPage = named(() => import('./pages/admin/AdminCustomersPage'), 'AdminCustomersPage')
+const AdminCustomerDetailPage = named(() => import('./pages/admin/AdminCustomerDetailPage'), 'AdminCustomerDetailPage')
+const AdminInventoryPage = named(() => import('./pages/admin/AdminInventoryPage'), 'AdminInventoryPage')
+const AdminInventoryDetailPage = named(() => import('./pages/admin/AdminInventoryDetailPage'), 'AdminInventoryDetailPage')
+const AdminCouponsPage = named(() => import('./pages/admin/AdminCouponsPage'), 'AdminCouponsPage')
+const AdminCouponCreatePage = named(() => import('./pages/admin/AdminCouponCreatePage'), 'AdminCouponCreatePage')
+const AdminCouponDetailPage = named(() => import('./pages/admin/AdminCouponDetailPage'), 'AdminCouponDetailPage')
+const AdminCouponEditPage = named(() => import('./pages/admin/AdminCouponCreatePage'), 'AdminCouponEditPage')
+const AdminMediaPage = named(() => import('./pages/admin/AdminMediaPage'), 'AdminMediaPage')
+const AdminHomeSlidesPage = named(() => import('./pages/admin/AdminHomeSlidesPage'), 'AdminHomeSlidesPage')
+const AdminHomeTestimonialsPage = named(() => import('./pages/admin/AdminHomeTestimonialsPage'), 'AdminHomeTestimonialsPage')
+const AdminHomeOfferMarqueePage = named(() => import('./pages/admin/AdminHomeOfferMarqueePage'), 'AdminHomeOfferMarqueePage')
+const AdminCategoryCarouselPage = named(() => import('./pages/admin/AdminCategoryCarouselPage'), 'AdminCategoryCarouselPage')
+const AdminProductReelsPage = named(() => import('./pages/admin/AdminProductReelsPage'), 'AdminProductReelsPage')
+const AdminIntegrationsPage = named(() => import('./pages/admin/AdminIntegrationsPage'), 'AdminIntegrationsPage')
+const AdminAnalyticsPage = named(() => import('./pages/admin/AdminAnalyticsPage'), 'AdminAnalyticsPage')
+const AdminReviewsPage = named(() => import('./pages/admin/AdminReviewsPage'), 'AdminReviewsPage')
+const AdminRolesPage = named(() => import('./pages/admin/AdminRolesPage'), 'AdminRolesPage')
+const AdminNotificationsPage = named(() => import('./pages/admin/AdminNotificationsPage'), 'AdminNotificationsPage')
+const AdminSystemPage = named(() => import('./pages/admin/AdminSystemPage'), 'AdminSystemPage')
+const AdminSettingsIndexPage = named(() => import('./pages/admin/AdminSettingsPage'), 'AdminSettingsIndexPage')
+const AdminSettingsPage = named(() => import('./pages/admin/AdminSettingsPage'), 'AdminSettingsPage')
+const AdminProfilePage = named(() => import('./pages/admin/AdminProfilePage'), 'AdminProfilePage')
+
+function RouteFallback() {
   return (
-    <div className="admin-v2-content__inner" style={{ padding: 24 }}>
-      <div className="sys-skeleton" style={{ minHeight: 120, borderRadius: 12 }} />
+    <div className="grid min-h-[40vh] place-items-center p-6">
+      <div className="sys-skeleton w-full max-w-3xl min-h-[120px] rounded-xl" />
     </div>
   )
 }
-
-function LazyAdmin({ children }) {
-  return <Suspense fallback={<AdminRouteFallback />}>{children}</Suspense>
-}
-import { AboutPage } from './pages/AboutPage'
-import { ContactPage } from './pages/ContactPage'
-import { BulkOrdersPage } from './pages/Bulk-ordersPage'
-import FloatingWhatsApp from './components/layout/FloatingWhatsApp'
-import { PrivacyPolicyPage } from './pages/Privacy-policyPage'
-import { TermsAndConditionsPage } from './pages/TermsAndConditionsPage'
-import { RefundPolicyPage } from './pages/RefundPolicyPage'
-import { ShippingPolicyPage } from './pages/ShippingPolicyPage'
-import { FaqPage } from './pages/FaqPage'
-import  CategoryPage  from './pages/CategoryPage'
-// NEW: God Photo Frame + Name Plate modules (standalone, do not touch anything above)
-import GodPhotosPage from './pages/GodPhotosPage'
-import GodProductDetailPage from './pages/GodProductDetailPage'
-import NamePlatePage from './pages/NamePlatePage'
-import NamePlateProductDetailPage from './pages/NamePlateProductDetailPage'
-import CorporateGiftPage from './pages/CorporateGiftPage'
-import CorporateGiftProductDetailPage from './pages/CorporateGiftProductDetailPage'
-import BabyBirthFramePage from './pages/BabyBirthFramePage'
-import BabyBirthFrameProductDetailPage from './pages/BabyBirthFrameProductDetailPage'
-import TrophyPage from './pages/TrophyPage'
-import TrophyProductDetailPage from './pages/TrophyProductDetailPage'
-import PenPrintPage from './pages/PenPrintPage'
-import PenPrintProductDetailPage from './pages/PenPrintProductDetailPage'
-import UvDtfStickerPage from './pages/UvDtfStickerPage'
-import UvDtfStickerProductDetailPage from './pages/UvDtfStickerProductDetailPage'
-import ProductLabelStickerPage from './pages/ProductLabelStickerPage'
-import ProductLabelStickerProductDetailPage from './pages/ProductLabelStickerProductDetailPage'
-import TShirtPage from './pages/TShirtPage'
-import TShirtProductDetailPage from './pages/TShirtProductDetailPage'
-import WallWatchPage from './pages/WallWatchPage'
-import WallWatchDesignerPage from './pages/WallWatchDesignerPage'
-
-
 
 function App() {
   return (
@@ -127,6 +127,7 @@ function App() {
           <WishlistProvider>
           <DesignProvider>
             <CartSync />
+            <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/admin/login" element={<AdminLoginPage />} />
               <Route
@@ -175,26 +176,14 @@ function App() {
                 <Route path="category-carousel" element={<AdminCategoryCarouselPage />} />
                 <Route path="product-reels" element={<AdminProductReelsPage />} />
                 <Route path="integrations" element={<AdminIntegrationsPage />} />
-                <Route path="analytics" element={<LazyAdmin><AdminAnalyticsPage /></LazyAdmin>} />
+                <Route path="analytics" element={<AdminAnalyticsPage />} />
                 <Route path="reviews" element={<AdminReviewsPage />} />
-                <Route
-                  path="roles"
-                  element={<AdminRolesPage />}
-                />
-                <Route
-                  path="notifications"
-                  element={<LazyAdmin><AdminNotificationsPage /></LazyAdmin>}
-                />
-                <Route
-                  path="system"
-                  element={<LazyAdmin><AdminSystemPage /></LazyAdmin>}
-                />
+                <Route path="roles" element={<AdminRolesPage />} />
+                <Route path="notifications" element={<AdminNotificationsPage />} />
+                <Route path="system" element={<AdminSystemPage />} />
                 <Route path="settings" element={<AdminSettingsIndexPage />} />
                 <Route path="settings/:section" element={<AdminSettingsPage />} />
-                <Route
-                  path="profile"
-                  element={<AdminProfilePage />}
-                />
+                <Route path="profile" element={<AdminProfilePage />} />
               </Route>
 
               <Route element={<AppLayout />}>
@@ -203,7 +192,6 @@ function App() {
                 <Route path="wishlist" element={<WishlistPage />} />
                 <Route path="products/:slug" element={<ProductDesignerPage />} />
                 <Route path="category/:categoryType" element={<CategoryPage />} />
-                {/* NEW: God Photo Frame + Name Plate routes (standalone) */}
                 <Route path="god-photo-frames" element={<GodPhotosPage />} />
                 <Route path="god-photo-frames/:slug" element={<GodProductDetailPage />} />
                 <Route path="name-plates" element={<NamePlatePage />} />
@@ -279,6 +267,7 @@ function App() {
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Routes>
+            </Suspense>
              <FloatingWhatsApp />
           </DesignProvider>
           </WishlistProvider>

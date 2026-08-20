@@ -11,6 +11,7 @@ import { ensureTrophies } from './seedTrophies.js';
 import { ensurePenPrints } from './seedPenPrints.js';
 import { ensureUvDtfStickers } from './seedUvDtfStickers.js';
 import { ensureProductLabelStickers } from './seedProductLabelStickers.js';
+import { ensureTShirtProducts } from './seedTShirtProducts.js';
 import { ensureHomeTestimonials } from './seedHomeTestimonials.js';
 import { ensureHomeOfferMarquee } from './seedHomeOfferMarquee.js';
 import { ensureStoreSettings } from './seedStoreSettings.js';
@@ -30,6 +31,7 @@ export {
   ensurePenPrints,
   ensureUvDtfStickers,
   ensureProductLabelStickers,
+  ensureTShirtProducts,
   ensureHomeTestimonials,
   ensureHomeOfferMarquee,
 };

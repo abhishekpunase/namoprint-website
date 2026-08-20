@@ -1,10 +1,10 @@
-/** Polaroid collage frame — matches /mockups/frame-collage.svg (1024×1536) */
+/** Polaroid collage frame — matches /products/mockups/frame-collage.svg (1024×1536) */
 import { getProductCustomizationTemplate } from './customizationTemplates.js'
 import { finalizePhotoSlots } from '../utils/mockupSlotShapes.js'
 
 export const COLLAGE_FRAME_MOCKUP = {
   canvas: { width: 1024, height: 1536 },
-  frameImage: '/mockups/frame-collage.svg',
+  frameImage: '/products/mockups/frame-collage.svg',
   photoBoxes: [
     { id: 1, x: 75, y: 95, width: 515, height: 550 },
     { id: 2, x: 300, y: 500, width: 530, height: 440 },

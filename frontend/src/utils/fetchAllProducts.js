@@ -12,6 +12,8 @@ export async function fetchAllPaginated(requestPage, query = '') {
   let allItems = [];
   let total = Infinity;
   let lastPayload = null;
+  const seenFirstIds = new Set();
+  const pageLimit = Number(base.get('limit')) || STOREFRONT_PAGE_SIZE;
 
   while (page <= MAX_PAGES && allItems.length < total) {
     base.set('page', String(page));
@@ -19,9 +21,13 @@ export async function fetchAllPaginated(requestPage, query = '') {
     const payload = await requestPage(qs);
     lastPayload = payload;
     const items = payload?.items || [];
-    total = payload?.pagination?.total ?? items.length;
+    const firstId = items[0]?._id || items[0]?.id || items[0]?.slug;
+    if (firstId && seenFirstIds.has(firstId)) break;
+    if (firstId) seenFirstIds.add(firstId);
+    total = Number(payload?.pagination?.total);
+    if (!Number.isFinite(total) || total < 0) total = allItems.length + items.length;
     allItems = allItems.concat(items);
-    if (!items.length || allItems.length >= total) break;
+    if (!items.length || allItems.length >= total || items.length < pageLimit) break;
     page += 1;
   }
 

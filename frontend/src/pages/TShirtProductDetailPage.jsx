@@ -28,6 +28,7 @@ export default function TShirtProductDetailPage() {
   const fileRef = useRef(null)
 
   const [product, setProduct] = useState(null)
+  const [loadError, setLoadError] = useState('')
   const [relatedProducts, setRelatedProducts] = useState([])
   const [activeImage, setActiveImage] = useState(0)
   const [sizeQuantities, setSizeQuantities] = useState(emptySizeMap(DEFAULT_SIZES))
@@ -39,6 +40,8 @@ export default function TShirtProductDetailPage() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
+    setProduct(null)
+    setLoadError('')
     tShirtApi
       .get(slug)
       .then((payload) => {
@@ -46,7 +49,10 @@ export default function TShirtProductDetailPage() {
         setProduct(p)
         setSizeQuantities(emptySizeMap(p?.sizes?.length ? p.sizes : DEFAULT_SIZES))
       })
-      .catch(() => setProduct(null))
+      .catch(() => {
+        setProduct(null)
+        setLoadError('This t-shirt product could not be found.')
+      })
   }, [slug])
 
   useEffect(() => {
@@ -133,6 +139,17 @@ export default function TShirtProductDetailPage() {
     } finally {
       setAdding(false)
     }
+  }
+
+  if (loadError) {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-24 text-center">
+        <p className="text-slate-600">{loadError}</p>
+        <Link to="/t-shirt-printing" className="mt-4 inline-block text-orange-600 hover:underline">
+          Browse t-shirt printing
+        </Link>
+      </div>
+    )
   }
 
   if (!product) {

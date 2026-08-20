@@ -106,7 +106,7 @@ const DEFAULT_CATEGORY_CAROUSEL = [
     label: 'Photo Collage',
     productType: 'photo-collage',
     videoUrl: 'https://test-videos.co.uk/vids/sintel/mp4/h264/360/Sintel_360_10s_1MB.mp4',
-    posterUrl: '/mockups/frame-collage.svg',
+    posterUrl: '/products/mockups/frame-collage.svg',
     sortOrder: 12,
   },
   {
@@ -122,7 +122,7 @@ const DEFAULT_CATEGORY_CAROUSEL = [
     productType: 'god-photo-frame',
     videoUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4',
     posterUrl:
-      'https://images.unsplash.com/photo-1604608672516-f1bc809a4e24?q=80&w=400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1605649487212-47bdab064df7?q=80&w=400&auto=format&fit=crop',
     sortOrder: 14,
   },
   {
@@ -138,10 +138,22 @@ const DEFAULT_CATEGORY_CAROUSEL = [
   linkUrl: `/products?type=${item.productType}`,
 }));
 
+const BROKEN_POSTER_URLS = new Set([
+  'https://images.unsplash.com/photo-1604608672516-f1bc809a4e24?q=80&w=400&auto=format&fit=crop',
+]);
+
 export async function ensureCategoryCarousel() {
   const count = await CategoryCarouselItem.countDocuments();
-  if (count > 0) return;
+  if (count === 0) {
+    await CategoryCarouselItem.insertMany(DEFAULT_CATEGORY_CAROUSEL);
+    console.log(`Shop category carousel seeded (${DEFAULT_CATEGORY_CAROUSEL.length} items).`);
+    return;
+  }
 
-  await CategoryCarouselItem.insertMany(DEFAULT_CATEGORY_CAROUSEL);
-  console.log(`Shop category carousel seeded (${DEFAULT_CATEGORY_CAROUSEL.length} items).`);
+  for (const item of DEFAULT_CATEGORY_CAROUSEL) {
+    await CategoryCarouselItem.updateMany(
+      { productType: item.productType, posterUrl: { $in: [...BROKEN_POSTER_URLS] } },
+      { $set: { posterUrl: item.posterUrl } },
+    );
+  }
 }

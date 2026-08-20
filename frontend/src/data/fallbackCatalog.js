@@ -1,11 +1,11 @@
 import { resolveFrameOverlay } from './frameVisuals'
 
-/** Static mockup assets in frontend/public/mockups/ — served at /mockups/... */
+/** Static mockup assets in frontend/public/products/mockups/ — served at /products/mockups/... */
 export const mockupImages = {
-  portrait: '/mockups/frame-portrait.svg',
-  square: '/mockups/frame-square.svg',
-  aluminium: '/mockups/frame-aluminium.svg',
-  collage: '/mockups/frame-collage.svg',
+  portrait: '/products/mockups/frame-portrait.svg',
+  square: '/products/mockups/frame-square.svg',
+  aluminium: '/products/mockups/frame-aluminium.svg',
+  collage: '/products/mockups/frame-collage.svg',
 }
 // export const homeCategories = [
 //   {
@@ -446,7 +446,7 @@ export const homeCategories = [
     label: 'God Photo Frame',
     value: 'god-photo-frame',
     video: CATEGORY_VIDEOS.godFrame,
-    poster: 'https://images.unsplash.com/photo-1604608672516-f1bc809a4e24?q=80&w=400&auto=format&fit=crop',
+    poster: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?q=80&w=400&auto=format&fit=crop',
   },
   {
     label: 'T-Shirt Printing',
@@ -528,7 +528,7 @@ const rawFallbackProducts = [
     isFeatured: false,
     mockup: {
       canvas: { width: 1024, height: 1536 },
-      frameImage: '/mockups/frame-collage.svg',
+      frameImage: '/products/mockups/frame-collage.svg',
       photoBoxes: [
         { id: 1, x: 75, y: 95, width: 515, height: 550 },
         { id: 2, x: 300, y: 500, width: 530, height: 440 },
@@ -816,7 +816,7 @@ const rawFallbackProducts = [
     isFeatured: true,
    mockup: {
   canvas: { width: 1024, height: 1536 },
-  frameImage: '/mockups/frame-collage.svg',
+  frameImage: '/products/mockups/frame-collage.svg',
   photoBoxes: [
     { id: 1, x: 75, y: 95, width: 515, height: 550 },
     { id: 2, x: 300, y: 500, width: 530, height: 440 },

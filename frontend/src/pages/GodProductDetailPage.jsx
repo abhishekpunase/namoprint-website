@@ -63,7 +63,7 @@ export default function GodProductDetailPage() {
         setRelatedProducts([...sameDeity, ...others].slice(0, 4))
       })
       .catch(() => setRelatedProducts([]))
-  }, [slug, product])
+  }, [slug, product?._id, product?.deity])
 
   const detailProduct = useMemo(() => {
     if (!product) return null

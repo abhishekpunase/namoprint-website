@@ -1,6 +1,8 @@
 import { parseSvgDimensions } from './mockupAnalyzer'
 import { resolveMediaUrl } from './mediaUrl'
 
+const frameDimensionCache = new Map()
+
 export function loadImageDimensions(url) {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -21,18 +23,34 @@ export async function getFrameDimensions(url) {
   const resolved = resolveMediaUrl(url)
   if (!resolved) return { width: 1000, height: 1000 }
 
-  const isSvg = resolved.toLowerCase().includes('.svg')
-  if (isSvg) {
-    try {
-      const res = await fetch(resolved)
-      const svgText = await res.text()
-      return parseSvgDimensions(svgText)
-    } catch {
-      /* fall through to raster probe */
-    }
-  }
+  const cached = frameDimensionCache.get(resolved)
+  if (cached) return cached
 
-  return loadImageDimensions(resolved)
+  const pending = (async () => {
+    const isSvg = resolved.toLowerCase().includes('.svg')
+    if (isSvg) {
+      try {
+        const res = await fetch(resolved)
+        if (!res.ok) throw new Error(`Frame SVG ${res.status}`)
+        const svgText = await res.text()
+        return parseSvgDimensions(svgText)
+      } catch {
+        /* fall through to raster probe */
+      }
+    }
+
+    return loadImageDimensions(resolved)
+  })()
+
+  frameDimensionCache.set(resolved, pending)
+  try {
+    const dims = await pending
+    frameDimensionCache.set(resolved, dims)
+    return dims
+  } catch (error) {
+    frameDimensionCache.delete(resolved)
+    throw error
+  }
 }
 
 export function scalePhotoBox(box, sourceCanvas, targetCanvas) {
