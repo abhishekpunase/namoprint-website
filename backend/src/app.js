@@ -39,19 +39,8 @@ const isAllowedOrigin = (origin) => {
 };
 
 app.set('trust proxy', 1);
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (isAllowedOrigin(origin)) {
-        callback(null, true);
-        return;
-      }
-      callback(null, false);
-    },
-    credentials: true,
-  }),
-);
+app.use(helmet());
+app.use(cors());
 app.use(compression());
 app.use(morgan(env.nodeEnv === 'production' ? 'combined' : 'dev'));
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
