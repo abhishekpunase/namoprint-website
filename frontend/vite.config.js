@@ -74,11 +74,13 @@ export default defineConfig(({ command, mode }) => {
     server: {
       port: 5173,
       strictPort: true,
+      allowedHosts: ['ft.namoprints.in', '.namoprints.in'],
       proxy: proxyFor(apiTarget),
     },
     preview: {
       port: 4173,
       strictPort: true,
+      allowedHosts: ['ft.namoprints.in', '.namoprints.in'],
       proxy: proxyFor(apiTarget),
     },
   }
