@@ -5,7 +5,12 @@ import tailwindcss from '@tailwindcss/vite'
 function normalizeDevApiTarget(value) {
   const raw = String(value || '').trim() || 'http://127.0.0.1:5000'
   // Windows often resolves "localhost" to ::1 first; the backend binds IPv4.
-  return raw.replace('://localhost', '://127.0.0.1')
+  const withIpv4 = raw.replace('://localhost', '://127.0.0.1')
+  try {
+    return new URL(withIpv4).origin
+  } catch {
+    return withIpv4.replace(/\/api(\/health)?\/?$/i, '').replace(/\/+$/, '')
+  }
 }
 
 const proxyFor = (apiTarget) => {

@@ -1,8 +1,21 @@
 function normalizeApiBase(raw) {
   if (!raw || typeof raw !== 'string') return ''
-  const trimmed = raw.trim().replace(/\/+$/, '')
+  let trimmed = raw.trim().replace(/\/+$/, '')
   if (!trimmed) return ''
+  // Allow pasting http://host/api/health from the browser.
+  trimmed = trimmed.replace(/\/health$/i, '')
   return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`
+}
+
+/** Origin only — strips /api or /api/health if pasted from a browser URL. */
+export function originFromEnvUrl(raw) {
+  const trimmed = String(raw || '').trim()
+  if (!trimmed || !/^https?:\/\//i.test(trimmed)) return ''
+  try {
+    return new URL(trimmed).origin
+  } catch {
+    return trimmed.replace(/\/api(\/health)?\/?$/i, '').replace(/\/+$/, '')
+  }
 }
 
 /** Resolve API base URL for dev (Vite proxy), production (same-origin), or explicit env. */
@@ -17,12 +30,15 @@ export function getApiBaseUrl() {
 export function getApiOrigin() {
   const base = getApiBaseUrl()
   if (base.startsWith('http')) {
-    try {
-      return new URL(base).origin
-    } catch {
-      return base.replace(/\/api\/?$/, '')
-    }
+    return originFromEnvUrl(base)
   }
+
+  // Relative VITE_API_BASE_URL=/api: use the backend origin from .env, not localhost:5173.
+  if (import.meta.env.DEV) {
+    const fromDevTarget = originFromEnvUrl(import.meta.env.VITE_DEV_API_TARGET)
+    if (fromDevTarget) return fromDevTarget
+  }
+
   if (typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin
   }

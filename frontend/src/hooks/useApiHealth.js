@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { checkApiHealth } from '../services/api'
 
-/** Polls /health — true when API + database are ready, false when offline, null while checking. */
+/** Polls `{API}/health` (e.g. http://host/api/health) — true when API + DB are ready. */
 export function useApiHealth() {
   const [apiOnline, setApiOnline] = useState(null)
 

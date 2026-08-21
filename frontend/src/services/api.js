@@ -3,10 +3,8 @@ import { fetchAllPaginated } from '../utils/fetchAllProducts'
 
 export async function checkApiHealth() {
   try {
-    const base = getApiBaseUrl()
-    const healthUrl = base.startsWith('http')
-      ? `${base.replace(/\/api\/?$/, '')}/health`
-      : '/health'
+    const base = getApiBaseUrl().replace(/\/+$/, '')
+    const healthUrl = `${base}/health`
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 8000)
     const response = await fetch(healthUrl, {

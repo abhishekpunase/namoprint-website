@@ -63,9 +63,8 @@ app.use(hpp());
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 app.use('/mockups', express.static(resolveFrontendStatic('mockups')));
 app.use('/products', express.static(resolveFrontendStatic('products')));
-app.use('/api', apiLimiter, routes);
 
-app.get('/health', async (_req, res) => {
+const healthHandler = async (_req, res) => {
   let db = 'disconnected';
   let ok = false;
 
@@ -80,7 +79,11 @@ app.get('/health', async (_req, res) => {
   }
 
   res.status(200).json({ ok, service: 'omgs-print-backend', db });
-});
+};
+
+app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
+app.use('/api', apiLimiter, routes);
 
 if (env.nodeEnv === 'production' && hasFrontendDist) {
   app.use(express.static(frontendDist, { index: false }));
