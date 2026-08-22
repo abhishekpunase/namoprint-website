@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FiEdit2, FiExternalLink, FiPlus, FiTrash2, FiUploadCloud, FiX } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 import { api } from '../../services/api'
 import { wallWatchApi } from '../../services/wallWatchApi'
+import { MockupEditor } from '../../components/admin/MockupEditor'
 import { ProductSeoFields } from '../../components/admin/products/ProductSeoFields'
 import { AdminSwitchCard, AdminToggle } from '../../components/admin/ui/AdminToggle'
 import { formatCurrency, getProductPrice } from '../../utils/format'
@@ -39,6 +40,8 @@ const emptyVariant = (shape = 'Circle', collageEnabled = false) => ({
   sku: '',
 })
 
+const DEFAULT_PHOTO_BOX = { x: 145, y: 145, width: 710, height: 710, rotate: 0, borderRadius: 355 }
+
 const emptyForm = {
   title: '',
   description: '',
@@ -51,6 +54,12 @@ const emptyForm = {
   images: [],
   thumbnail: '',
   frameImage: '',
+  canvasWidth: '1000',
+  canvasHeight: '1000',
+  photoBox: { ...DEFAULT_PHOTO_BOX },
+  photoBoxes: [],
+  multiSlot: false,
+  slotsFromMockup: false,
   variants: [emptyVariant('Circle')],
   isFeatured: false,
   isActive: true,
@@ -67,6 +76,43 @@ export function AdminWallWatchProductsPage() {
   const [message, setMessage] = useState('')
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  const mockupEditorValue = useMemo(
+    () => ({
+      canvasWidth: String(form.canvasWidth || 1000),
+      canvasHeight: String(form.canvasHeight || 1000),
+      frameImage: form.frameImage || '',
+      photoBox: form.photoBox || { ...DEFAULT_PHOTO_BOX },
+      photoBoxes: form.photoBoxes || [],
+      multiSlot: Boolean(form.multiSlot || (form.photoBoxes || []).length > 1),
+    }),
+    [form.canvasWidth, form.canvasHeight, form.frameImage, form.photoBox, form.photoBoxes, form.multiSlot],
+  )
+
+  const handleMockupEditorChange = (patch) => {
+    setForm((prev) => {
+      const next = { ...prev, slotsFromMockup: true }
+      if (patch.canvasWidth != null) next.canvasWidth = String(patch.canvasWidth)
+      if (patch.canvasHeight != null) next.canvasHeight = String(patch.canvasHeight)
+      if (patch.frameImage != null) next.frameImage = patch.frameImage
+      if (patch.photoBox) next.photoBox = patch.photoBox
+      if (patch.photoBoxes) next.photoBoxes = patch.photoBoxes
+      if (patch.multiSlot != null) next.multiSlot = Boolean(patch.multiSlot)
+      return next
+    })
+  }
+
+  const handleMockupFrameUpload = async (file) => {
+    setUploading(true)
+    try {
+      const payload = await api.uploadPhoto(file)
+      const url = payload.asset?.url || payload.asset?.optimizedUrl || ''
+      if (url) setForm((prev) => ({ ...prev, frameImage: url, slotsFromMockup: true }))
+      return url
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const loadProducts = () =>
     wallWatchApi
@@ -241,6 +287,12 @@ export function AdminWallWatchProductsPage() {
       images: product.images || [],
       thumbnail: product.thumbnail || '',
       frameImage: product.mockup?.frameImage || '',
+      canvasWidth: String(product.mockup?.canvas?.width || 1000),
+      canvasHeight: String(product.mockup?.canvas?.height || 1000),
+      photoBox: product.mockup?.photoBox || { ...DEFAULT_PHOTO_BOX },
+      photoBoxes: product.mockup?.photoBoxes || [],
+      multiSlot: Boolean(product.mockup?.photoBoxes?.length > 1),
+      slotsFromMockup: Boolean(product.mockup?.slotsFromMockup),
       variants: (product.variants || []).map((v) => ({
         size: v.size || '',
         frameType: v.frameType || '',
@@ -491,7 +543,7 @@ export function AdminWallWatchProductsPage() {
             <div className="admin-form-section">
               <h3 className="admin-form-section__title">Images</h3>
               <p className="admin-panel-desc">
-                Listing/card image (shown on wall watches page). Optional mockup frame for designer overlay.
+                Listing/card image (shown on wall watches page). Use Mockup adjust below so photos sit inside the frame opening.
               </p>
               <div className="admin-image-list">
                 {form.images.map((url, index) => (
@@ -512,27 +564,26 @@ export function AdminWallWatchProductsPage() {
                   <FiUploadCloud /> Card thumbnail
                   <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e, 'thumbnail')} disabled={uploading} />
                 </label>
-                <label className="btn btn-ghost admin-upload-btn">
-                  <FiUploadCloud /> Mockup frame (optional)
-                  <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(e, 'frameImage')} disabled={uploading} />
-                </label>
               </div>
-              {(form.thumbnail || form.frameImage) && (
-                <div className="admin-form-cols-2">
-                  {form.thumbnail && (
-                    <div>
-                      <small>Card thumbnail</small>
-                      <img src={resolveMediaUrl(form.thumbnail)} alt="" className="admin-image-thumb admin-image-thumb-lg" />
-                    </div>
-                  )}
-                  {form.frameImage && (
-                    <div>
-                      <small>Mockup frame</small>
-                      <img src={resolveMediaUrl(form.frameImage)} alt="" className="admin-image-thumb admin-image-thumb-lg" />
-                    </div>
-                  )}
+              {form.thumbnail && (
+                <div>
+                  <small>Card thumbnail</small>
+                  <img src={resolveMediaUrl(form.thumbnail)} alt="" className="admin-image-thumb admin-image-thumb-lg" />
                 </div>
               )}
+            </div>
+
+            <div className="admin-form-section">
+              <h3 className="admin-form-section__title">Mockup adjust (like acrylic)</h3>
+              <p className="admin-panel-desc">
+                Upload the PNG frame, then drag / resize the photo window so the photo sits inside the opening — no overlap on the gold bezel.
+              </p>
+              <MockupEditor
+                value={mockupEditorValue}
+                onChange={handleMockupEditorChange}
+                onUploadFrame={handleMockupFrameUpload}
+                uploading={uploading}
+              />
             </div>
 
             <div className="admin-form-section admin-seo-section">

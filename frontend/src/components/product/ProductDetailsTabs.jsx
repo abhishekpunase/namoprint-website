@@ -98,11 +98,6 @@ function getFallbackSpecs(product) {
   ]
 }
 
-function getFallbackGallery(product) {
-  const seed = product?.id || product?.title || 'product'
-  return [1, 2, 3, 4].map((n) => `https://picsum.photos/seed/${seed}-gallery-${n}/500/500`)
-}
-
 function Stars({ rating, size = 'h-4 w-4' }) {
   return (
     <div className="flex items-center gap-0.5">
@@ -392,7 +387,6 @@ export function ProductDetailsTabs({ product, reviews }) {
     : ['Made in India', 'Ready to Hang', 'Fast Delivery', 'Free BG Removal']
 
   const specs = product?.specs?.length ? product.specs : getFallbackSpecs(product)
-  const gallery = product?.gallery?.length ? product.gallery : getFallbackGallery(product)
 
   const handleAddReview = (newReview) => {
     setAllReviews((prev) => [newReview, ...prev])
@@ -505,20 +499,6 @@ export function ProductDetailsTabs({ product, reviews }) {
                 </div>
               ))}
             </dl>
-          </div>
-        )}
-
-        {/* Gallery — extra product photos */}
-        {gallery.length > 0 && (
-          <div className="mt-14">
-            <h3 className="mb-5 text-lg font-bold text-slate-800">Gallery</h3>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {gallery.map((src, i) => (
-                <div key={i} className="aspect-square overflow-hidden rounded-xl bg-slate-100">
-                  <img src={src} alt={`${product?.title || 'Product'} gallery ${i + 1}`} className="h-full w-full object-cover" />
-                </div>
-              ))}
-            </div>
           </div>
         )}
       </div>

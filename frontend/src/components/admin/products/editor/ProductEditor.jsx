@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box,
   Image as ImageIcon,
@@ -34,6 +34,7 @@ export function ProductEditor({ editor, mode = 'create', productId }) {
   const [mediaOpen, setMediaOpen] = useState(false)
   const [mobileTab, setMobileTab] = useState('edit')
   const [analyzingFrame, setAnalyzingFrame] = useState(false)
+  const lastDetectedFrameRef = useRef('')
 
   const {
     form,
@@ -98,13 +99,14 @@ export function ProductEditor({ editor, mode = 'create', productId }) {
     setAnalyzingFrame(true)
     try {
       const analysis = await analyzeMockupFromUrl(url, { forAdmin: true })
+      lastDetectedFrameRef.current = url
       handleMockupChange({
         frameImage: url,
         canvasWidth: String(analysis.canvasWidth),
         canvasHeight: String(analysis.canvasHeight),
         photoBox: analysis.photoBox,
-        photoBoxes: analysis.photoBoxes,
-        multiSlot: analysis.multiSlot,
+        photoBoxes: analysis.photoBoxes || [],
+        multiSlot: Boolean(analysis.multiSlot),
         slotCount: analysis.slotCount,
       })
     } catch {
@@ -118,16 +120,17 @@ export function ProductEditor({ editor, mode = 'create', productId }) {
     setAnalyzingFrame(true)
     try {
       const analysis = await analyzeMockupFile(file, { forAdmin: true })
+      const url = await handleFrameUpload(file)
+      if (url) lastDetectedFrameRef.current = url
       handleMockupChange({
+        ...(url ? { frameImage: url } : {}),
         canvasWidth: String(analysis.canvasWidth),
         canvasHeight: String(analysis.canvasHeight),
         photoBox: analysis.photoBox,
-        photoBoxes: analysis.photoBoxes,
-        multiSlot: analysis.multiSlot,
+        photoBoxes: analysis.photoBoxes || [],
+        multiSlot: Boolean(analysis.multiSlot),
         slotCount: analysis.slotCount,
       })
-      const url = await handleFrameUpload(file)
-      if (url) handleMockupChange({ frameImage: url })
     } catch {
       const url = await handleFrameUpload(file)
       if (url) handleMockupChange({ frameImage: url })
@@ -135,6 +138,51 @@ export function ProductEditor({ editor, mode = 'create', productId }) {
       setAnalyzingFrame(false)
     }
   }
+
+  // Same mockup in live preview + MockupEditor: auto-detect blank windows when frame has no slots yet
+  useEffect(() => {
+    const frameUrl = form.frameImage || ''
+    if (!frameUrl) return undefined
+
+    // Real detections live in photoBoxes (multi) or after we already ran analyze for this URL.
+    // Do NOT treat default emptyForm boxWidth (820) as "already detected".
+    const hasDetectedMulti =
+      Array.isArray(form.photoBoxes) && form.photoBoxes.some((b) => Number(b?.width) > 0)
+
+    if (hasDetectedMulti) {
+      lastDetectedFrameRef.current = frameUrl
+      return undefined
+    }
+
+    if (lastDetectedFrameRef.current === frameUrl) return undefined
+
+    let cancelled = false
+    lastDetectedFrameRef.current = frameUrl
+
+    ;(async () => {
+      setAnalyzingFrame(true)
+      try {
+        const analysis = await analyzeMockupFromUrl(frameUrl, { forAdmin: true })
+        if (cancelled) return
+        handleMockupChange({
+          canvasWidth: String(analysis.canvasWidth),
+          canvasHeight: String(analysis.canvasHeight),
+          photoBox: analysis.photoBox,
+          photoBoxes: analysis.photoBoxes || [],
+          multiSlot: Boolean(analysis.multiSlot),
+          slotCount: analysis.slotCount,
+        })
+      } catch {
+        // keep frame; user can still click Auto-detect in MockupEditor
+      } finally {
+        if (!cancelled) setAnalyzingFrame(false)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [form.frameImage, form.photoBoxes])
 
   const handlePreviewGalleryUpload = async (files) => {
     await handleImagesUpload(files)

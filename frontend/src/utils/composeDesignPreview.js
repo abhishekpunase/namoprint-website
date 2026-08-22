@@ -1,8 +1,8 @@
-import { resolveCollageMockup } from '../data/collageFrameMockup'
+import { resolveCollageMockup, resolvePreviewPhotoBoxes, isBuiltInCatalogMockup } from '../data/collageFrameMockup'
 import { getProductFrameImage, usesLiveProductImage } from '../data/fallbackCatalog'
 import { getMockupFrameUrl } from './enrichProductMockup'
 import { prepareFrameOverlayForExport, shouldPunchFrameHoles, inferSlotClipPathsFromFrame } from './frameImageUtils'
-import { getObjectContainFit, resolveMockupLayout } from './mockupLayout'
+import { applyFitToPhotoBoxes, getObjectContainFit, resolveMockupLayout } from './mockupLayout'
 import { resolveMediaUrl } from './mediaUrl'
 import { drawClockFace, drawCssClockFrame, shouldShowClockDial } from './clockCanvasExport'
 import { HEX_PHOTO_FILL_SCALE, isHexClipPath } from './mockupSlotShapes'
@@ -121,9 +121,10 @@ function resolvePhotoSources({ slotPhotos = [], design = {}, photoUrl }) {
   return []
 }
 
-function resolvePhotoBoxes(product, collageMockup) {
+function resolvePhotoBoxes(product, variant, options, collageMockup) {
+  const fromPreview = resolvePreviewPhotoBoxes(product, variant, options)
+  if (fromPreview.length) return fromPreview
   if (collageMockup?.photoBoxes?.length) return collageMockup.photoBoxes
-  if (product?.mockup?.photoBoxes?.length > 1) return product.mockup.photoBoxes
   if (product?.mockup?.photoBox?.width) return [product.mockup.photoBox]
   return [{ x: 120, y: 120, width: 760, height: 760, borderRadius: 20 }]
 }
@@ -135,10 +136,12 @@ function resolveFrameOverlayUrl(product, variant, options) {
   const collageMockup = resolveCollageMockup(product, variant, options)
   const raw =
     collageMockup?.frameImage ||
-    product?.mockup?.frameImage ||
+    (product?.mockup?.frameImage && !isBuiltInCatalogMockup(product.mockup.frameImage)
+      ? product.mockup.frameImage
+      : '') ||
     getMockupFrameUrl(product) ||
     getProductFrameImage(product, variant, options) ||
-    product?.images?.[0] ||
+    (product?.images?.[0] && !isBuiltInCatalogMockup(product.images[0]) ? product.images[0] : '') ||
     ''
 
   return resolveMediaUrl(raw)
@@ -147,17 +150,22 @@ function resolveFrameOverlayUrl(product, variant, options) {
 async function resolveExportLayout(product, variant, options) {
   const collageMockup = resolveCollageMockup(product, variant, options)
   const frameUrl = resolveFrameOverlayUrl(product, variant, options)
-  const photoBoxesList = resolvePhotoBoxes(product, collageMockup)
+  const photoBoxesList = resolvePhotoBoxes(product, variant, options, collageMockup)
   const canvas = collageMockup?.canvas || product?.mockup?.canvas || { width: 1000, height: 1000 }
 
   let layoutBoxes = photoBoxesList
+  let fit = { left: 0, top: 0, width: 100, height: 100 }
   if (frameUrl) {
     const layout = await resolveMockupLayout(frameUrl, canvas, photoBoxesList)
     layoutBoxes = layout.photoBoxes?.length ? layout.photoBoxes : photoBoxesList
+    fit = layout.fit || fit
     layoutBoxes = await inferSlotClipPathsFromFrame(frameUrl, layoutBoxes, canvas)
   }
 
-  return { frameUrl, canvas, layoutBoxes, useCollageSlots: layoutBoxes.length > 1 }
+  // Punch/clip stay in authored canvas coords; drawing uses the same letterbox as PreviewFrame.
+  const drawBoxes = applyFitToPhotoBoxes(layoutBoxes, canvas, fit)
+
+  return { frameUrl, canvas, layoutBoxes, drawBoxes, fit, useCollageSlots: layoutBoxes.length > 1 }
 }
 
 async function drawFrameOverlay(ctx, frameUrl, canvas, layoutBoxes) {
@@ -199,7 +207,7 @@ export async function composeDesignPreview({
   slotPhotos = [],
   design = {},
   photoUrl,
-  quality = 0.92,
+  quality = 0.97,
   format = 'jpeg',
   frameColor,
   frameThicknessPx,
@@ -209,7 +217,7 @@ export async function composeDesignPreview({
     throw new Error('Upload at least one photo before adding to cart')
   }
 
-  const { frameUrl, canvas, layoutBoxes, useCollageSlots } = await resolveExportLayout(
+  const { frameUrl, canvas, layoutBoxes, drawBoxes } = await resolveExportLayout(
     product,
     variant,
     options,
@@ -217,13 +225,16 @@ export async function composeDesignPreview({
 
   const w = Math.max(1, Number(canvas.width) || 1000)
   const h = Math.max(1, Number(canvas.height) || 1000)
+  const printScale = 3
   const el = document.createElement('canvas')
-  el.width = w
-  el.height = h
+  el.width = Math.round(w * printScale)
+  el.height = Math.round(h * printScale)
   const ctx = el.getContext('2d')
+  ctx.scale(printScale, printScale)
 
   const showClock = shouldShowClockDial(product, options, variant)
-  const primaryBox = layoutBoxes[0]
+  const photoBoxes = drawBoxes?.length ? drawBoxes : layoutBoxes
+  const primaryBox = photoBoxes[0]
 
   if (!frameUrl && showClock) {
     drawCssClockFrame(ctx, canvas, {
@@ -236,7 +247,7 @@ export async function composeDesignPreview({
   }
 
   const loadedPhotos = await Promise.all(
-    layoutBoxes.map(async (_, index) => {
+    photoBoxes.map(async (_, index) => {
       const src = sources[index]?.url || sources[0]?.url
       if (!src) return null
       try {
@@ -250,11 +261,11 @@ export async function composeDesignPreview({
   const photosUnderFrame = Boolean(frameUrl)
 
   if (photosUnderFrame) {
-    for (let i = 0; i < layoutBoxes.length; i += 1) {
+    for (let i = 0; i < photoBoxes.length; i += 1) {
       const img = loadedPhotos[i]
       if (!img) continue
       const crop = sources[i]?.crop || sources[0]?.crop || design.crop
-      drawPhotoInBox(ctx, img, layoutBoxes[i], crop)
+      drawPhotoInBox(ctx, img, photoBoxes[i], crop)
     }
 
     if (showClock && primaryBox) {
@@ -267,11 +278,11 @@ export async function composeDesignPreview({
       /* keep photos-only export if frame fails */
     }
   } else {
-    for (let i = 0; i < layoutBoxes.length; i += 1) {
+    for (let i = 0; i < photoBoxes.length; i += 1) {
       const img = loadedPhotos[i]
       if (!img) continue
       const crop = sources[i]?.crop || sources[0]?.crop || design.crop
-      drawPhotoInBox(ctx, img, layoutBoxes[i], crop)
+      drawPhotoInBox(ctx, img, photoBoxes[i], crop)
     }
 
     if (showClock && primaryBox) {

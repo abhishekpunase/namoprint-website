@@ -184,7 +184,7 @@ export function OrderDetailsModal({ order, open, onClose }) {
                         </button>
                       </div>
                     </div>
-                    <small className="ord-detail-modal__hint">JPEG export at 300 DPI for print production</small>
+                    <small className="ord-detail-modal__hint">High-quality JPEG export at 320 DPI for print production</small>
                   </div>
                   )}
                 </div>

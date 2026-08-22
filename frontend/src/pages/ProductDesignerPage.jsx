@@ -286,14 +286,22 @@ export function ProductDesignerPage({
           },
           (file) => api.uploadPhoto(file),
         )
+        if (!composedDesignUrl) {
+          throw new Error('Could not save your framed design. Please try again.')
+        }
       }
 
-      const fallbackPreview =
-        design.photoUrl ||
-        slotPhotos.find((photo) => photo?.url)?.url ||
-        (skipDesignCompose ? getProductBaseImage(product) || product?.images?.[0] : '') ||
-        ''
+      const fallbackPreview = skipDesignCompose
+        ? design.photoUrl ||
+          slotPhotos.find((photo) => photo?.url)?.url ||
+          getProductBaseImage(product) ||
+          product?.images?.[0] ||
+          ''
+        : ''
       const previewUrl = composedDesignUrl || fallbackPreview
+      if (!previewUrl) {
+        throw new Error('Could not save your design preview. Please try again.')
+      }
 
       await addItem({
         product,

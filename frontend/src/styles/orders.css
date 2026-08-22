@@ -265,6 +265,36 @@
   font-size:.875rem}
 .ord-name-link strong {
   color:var(--admin-text)}
+.ord-name-link--with-frame {
+  align-items:center;
+  gap:10px;
+  display:flex;
+  min-width:0}
+.ord-name-link--with-frame span {
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:2px}
+.ord-name-link--with-frame small {
+  color:var(--admin-text-muted);
+  font-size:.7rem;
+  font-weight:500;
+  line-height:1.3;
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  max-width:220px}
+.ord-frame-thumb {
+  width:48px;
+  height:48px;
+  border-radius:10px;
+  object-fit:contain;
+  background:#f4f1ea;
+  border:1px solid var(--admin-border);
+  flex-shrink:0}
+.ord-frame-thumb--empty {
+  display:inline-block}
 .ord-products-cell {
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -442,6 +472,12 @@
   border-radius:6px;
   border:1px solid var(--admin-border);
   background:#fff}
+.ord-products-design-actions {
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+  display:flex}
 .ord-customization__list {
   margin:8px 0 0;
   display:grid;

@@ -39,7 +39,12 @@ const isAllowedOrigin = (origin) => {
 };
 
 app.set('trust proxy', 1);
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginEmbedderPolicy: false,
+  }),
+);
 app.use(cors());
 app.use(compression());
 app.use(morgan(env.nodeEnv === 'production' ? 'combined' : 'dev'));
@@ -49,9 +54,13 @@ app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(cookieParser(env.cookieSecret));
 app.use(mongoSanitize());
 app.use(hpp());
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
-app.use('/mockups', express.static(resolveFrontendStatic('mockups')));
-app.use('/products', express.static(resolveFrontendStatic('products')));
+const allowCrossOriginStatic = (_req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+};
+app.use('/uploads', allowCrossOriginStatic, express.static(path.join(__dirname, '..', 'uploads')));
+app.use('/mockups', allowCrossOriginStatic, express.static(resolveFrontendStatic('mockups')));
+app.use('/products', allowCrossOriginStatic, express.static(resolveFrontendStatic('products')));
 
 const healthHandler = async (_req, res) => {
   let db = 'disconnected';

@@ -18,7 +18,7 @@ import {
 
 } from '../../data/defaultCategoryCarousel'
 
-import { resolveMediaUrl } from '../../utils/mediaUrl'
+import { resolveMediaUrl, sanitizeCarouselVideoUrl } from '../../utils/mediaUrl'
 
 
 
@@ -34,7 +34,7 @@ function CategoryMedia({ video, poster, label }) {
 
   const resolvedPoster = resolveMediaUrl(poster)
 
-  const resolvedVideo = video ? resolveMediaUrl(video) : ''
+  const resolvedVideo = video ? sanitizeCarouselVideoUrl(video, label || '') : ''
 
 
 
@@ -76,7 +76,7 @@ function CategoryMedia({ video, poster, label }) {
 
       playsInline
 
-      preload="metadata"
+      preload="none"
 
       onError={() => setShowPoster(true)}
 

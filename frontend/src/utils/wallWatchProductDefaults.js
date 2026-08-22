@@ -1,5 +1,6 @@
 import { customizationTemplates } from '../data/customizationTemplates'
 import { mockupImages } from '../data/fallbackCatalog'
+import { isBuiltInCatalogMockup, resolveUploadedFrameImage } from '../data/collageFrameMockup'
 import { isWallWatchProduct } from './wallWatchCatalog'
 import {
   buildCollagePhotoBoxes,
@@ -83,24 +84,55 @@ export function buildWallWatchCustomizationGroups() {
   }))
 }
 
-export function buildWallWatchMockup(shape, uploadedFrameImage = '', collageOptions = {}) {
+export function buildWallWatchMockup(shape, uploadedFrameImage = '', collageOptions = {}, mockupOverrides = {}) {
   const { collageEnabled = false, collagePhotoCount = 4 } = collageOptions
   const safeShape = resolveWallWatchShape(shape)
   const preset = BASE_SHAPE_MOCKUPS[safeShape] || BASE_SHAPE_MOCKUPS.Circle
-  const canvas = { ...preset.canvas }
+  const canvas = mockupOverrides.canvas?.width
+    ? { width: Number(mockupOverrides.canvas.width), height: Number(mockupOverrides.canvas.height) }
+    : { ...preset.canvas }
+
+  const frameImage = uploadedFrameImage || mockupOverrides.frameImage || preset.frameImage || null
+  const adminBoxes = Array.isArray(mockupOverrides.photoBoxes)
+    ? mockupOverrides.photoBoxes.filter((b) => b && Number(b.width) > 0)
+    : []
+  const adminBox =
+    mockupOverrides.photoBox && Number(mockupOverrides.photoBox.width) > 0
+      ? mockupOverrides.photoBox
+      : null
+
+  // Admin MockupEditor slots win only when explicitly adjusted (acrylic-style)
+  const useAdminSlots = mockupOverrides.slotsFromMockup === true
+  if (useAdminSlots && adminBoxes.length > 1) {
+    return {
+      canvas,
+      photoBoxes: adminBoxes,
+      frameImage,
+      slotsFromMockup: true,
+    }
+  }
+  if (useAdminSlots && (adminBoxes.length === 1 || adminBox)) {
+    const box = adminBoxes[0] || adminBox
+    return {
+      canvas,
+      photoBox: { ...box },
+      frameImage,
+      slotsFromMockup: true,
+    }
+  }
 
   if (collageEnabled && isCollagePhotoCount(collagePhotoCount)) {
     return {
       canvas,
       photoBoxes: buildCollagePhotoBoxes(collagePhotoCount, canvas),
-      frameImage: uploadedFrameImage || preset.frameImage || null,
+      frameImage,
     }
   }
 
   return {
     canvas,
     ...(preset.photoBox ? { photoBox: { ...preset.photoBox } } : {}),
-    frameImage: uploadedFrameImage || preset.frameImage || null,
+    frameImage,
   }
 }
 
@@ -142,17 +174,36 @@ export function normalizeWallWatchProduct(product) {
   const collagePhotoCount = getCollagePhotoCount(product) || (collageEnabled ? 4 : 1)
   const collageOptions = { collageEnabled, collagePhotoCount: collageEnabled ? collagePhotoCount : 1 }
 
-  const built = buildWallWatchMockup(shape, product.mockup?.frameImage, collageOptions)
+  const built = buildWallWatchMockup(shape, resolveUploadedFrameImage(product) || '', collageOptions)
   const existingMockup = product.mockup || {}
+  const uploadedFrame = resolveUploadedFrameImage(product)
+  const existingFrame = existingMockup.frameImage && !isBuiltInCatalogMockup(existingMockup.frameImage)
+    ? existingMockup.frameImage
+    : null
+  const builtFrame = built.frameImage && !isBuiltInCatalogMockup(built.frameImage) ? built.frameImage : null
+  const polaroidSeed = isBuiltInCatalogMockup(existingMockup.frameImage)
 
   const mockup = {
     ...built,
     ...existingMockup,
-    canvas: existingMockup.canvas || built.canvas,
-    frameImage: existingMockup.frameImage || built.frameImage || null,
+    canvas: polaroidSeed ? built.canvas : existingMockup.canvas || built.canvas,
+    frameImage: uploadedFrame || existingFrame || builtFrame || null,
   }
 
-  if (collageEnabled) {
+  // Uploaded mockup: acrylic-style — photos only in analyzed inner opening, never overlap frame ring
+  if (uploadedFrame) {
+    if (existingMockup.slotsFromMockup && existingMockup.photoBoxes?.length > 1) {
+      mockup.photoBoxes = existingMockup.photoBoxes
+      delete mockup.photoBox
+    } else if (existingMockup.slotsFromMockup && existingMockup.photoBox) {
+      mockup.photoBox = existingMockup.photoBox
+      delete mockup.photoBoxes
+    } else {
+      delete mockup.photoBoxes
+      delete mockup.photoBox
+      mockup.slotsFromMockup = false
+    }
+  } else if (collageEnabled) {
     mockup.photoBoxes = built.photoBoxes
     delete mockup.photoBox
   } else if (!existingMockup.photoBox && built.photoBox) {
@@ -215,7 +266,16 @@ export function buildWallWatchAdminPayload(form, variants) {
     images: form.images,
     thumbnail: form.thumbnail || form.images[0] || '',
     personalization: buildWallWatchPersonalization(shape, collageOptions),
-    mockup: buildWallWatchMockup(shape, form.frameImage, collageOptions),
+    mockup: buildWallWatchMockup(shape, form.frameImage, collageOptions, {
+      frameImage: form.frameImage,
+      canvas: {
+        width: Number(form.canvasWidth) || 1000,
+        height: Number(form.canvasHeight) || 1000,
+      },
+      photoBox: form.photoBox,
+      photoBoxes: form.photoBoxes,
+      slotsFromMockup: Boolean(form.slotsFromMockup),
+    }),
     defaultOptions: buildWallWatchDefaultOptions(shape, framedVariants[0]?.size, collageOptions),
     customizationGroups: buildWallWatchCustomizationGroups(),
     customizationTabs: WALL_WATCH_TEMPLATE?.tabs || ['All', 'Collage'],

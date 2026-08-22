@@ -433,7 +433,7 @@ export const downloadOrderItemDesign = asyncHandler(async (req, res) => {
   const item = order.items.id(req.params.itemId);
   if (!item) throw new ApiError(404, 'Order item not found');
 
-  const buffer = await exportOrderItemDesignJpeg({ item, dpi: 300 });
+  const buffer = await exportOrderItemDesignJpeg({ item, dpi: 320 });
   const safeName = `${order.orderNo}-${item.sku || 'design'}.jpg`.replace(/[^\w.-]+/g, '-');
 
   res.setHeader('Content-Type', 'image/jpeg');

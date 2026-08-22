@@ -2,9 +2,10 @@ function normalizeApiBase(raw) {
   if (!raw || typeof raw !== 'string') return ''
   let trimmed = raw.trim().replace(/\/+$/, '')
   if (!trimmed) return ''
-  // Allow pasting http://host/api/health from the browser.
+  // Allow pasting http://host/api/health or http://host/api/api from the browser.
   trimmed = trimmed.replace(/\/health$/i, '')
-  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`
+  trimmed = trimmed.replace(/(?:\/api)+$/i, '/api')
+  return /\/api$/i.test(trimmed) ? trimmed : `${trimmed}/api`
 }
 
 /** Origin only — strips /api or /api/health if pasted from a browser URL. */
@@ -33,12 +34,7 @@ export function getApiOrigin() {
     return originFromEnvUrl(base)
   }
 
-  // Relative VITE_API_BASE_URL=/api: use the backend origin from .env, not localhost:5173.
-  if (import.meta.env.DEV) {
-    const fromDevTarget = originFromEnvUrl(import.meta.env.VITE_DEV_API_TARGET)
-    if (fromDevTarget) return fromDevTarget
-  }
-
+  // Relative /api: keep media on the same host so Vite/nginx can proxy /uploads.
   if (typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin
   }

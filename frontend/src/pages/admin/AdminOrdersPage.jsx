@@ -5,9 +5,26 @@ import { useOrderList } from '../../hooks/useOrderList'
 import { OrderAnalyticsBar, OrderPaymentMethod } from '../../components/admin/orders/OrderAnalytics'
 import { OrderPagination } from '../../components/admin/orders/OrderTable'
 import { OrderDetailsModal } from '../../components/admin/orders/OrderDetailsModal'
-import { ORDER_STATUSES } from '../../utils/orderAdminUtils'
+import { getOrderFramePreviewUrl, ORDER_STATUSES } from '../../utils/orderAdminUtils'
 import { formatCurrency } from '../../utils/format'
+import { resolveMediaUrl } from '../../utils/mediaUrl'
 import { Skeleton } from '../../components/admin/ui/Loader'
+
+function OrderFrameThumb({ order }) {
+  const src = resolveMediaUrl(getOrderFramePreviewUrl(order))
+  const title = order.items?.[0]?.title || 'Order frame'
+  if (!src) {
+    return <span className="ord-frame-thumb ord-frame-thumb--empty" aria-hidden="true" />
+  }
+  return (
+    <img
+      src={src}
+      alt={title}
+      title={title}
+      className="ord-frame-thumb"
+    />
+  )
+}
 
 const formatOrderDate = (value) =>
   value
@@ -53,8 +70,12 @@ function OrdersSimpleTable({ orders, loading, onStatusChange, onCancel, updating
             {orders.map((order) => (
               <tr key={order._id} className="ord-table__row">
                 <td>
-                  <Link to={`/admin/orders/${order._id}`} className="ord-name-link">
-                    <strong>{order.orderNo}</strong>
+                  <Link to={`/admin/orders/${order._id}`} className="ord-name-link ord-name-link--with-frame">
+                    <OrderFrameThumb order={order} />
+                    <span>
+                      <strong>{order.orderNo}</strong>
+                      {order.items?.[0]?.title ? <small>{order.items[0].title}</small> : null}
+                    </span>
                   </Link>
                 </td>
                 <td>
@@ -114,6 +135,7 @@ function OrdersSimpleTable({ orders, loading, onStatusChange, onCancel, updating
         {orders.map((order) => (
           <article key={order._id} className="ord-card">
             <div className="ord-card__head">
+              <OrderFrameThumb order={order} />
               <div>
                 <Link to={`/admin/orders/${order._id}`}><strong>{order.orderNo}</strong></Link>
                 <small>{order.customer?.name || 'Guest'}</small>

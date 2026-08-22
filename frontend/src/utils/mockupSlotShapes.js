@@ -119,19 +119,32 @@ export function isHexFrameProduct(product) {
 /** Apply hex clip only when the slot shape (or product) is hex — otherwise keep square/rect. */
 export function finalizePhotoSlot(box, { forceHex = false } = {}) {
   if (!box) return box
-  if (box.clipPath && isHexClipPath(box.clipPath)) return box
 
-  const fillRatio = Number(box.fillRatio)
-  const shouldHex =
-    forceHex ||
-    box.slotShape === 'hex' ||
-    (Number.isFinite(fillRatio) && fillRatio > 0 && isHexLikeFillRatio(fillRatio))
+  // Hex only when product/slot is explicitly hexagonal.
+  // Circular openings fill ~0.785 of bbox — same band as hex — so fillRatio alone is unsafe.
+  if (box.clipPath && isHexClipPath(box.clipPath)) {
+    if (forceHex || box.slotShape === 'hex') return box
+    return normalizeRectPhotoSlot(box)
+  }
 
+  const shouldHex = forceHex || box.slotShape === 'hex'
   if (shouldHex) {
-    return applyHexSlotClip(box, fillRatio ? 0.03 : 0.05)
+    return applyHexSlotClip(box, 0.03)
   }
 
   return normalizeRectPhotoSlot(box)
+}
+
+/** Round dial: drop polygon/hex clips so photo fills the circular opening only. */
+export function forceCircularPhotoSlot(box) {
+  if (!box) return box
+  const { clipPath: _c, fillRatio: _f, slotShape: _s, ...rest } = box
+  const minSide = Math.min(Number(rest.width) || 0, Number(rest.height) || 0)
+  return {
+    ...rest,
+    rotate: rest.rotate || 0,
+    borderRadius: Math.max(Number(rest.borderRadius) || 0, Math.round(minSide / 2)),
+  }
 }
 
 export function finalizePhotoSlots(photoBoxes = [], product = null) {

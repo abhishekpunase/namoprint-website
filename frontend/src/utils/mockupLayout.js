@@ -100,6 +100,87 @@ export function getObjectContainFit(stageCanvas, frameCanvas) {
   return { left: (100 - widthPct) / 2, top: 0, width: widthPct, height: 100 }
 }
 
+/**
+ * Grow photo slots so they fill the mockup opening and tuck slightly under the frame bezel.
+ * Prevents white crescent gaps (common on circular gold/black frames).
+ */
+export function fitPhotoBoxesToMockupOpening(boxes = [], canvas = { width: 1000, height: 1000 }, options = {}) {
+  const list = Array.isArray(boxes) ? boxes.filter((b) => b && Number(b.width) > 0 && Number(b.height) > 0) : []
+  if (!list.length) return list
+
+  const cw = Number(canvas?.width) || 1000
+  const ch = Number(canvas?.height) || 1000
+  const expandRatio = Number(options.expandRatio)
+  const grow = Number.isFinite(expandRatio) ? expandRatio : list.length > 1 ? 0.02 : 0.055
+  const forceCircular = Boolean(options.circular)
+
+  return list.map((box) => {
+    let x = Number(box.x) || 0
+    let y = Number(box.y) || 0
+    let width = Number(box.width) || 0
+    let height = Number(box.height) || 0
+    let borderRadius = Number(box.borderRadius) || 0
+
+    const growX = width * grow
+    const growY = height * grow
+    x = x - growX / 2
+    y = y - growY / 2
+    width = width + growX
+    height = height + growY
+
+    const nearCircular =
+      forceCircular ||
+      borderRadius >= Math.min(width, height) * 0.4
+
+    if (nearCircular) {
+      // Fill the full circular opening (use max side) so no crescent gap remains under the frame
+      const fill = Math.max(width, height)
+      const cx = x + width / 2
+      const cy = y + height / 2
+      x = cx - fill / 2
+      y = cy - fill / 2
+      width = fill
+      height = fill
+      borderRadius = fill / 2
+    }
+
+    // Clamp to canvas while keeping as much coverage as possible
+    if (x < 0) {
+      width += x
+      x = 0
+    }
+    if (y < 0) {
+      height += y
+      y = 0
+    }
+    if (x + width > cw) width = cw - x
+    if (y + height > ch) height = ch - y
+    width = Math.max(8, width)
+    height = Math.max(8, height)
+    if (nearCircular) {
+      // Prefer covering the opening: use max side when both still fit; otherwise min after clamp
+      let fill = Math.max(width, height)
+      if (x + fill > cw || y + fill > ch) fill = Math.min(width, height)
+      const cx = Math.min(cw - fill / 2, Math.max(fill / 2, x + width / 2))
+      const cy = Math.min(ch - fill / 2, Math.max(fill / 2, y + height / 2))
+      x = cx - fill / 2
+      y = cy - fill / 2
+      width = fill
+      height = fill
+      borderRadius = fill / 2
+    }
+
+    return {
+      ...box,
+      x: Math.round(x),
+      y: Math.round(y),
+      width: Math.round(width),
+      height: Math.round(height),
+      borderRadius: Math.round(borderRadius),
+    }
+  })
+}
+
 /** Align photo slots with object-contain frame rendering (matches admin MockupEditor). */
 export async function resolveMockupLayout(frameImage, mockupCanvas, photoBoxes) {
   const boxes = photoBoxes?.length ? photoBoxes : []
@@ -114,11 +195,14 @@ export async function resolveMockupLayout(frameImage, mockupCanvas, photoBoxes) 
 
   try {
     const frameCanvas = await getFrameDimensions(frameImage)
-    const fit = getObjectContainFit(sourceCanvas, frameCanvas)
+    // Keep slots in the same pixel space as the frame image so object-contain overlay aligns 1:1
+    // Scale only here — opening fill is applied once in PreviewFrame / enrichProductMockup
+    const scaledBoxes = scalePhotoBoxes(boxes, sourceCanvas, frameCanvas)
+    const fit = getObjectContainFit(frameCanvas, frameCanvas)
     return {
-      canvas: sourceCanvas,
+      canvas: frameCanvas,
       frameCanvas,
-      photoBoxes: boxes,
+      photoBoxes: scaledBoxes,
       fit,
     }
   } catch {
@@ -169,4 +253,29 @@ export function applyObjectContainFit(style, fit) {
     width: `${(widthPct / 100) * fit.width}%`,
     height: `${(heightPct / 100) * fit.height}%`,
   }
+}
+
+/** Pixel equivalent of applyObjectContainFit — used when drawing the cart/admin JPEG. */
+export function applyFitToPhotoBoxes(boxes = [], canvas, fit) {
+  if (!Array.isArray(boxes) || !boxes.length) return boxes
+  if (!fit || (fit.left === 0 && fit.top === 0 && fit.width === 100 && fit.height === 100)) {
+    return boxes
+  }
+
+  const cw = Number(canvas?.width) || 1
+  const ch = Number(canvas?.height) || 1
+  const originX = (Number(fit.left) / 100) * cw
+  const originY = (Number(fit.top) / 100) * ch
+  const scaleX = Number(fit.width) / 100
+  const scaleY = Number(fit.height) / 100
+  const radiusScale = Math.min(scaleX, scaleY)
+
+  return boxes.map((box) => ({
+    ...box,
+    x: originX + (Number(box.x) || 0) * scaleX,
+    y: originY + (Number(box.y) || 0) * scaleY,
+    width: (Number(box.width) || 0) * scaleX,
+    height: (Number(box.height) || 0) * scaleY,
+    borderRadius: box.borderRadius ? Number(box.borderRadius) * radiusScale : box.borderRadius,
+  }))
 }

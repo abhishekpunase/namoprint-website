@@ -188,6 +188,39 @@ export function getProductPreview(order) {
   return `${first} +${items.length - 1} more`
 }
 
+function productImageFromRef(ref) {
+  if (!ref || typeof ref !== 'object') return ''
+  return ref.images?.[0] || ref.heroImageUrl || ref.mockup?.frameImage || ref.mockup?.baseImageUrl || ''
+}
+
+/** Customer-designed frame (or product image fallback) for one line item */
+export function getOrderItemFramePreviewUrl(item) {
+  const composed = getCustomizationPreviewUrl(item)
+  if (composed) return composed
+  return (
+    productImageFromRef(item?.product) ||
+    productImageFromRef(item?.godProduct) ||
+    productImageFromRef(item?.namePlateProduct) ||
+    productImageFromRef(item?.tShirtProduct) ||
+    productImageFromRef(item?.corporateGiftProduct) ||
+    productImageFromRef(item?.babyBirthFrameProduct) ||
+    productImageFromRef(item?.trophyProduct) ||
+    productImageFromRef(item?.penPrintProduct) ||
+    productImageFromRef(item?.uvDtfStickerProduct) ||
+    productImageFromRef(item?.productLabelStickerProduct) ||
+    ''
+  )
+}
+
+/** First item frame image — used in admin order lists next to the name */
+export function getOrderFramePreviewUrl(order) {
+  for (const item of order?.items || []) {
+    const url = getOrderItemFramePreviewUrl(item)
+    if (url) return url
+  }
+  return ''
+}
+
 export function matchesOrderSearch(order, query) {
   const q = query.trim().toLowerCase()
   if (!q) return true

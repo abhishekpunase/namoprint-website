@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { CartContext } from './CartContextBase'
-import { api } from '../services/api'
+import { api, hasStoredSession } from '../services/api'
 
 const fallbackCart = () => {
   try {
@@ -222,6 +222,7 @@ export function CartProvider({ children }) {
   }, [])
 
   const refresh = useCallback(async () => {
+    if (!hasStoredSession()) return cartRef.current
     try {
       const payload = await api.cart()
       if (payload.cart?.items?.length) {
@@ -236,6 +237,7 @@ export function CartProvider({ children }) {
   }, [persist])
 
   const syncToServer = useCallback(async () => {
+    if (!hasStoredSession()) return cartRef.current
     let localItems = cartRef.current.items || []
 
     const resolvedItems = []

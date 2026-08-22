@@ -72,3 +72,34 @@ export function buildCollagePhotoBoxes(count = 4, canvas = DEFAULT_CANVAS) {
 export function isCollagePhotoCount(count) {
   return WALL_WATCH_COLLAGE_COUNTS.includes(Number(count))
 }
+
+/** Keep collage slots inside the analyzed mockup window so photos never overlap the frame ring */
+export function insetCollageBoxesInWindow(count, windowBox, canvas = DEFAULT_CANVAS) {
+  if (!windowBox || !(Number(windowBox.width) > 0) || !(Number(windowBox.height) > 0)) {
+    return buildCollagePhotoBoxes(count, canvas)
+  }
+  // Expand window slightly under the frame bezel so collage fills the mockup opening
+  const expand = Math.max(6, Math.round(Math.min(windowBox.width, windowBox.height) * 0.03))
+  const opened = {
+    x: Number(windowBox.x) - expand / 2,
+    y: Number(windowBox.y) - expand / 2,
+    width: Number(windowBox.width) + expand,
+    height: Number(windowBox.height) + expand,
+    borderRadius: Number(windowBox.borderRadius) || 0,
+  }
+  const pad = Math.max(3, Math.round(Math.min(opened.width, opened.height) * 0.01))
+  const inner = {
+    width: Math.max(40, Number(opened.width) - pad * 2),
+    height: Math.max(40, Number(opened.height) - pad * 2),
+  }
+  const local = buildCollagePhotoBoxes(count, inner)
+  const radius = Number(opened.borderRadius) || 0
+  const circular = radius >= Math.min(opened.width, opened.height) * 0.45
+
+  return local.map((box) => ({
+    ...box,
+    x: Math.round(Number(opened.x) + pad + box.x),
+    y: Math.round(Number(opened.y) + pad + box.y),
+    borderRadius: circular ? Math.round(Math.min(box.width, box.height) / 2) : box.borderRadius,
+  }))
+}

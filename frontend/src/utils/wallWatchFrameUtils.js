@@ -23,18 +23,25 @@ export const STAR_CLIP_PATH =
 export const WALL_CLOCK_SVG_FRAME_SHAPES = new Set(['Circle', 'Square', 'Square Round'])
 
 export function isGenericSquareFrameUrl(url = '') {
-  return /frame-square\.svg/i.test(String(url))
+  return /frame[-_]?square\.svg/i.test(String(url))
 }
 
 export function wallWatchShouldUseSvgFrame(product, options = {}, variant = {}, frameImage = '') {
   if (!frameImage) return false
   const productType = product?.productType || ''
+  // Acrylic / other framed products — always overlay when a frame image exists
   if (productType !== 'custom-wall-watch' && productType !== 'photo-clock') return true
 
   const shape = options?.shape || product?.defaultOptions?.shape || variant?.frameType || 'Circle'
   const savedFrame = product?.mockup?.frameImage || ''
 
-  if (savedFrame && !isGenericSquareFrameUrl(savedFrame)) return true
+  // Admin-uploaded mockup — always overlay so photos sit inside the opening (acrylic-style)
+  if (savedFrame && !isGenericSquareFrameUrl(savedFrame) && !/\/products\/mockups\//i.test(savedFrame)) {
+    return true
+  }
+  if (frameImage && !isGenericSquareFrameUrl(frameImage) && !/\/products\/mockups\//i.test(frameImage)) {
+    return true
+  }
   if (isGenericSquareFrameUrl(frameImage) && !WALL_CLOCK_SVG_FRAME_SHAPES.has(shape)) return false
 
   return true

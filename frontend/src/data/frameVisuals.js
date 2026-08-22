@@ -17,7 +17,7 @@ const FRAME_TYPE_OVERLAY = {
   sheet: null,
   'dual border': mockupImages.portrait,
   floating: mockupImages.aluminium,
-  collage: mockupImages.collage,
+  collage: null,
   round: mockupImages.square,
   circle: mockupImages.square,
   square: mockupImages.square,
@@ -105,21 +105,27 @@ export function resolveFrameOverlay(product, variant, options = {}) {
 
   if (frameType === 'no frame' || frameType === 'none') return null
 
-  // Admin-uploaded mockup always wins when present
-  if (product?.mockup?.frameImage) return product.mockup.frameImage
+  // Admin-uploaded mockup always wins — skip bundled /products/mockups assets
+  const savedFrame = product?.mockup?.frameImage || ''
+  if (savedFrame && !String(savedFrame).includes('/products/mockups/')) return savedFrame
+  if (product?.thumbnail && !String(product.thumbnail).includes('/products/mockups/')) {
+    return product.thumbnail
+  }
+  const listingImage = product?.images?.[0]
+  if (listingImage && !String(listingImage).includes('/products/mockups/')) return listingImage
 
   if (frameType && FRAME_TYPE_OVERLAY[frameType] !== undefined) {
     return FRAME_TYPE_OVERLAY[frameType]
   }
 
-  if (frameType.includes('collage')) return mockupImages.collage
+  if (frameType.includes('collage')) return null
   if (frameType.includes('float')) return mockupImages.aluminium
   if (frameType.includes('dual') || frameType.includes('border')) return mockupImages.portrait
   if (frameType.includes('round') || frameType.includes('circle') || frameType.includes('square')) {
     return mockupImages.square
   }
 
-  if (options.layout === 'Collage') return mockupImages.collage
+  if (options.layout === 'Collage') return null
 
   return undefined
 }

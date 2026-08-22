@@ -37,7 +37,7 @@ export const DEFAULT_PRODUCT_REELS = [
     productName: 'Wall Photo',
     priceLabel: '₹399',
     likesLabel: '5.3K',
-    videoUrl: 'https://samplelib.com/lib/preview/mp4/sample-15s.mp4',
+    videoUrl: 'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766941654703-romtz.mp4',
   },
 ]
 

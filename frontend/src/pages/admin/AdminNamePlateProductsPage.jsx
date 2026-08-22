@@ -206,7 +206,7 @@ export function AdminNamePlateProductsPage() {
       {message && <p className="form-success">{message}</p>}
 
       {tab === 'products' && (
-        <div className="admin-split admin-split-form">
+        <div className="admin-split-stack">
           <section className="admin-panel">
             <h2>{editingId ? 'Edit name plate' : 'Add name plate'}</h2>
             <form className="admin-form" onSubmit={submit}>
@@ -333,7 +333,7 @@ export function AdminNamePlateProductsPage() {
             </form>
           </section>
 
-          <section className="admin-panel admin-panel-wide">
+          <section className="admin-panel">
             <h2>All name plates ({products.length})</h2>
             <div className="admin-table-wrap">
               <table className="admin-table">

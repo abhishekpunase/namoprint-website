@@ -1,4 +1,5 @@
 import { normalizeCategoryLink, resolveCategoryLink } from '../config/categoryRoutes'
+import { sanitizeCarouselVideoUrl } from '../utils/mediaUrl'
 
 /** Fallback when API has no items — mirrors backend seed */
 const RAW_CATEGORY_CAROUSEL = [
@@ -41,7 +42,7 @@ const RAW_CATEGORY_CAROUSEL = [
   {
     label: 'Name Plates',
     productType: 'acrylic-name-plate',
-    videoUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4',
+    videoUrl: 'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766941654703-romtz.mp4',
     posterUrl:
       'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=400&auto=format&fit=crop',
     linkUrl: '/products?type=acrylic-name-plate',
@@ -49,7 +50,7 @@ const RAW_CATEGORY_CAROUSEL = [
   {
     label: 'QR Standee',
     productType: 'logo-stickers',
-    videoUrl: 'https://test-videos.co.uk/vids/sintel/mp4/h264/360/Sintel_360_10s_1MB.mp4',
+    videoUrl: 'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766938943981-d5vchq.mp4',
     posterUrl:
       'https://images.unsplash.com/photo-1611162617474-5b21e939e113?q=80&w=400&auto=format&fit=crop',
     linkUrl: '/products?type=logo-stickers',
@@ -57,7 +58,7 @@ const RAW_CATEGORY_CAROUSEL = [
   {
     label: 'Trophies',
     productType: 'trophy',
-    videoUrl: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4',
+    videoUrl: 'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766942064646-wtya9i.mp4',
     posterUrl:
       'https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?q=80&w=400&auto=format&fit=crop',
     linkUrl: '/products?type=trophy',
@@ -65,7 +66,7 @@ const RAW_CATEGORY_CAROUSEL = [
   {
     label: 'Corporate Gifts',
     productType: 'corporate-gift-printing',
-    videoUrl: 'https://filesamples.com/samples/video/mp4/sample_960x540.mp4',
+    videoUrl: 'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766941654703-romtz.mp4',
     posterUrl:
       'https://images.unsplash.com/photo-1549460340-1734792b3b0c?q=80&w=400&auto=format&fit=crop',
     linkUrl: '/products?type=corporate-gift-printing',
@@ -73,7 +74,7 @@ const RAW_CATEGORY_CAROUSEL = [
   {
     label: 'Wedding Card',
     productType: 'uv-dtf-stickers',
-    videoUrl: 'https://filesamples.com/samples/video/mp4/sample_1280x720.mp4',
+    videoUrl: 'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766938943981-d5vchq.mp4',
     posterUrl:
       'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=400&auto=format&fit=crop',
     linkUrl: '/products?type=uv-dtf-stickers',
@@ -81,7 +82,7 @@ const RAW_CATEGORY_CAROUSEL = [
   {
     label: 'Monogram Plates',
     productType: 'acrylic-monogram-nameplate',
-    videoUrl: 'https://filesamples.com/samples/video/mp4/sample_640x360.mp4',
+    videoUrl: 'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766942064646-wtya9i.mp4',
     posterUrl:
       'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=400&auto=format&fit=crop',
     linkUrl: '/products?type=acrylic-monogram-nameplate',
@@ -89,7 +90,7 @@ const RAW_CATEGORY_CAROUSEL = [
   {
     label: 'Wooden Photo Frame',
     productType: 'wooden-photo-frame',
-    videoUrl: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',
+    videoUrl: 'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766941654703-romtz.mp4',
     posterUrl:
       'https://images.unsplash.com/photo-1560246700-09c521411a7d?q=80&w=400&auto=format&fit=crop',
     linkUrl: '/products?type=wooden-photo-frame',
@@ -106,14 +107,14 @@ const RAW_CATEGORY_CAROUSEL = [
   {
     label: 'Photo Collage',
     productType: 'photo-collage',
-    videoUrl: 'https://test-videos.co.uk/vids/sintel/mp4/h264/360/Sintel_360_10s_1MB.mp4',
+    videoUrl: 'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766938943981-d5vchq.mp4',
     posterUrl: '/products/mockups/frame-collage.svg',
     linkUrl: '/products?type=photo-collage',
   },
   {
     label: 'Canvas Print',
     productType: 'canvas-print',
-    videoUrl: 'https://filesamples.com/samples/video/mp4/sample_1280x720.mp4',
+    videoUrl: 'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766942064646-wtya9i.mp4',
     posterUrl:
       'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=400&auto=format&fit=crop',
     linkUrl: '/products?type=canvas-print',
@@ -121,7 +122,7 @@ const RAW_CATEGORY_CAROUSEL = [
   {
     label: 'God Photo Frame',
     productType: 'god-photo-frame',
-    videoUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4',
+    videoUrl: 'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766941654703-romtz.mp4',
     posterUrl:
       'https://images.unsplash.com/photo-1605649487212-47bdab064df7?q=80&w=400&auto=format&fit=crop',
     linkUrl: '/products?type=god-photo-frame',
@@ -129,7 +130,7 @@ const RAW_CATEGORY_CAROUSEL = [
   {
     label: 'T-Shirt Printing',
     productType: 't-shirt-printing',
-    videoUrl: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4',
+    videoUrl: 'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766938943981-d5vchq.mp4',
     posterUrl:
       'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400&auto=format&fit=crop',
     linkUrl: '/t-shirt-printing',
@@ -165,12 +166,13 @@ export const CATEGORY_PRODUCT_TYPES = [
 
 export function mapApiCategoryCarouselItem(item) {
   const productType = item.productType || item.value || ''
+  const rawVideo = item.videoUrl || item.video || ''
   return {
     _id: item._id,
     label: item.label || '',
     value: productType,
     productType,
-    video: item.videoUrl || item.video || '',
+    video: sanitizeCarouselVideoUrl(rawVideo, productType || item.label || ''),
     poster: item.posterUrl || item.poster || '',
     linkUrl: normalizeCategoryLink({ ...item, productType }),
   }

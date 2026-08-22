@@ -72,6 +72,7 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     server: {
+      host: true,
       port: 5173,
       strictPort: true,
       allowedHosts: ['ft.namoprints.in', '.namoprints.in'],

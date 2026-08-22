@@ -25,7 +25,7 @@
 .peditor__mockup-intro { margin-bottom: 12px; }
 .peditor__editor-pane { min-width: 0; padding: 16px; border: 1px solid var(--admin-border); border-radius: 16px; background: var(--admin-surface); }
 
-.peditor-preview { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--admin-border); border-radius: 16px; background: var(--admin-surface); }
+.peditor-preview { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--admin-border); border-radius: 14px; background: var(--admin-surface); }
 .peditor-preview.is-fullscreen { position: fixed; inset: 0; z-index: 100; border-radius: 0; background: var(--admin-bg); }
 .peditor-toolbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .peditor-toolbar__btn {
@@ -34,8 +34,12 @@
 }
 .peditor-toolbar__btn.is-active { border-color: var(--admin-primary); background: var(--admin-primary-soft); }
 .peditor-toolbar__zoom { min-width: 44px; text-align: center; font-size: 0.8125rem; font-weight: 600; }
-.peditor-preview__stage { display: grid; place-items: center; min-height: 360px; padding: 20px; background: var(--admin-surface-muted); border-radius: 12px; overflow: auto; }
-.peditor-preview__canvas { position: relative; width: min(100%, 720px); max-width: 720px; transform-origin: center center; transition: transform 0.15s ease; background: #fff; box-shadow: var(--admin-shadow-sm); }
+.peditor-preview__stage { display: grid; place-items: center; min-height: 170px; max-height: min(36vh, 260px); padding: 8px; background: var(--admin-surface-muted); border-radius: 10px; overflow: auto; }
+.peditor-preview__slot-badge {
+  justify-self: start; margin: 0 0 6px; padding: 2px 8px; border-radius: 999px;
+  background: rgba(16, 185, 129, 0.15); color: #047857; font-size: 11px; font-weight: 700;
+}
+.peditor-preview__canvas { position: relative; width: min(100%, 240px); max-width: 240px; transform-origin: center center; transition: transform 0.15s ease; background: #fff; box-shadow: var(--admin-shadow-sm); }
 .peditor-preview__grid {
   position: absolute; inset: 0; pointer-events: none;
   background-image: linear-gradient(rgba(0,0,0,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,.06) 1px, transparent 1px);
@@ -44,15 +48,25 @@
 .peditor-preview__fit { position: absolute; overflow: hidden; }
 .peditor-preview__frame, .peditor-preview__hero { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
 .peditor-preview__hero { object-fit: contain; }
-.peditor-preview__print-area { position: absolute; border: 2px dashed #6366f1; background: rgba(99,102,241,.08); pointer-events: none; }
+.peditor-preview__print-area { position: absolute; border: 2px dashed #f97316; background: rgba(249,115,22,.18); pointer-events: none; box-sizing: border-box; }
+/* Match MockupEditor slot chrome so live preview shows the same detection */
+.peditor-preview__slot {
+  position: absolute; z-index: 4; pointer-events: none; box-sizing: border-box;
+  border: 2px dashed #10b981; background: rgba(52, 211, 153, 0.2);
+  overflow: visible;
+}
+.peditor-preview__slot-label {
+  position: absolute; left: 4px; top: 4px; padding: 2px 6px; border-radius: 4px;
+  background: rgba(0,0,0,.65); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+}
 .peditor-preview__safe-area { position: absolute; inset: 5%; border: 1px dotted rgba(16,185,129,.6); pointer-events: none; }
-.peditor-preview__placeholder { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: var(--admin-text-muted); gap: 6px; padding: 16px; }
-.peditor-preview__upload-zone { cursor: pointer; border: 2px dashed var(--admin-border); border-radius: 8px; margin: 8px; background: rgba(255,255,255,.6); transition: border-color .2s, background .2s; }
+.peditor-preview__placeholder { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; text-align: center; color: var(--admin-text-muted); gap: 3px; padding: 8px; }
+.peditor-preview__upload-zone { cursor: pointer; border: 1.5px dashed var(--admin-border); border-radius: 8px; margin: 4px; background: rgba(255,255,255,.6); transition: border-color .2s, background .2s; }
 .peditor-preview__upload-zone:hover { border-color: #6366f1; background: rgba(99,102,241,.06); }
-.peditor-preview__upload-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 8px; }
+.peditor-preview__upload-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 4px; }
 .peditor-preview__upload-btn {
-  display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px;
-  border: 1px solid var(--admin-border); background: #fff; font-size: 12px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 8px;
+  border: 1px solid var(--admin-border); background: #fff; font-size: 11px; font-weight: 600;
   color: var(--admin-text); cursor: pointer; transition: border-color .2s, box-shadow .2s;
 }
 .peditor-preview__upload-btn:hover { border-color: #6366f1; box-shadow: 0 2px 8px rgba(99,102,241,.15); }

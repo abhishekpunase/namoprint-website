@@ -17,6 +17,24 @@ export function isBuiltInPolaroidFrame(frameImage) {
   return frame.includes('frame-collage') || frame.includes('/mockups/frame-collage')
 }
 
+/** Bundled /products/mockups/*.svg — not an admin upload */
+export function isBuiltInCatalogMockup(url = '') {
+  const value = String(url || '').toLowerCase()
+  if (!value) return false
+  if (isBuiltInPolaroidFrame(value)) return true
+  return value.includes('/products/mockups/')
+}
+
+/** Admin-uploaded mockup / listing image only — never the built-in floral collage SVG */
+export function resolveUploadedFrameImage(product) {
+  const candidates = [
+    product?.mockup?.frameImage,
+    product?.thumbnail,
+    ...(Array.isArray(product?.images) ? product.images : []),
+  ]
+  return candidates.find((url) => url && !isBuiltInCatalogMockup(url)) || ''
+}
+
 /** Admin canvas is the coordinate system for photo boxes — do not inflate or reshape it. */
 export function resolveCollageCanvas(_frameImage, canvas) {
   if (canvas?.width && canvas?.height) {
@@ -25,7 +43,7 @@ export function resolveCollageCanvas(_frameImage, canvas) {
   if (isBuiltInPolaroidFrame(_frameImage)) {
     return COLLAGE_FRAME_MOCKUP.canvas
   }
-  return COLLAGE_FRAME_MOCKUP.canvas
+  return { width: 1000, height: 1000 }
 }
 
 export function isCollageFrameProduct(product, variant, options = {}) {
@@ -83,30 +101,28 @@ function resolvePhotoBoxes(mockup, product = null) {
   return []
 }
 
-/** Resolve frame + slot layout — always prefer admin-uploaded mockup data */
+/** Resolve frame + slot layout — uploaded mockup only, never the built-in floral SVG */
 export function resolveCollageMockup(product, variant, options = {}) {
   const mockup = product?.mockup
-  const frameImage = mockup?.frameImage || product?.images?.[0]
+  const uploadedFrame = resolveUploadedFrameImage(product)
   const adminBoxes = resolvePhotoBoxes(mockup, product)
+  const singleBox = isValidPhotoBox(mockup?.photoBox) ? [mockup.photoBox] : []
+  const boxes = adminBoxes.length ? adminBoxes : singleBox
 
-  if (frameImage && adminBoxes.length) {
+  if (uploadedFrame) {
     return {
-      frameImage,
-      photoBoxes: adminBoxes,
-      canvas: resolveCollageCanvas(frameImage, mockup?.canvas),
+      frameImage: uploadedFrame,
+      photoBoxes: boxes,
+      canvas: resolveCollageCanvas(uploadedFrame, mockup?.canvas),
     }
   }
 
-  if (frameImage && isBuiltInPolaroidFrame(frameImage)) {
+  if (boxes.length) {
     return {
-      canvas: COLLAGE_FRAME_MOCKUP.canvas,
-      photoBoxes: COLLAGE_FRAME_MOCKUP.photoBoxes,
-      frameImage,
+      frameImage: '',
+      photoBoxes: boxes,
+      canvas: resolveCollageCanvas('', mockup?.canvas),
     }
-  }
-
-  if (isCollageFrameProduct(product, variant, options)) {
-    return COLLAGE_FRAME_MOCKUP
   }
 
   return null

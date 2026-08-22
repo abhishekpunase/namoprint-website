@@ -1,7 +1,8 @@
 import { Eye, MoreHorizontal, Printer } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { formatCurrency } from '../../../utils/format'
-import { getCustomerInitials, getItemsCount, getProductPreview } from '../../../utils/orderAdminUtils'
+import { getCustomerInitials, getItemsCount, getOrderFramePreviewUrl, getProductPreview } from '../../../utils/orderAdminUtils'
+import { resolveMediaUrl } from '../../../utils/mediaUrl'
 import { Skeleton } from '../ui/Loader'
 import { OrderEmptyState, OrderStatusBadge, PaymentStatusBadge, ShippingStatusBadge } from './OrderStatusBadge'
 
@@ -92,8 +93,20 @@ export function OrderTable({
                 </td>
                 {show('orderNo') && (
                   <td>
-                    <Link to={`/admin/orders/${order._id}`} className="ord-name-link">
-                      <strong>{order.orderNo}</strong>
+                    <Link to={`/admin/orders/${order._id}`} className="ord-name-link ord-name-link--with-frame">
+                      {getOrderFramePreviewUrl(order) ? (
+                        <img
+                          src={resolveMediaUrl(getOrderFramePreviewUrl(order))}
+                          alt={order.items?.[0]?.title || 'Order frame'}
+                          className="ord-frame-thumb"
+                        />
+                      ) : (
+                        <span className="ord-frame-thumb ord-frame-thumb--empty" aria-hidden="true" />
+                      )}
+                      <span>
+                        <strong>{order.orderNo}</strong>
+                        {order.items?.[0]?.title ? <small>{order.items[0].title}</small> : null}
+                      </span>
                     </Link>
                   </td>
                 )}

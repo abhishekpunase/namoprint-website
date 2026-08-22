@@ -886,6 +886,27 @@
     @apply grid-cols-[360px_1fr];
   }
 
+  .admin-split-stack {
+    @apply grid grid-cols-1 gap-5;
+  }
+
+  .admin-split-stack > .admin-panel {
+    @apply w-full;
+  }
+
+  .admin-split-stack .admin-form {
+    @apply md:grid-cols-2;
+  }
+
+  .admin-split-stack .admin-form > label:has(textarea),
+  .admin-split-stack .admin-image-field,
+  .admin-split-stack .admin-options-field,
+  .admin-split-stack .admin-seo-section,
+  .admin-split-stack .admin-form-actions,
+  .admin-split-stack .admin-checkbox {
+    @apply md:col-span-2;
+  }
+
   .admin-panel {
     @apply rounded-studio border border-studio-line bg-white p-5 shadow-card;
   }
@@ -1092,7 +1113,7 @@
   }
 
   .admin-mockup-editor-stacked {
-    @apply grid-cols-1 gap-5;
+    @apply grid-cols-1 items-start gap-4 md:grid-cols-[minmax(180px,260px)_minmax(0,1fr)];
   }
 
   .admin-mockup-preview-wrap {
@@ -1112,11 +1133,11 @@
   }
 
   .admin-mockup-preview {
-    @apply relative w-full overflow-hidden rounded-studio border border-dashed border-studio-line bg-[#f3f4f6];
+    @apply relative w-full overflow-visible rounded-studio border border-dashed border-studio-line bg-[#f3f4f6];
   }
 
   .admin-mockup-preview-large {
-    @apply max-w-none min-h-[320px] w-full max-h-[min(70vh,720px)];
+    @apply mx-auto w-full max-w-[260px] min-h-[150px] max-h-[min(34vh,280px)];
   }
 
   .admin-mockup-empty {
@@ -1136,7 +1157,7 @@
   }
 
   .admin-mockup-box {
-    @apply absolute z-[2] cursor-move border-2 border-dashed border-emerald-500 bg-emerald-400/20;
+    @apply absolute z-[2] cursor-move overflow-visible border-2 border-dashed border-emerald-500 bg-emerald-400/20;
   }
 
   .admin-mockup-box.is-active {
@@ -1148,12 +1169,16 @@
   }
 
   .admin-mockup-resize-handle {
-    @apply pointer-events-auto absolute z-[4] cursor-se-resize border-0 bg-transparent;
+    @apply pointer-events-auto absolute -bottom-1.5 -right-1.5 z-[5] h-3.5 w-3.5 cursor-se-resize touch-none rounded-sm border-2 border-white bg-orange-500 p-0 shadow;
   }
 
-  .admin-mockup-resize-handle::after {
+  .admin-mockup-rotate-handle {
+    @apply pointer-events-auto absolute left-1/2 top-[-28px] z-[5] h-3.5 w-3.5 -translate-x-1/2 cursor-grab touch-none rounded-full border-2 border-white bg-sky-500 p-0 shadow active:cursor-grabbing;
+  }
+
+  .admin-mockup-rotate-handle::before {
     content: '';
-    @apply absolute bottom-0 right-0 h-3.5 w-3.5 rounded-sm border-2 border-white bg-orange-500 shadow;
+    @apply pointer-events-none absolute left-1/2 top-full h-3 w-0.5 -translate-x-1/2 bg-sky-500;
   }
 
   .admin-mockup-slot-tabs {
@@ -1446,19 +1471,19 @@
   }
 
   .admin-mockup-controls {
-    @apply grid gap-3 rounded-studio border border-studio-line bg-white p-4;
+    @apply grid gap-2.5 rounded-studio border border-studio-line bg-white p-3;
   }
 
   .admin-mockup-grid {
-    @apply grid grid-cols-2 gap-2;
+    @apply grid grid-cols-2 gap-1.5 sm:grid-cols-4;
   }
 
   .admin-mockup-grid label {
-    @apply grid gap-1 text-xs font-extrabold capitalize text-studio-muted;
+    @apply grid gap-0.5 text-[11px] font-extrabold capitalize text-studio-muted;
   }
 
   .admin-mockup-grid input {
-    @apply min-h-[36px] w-full rounded-studio border border-studio-line bg-white px-2 text-sm outline-none;
+    @apply min-h-[32px] w-full rounded-studio border border-studio-line bg-white px-2 text-sm outline-none;
   }
 
   .admin-mockup-hint {

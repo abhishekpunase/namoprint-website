@@ -120,7 +120,7 @@ export function OrderDetailView({ orderId }) {
 
       <section className="ord-panel">
         <h2>Ordered Products</h2>
-        <OrderProductsTable items={order.items} />
+        <OrderProductsTable items={order.items} orderId={order._id} orderNo={order.orderNo} />
       </section>
 
       <div className="ord-detail__grid">

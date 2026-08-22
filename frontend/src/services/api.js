@@ -25,9 +25,41 @@ const API_BASE_URL = getApiBaseUrl()
 
 let refreshPromise = null
 
+const AUTH_NO_REFRESH = [
+  '/auth/login',
+  '/auth/admin/login',
+  '/auth/register',
+  '/auth/admin/register',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/refresh',
+]
+
 const isTokenExpiredMessage = (message = '') => {
   const value = String(message).toLowerCase()
   return value.includes('jwt expired') || value.includes('token expired') || value.includes('invalid token')
+}
+
+export function hasStoredSession() {
+  return Boolean(localStorage.getItem('omgs_refresh_token') || localStorage.getItem('omgs_access_token'))
+}
+
+const canRefreshForPath = (path) => !AUTH_NO_REFRESH.some((prefix) => path.startsWith(prefix))
+
+const decodeAccessTokenExpiry = (token) => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+    return typeof payload.exp === 'number' ? payload.exp * 1000 : null
+  } catch {
+    return null
+  }
+}
+
+const isAccessTokenUsable = (token) => {
+  if (!token) return false
+  const exp = decodeAccessTokenExpiry(token)
+  if (!exp) return Boolean(token)
+  return exp > Date.now() + 10_000
 }
 
 const clearSession = () => {
@@ -74,7 +106,7 @@ const formatClientError = (message) => {
 }
 
 const shouldAttemptRefresh = (status, message, path, retry) =>
-  retry && !path.startsWith('/auth/') && (status === 401 || isTokenExpiredMessage(message))
+  retry && canRefreshForPath(path) && (status === 401 || isTokenExpiredMessage(message))
 
 const refreshAccessToken = async () => {
   const refreshToken = localStorage.getItem('omgs_refresh_token')
@@ -95,8 +127,31 @@ const refreshAccessToken = async () => {
   return data.accessToken
 }
 
+const ensureFreshAccessToken = async (path, retry) => {
+  const current = localStorage.getItem('omgs_access_token')
+  if (isAccessTokenUsable(current)) return current
+  if (!retry || !canRefreshForPath(path) || !localStorage.getItem('omgs_refresh_token')) {
+    return current
+  }
+
+  if (!refreshPromise) {
+    refreshPromise = refreshAccessToken().finally(() => {
+      refreshPromise = null
+    })
+  }
+  return refreshPromise
+}
+
 export async function apiRequest(path, options = {}, retry = true) {
-  const token = localStorage.getItem('omgs_access_token')
+  let token
+  try {
+    token = await ensureFreshAccessToken(path, retry)
+  } catch {
+    clearSession()
+    redirectToLoginIfAdmin()
+    throw new Error('Session expired. Please login again.')
+  }
+
   const headers = new Headers(options.headers || {})
 
   if (!(options.body instanceof FormData)) headers.set('Content-Type', 'application/json')
@@ -146,7 +201,10 @@ export const api = {
   adminLogin: (payload) => apiRequest('/auth/admin/login', { method: 'POST', body: payload }),
   register: (payload) => apiRequest('/auth/register', { method: 'POST', body: payload }),
   logout: () => apiRequest('/auth/logout', { method: 'POST' }),
-  me: () => apiRequest('/auth/me'),
+  me: () => {
+    if (!hasStoredSession()) return Promise.resolve({ user: null })
+    return apiRequest('/auth/me')
+  },
   forgotPassword: (payload) => apiRequest('/auth/forgot-password', { method: 'POST', body: payload }),
   resetPassword: (payload) => apiRequest('/auth/reset-password', { method: 'POST', body: payload }),
   profile: () => apiRequest('/account/profile'),
@@ -174,7 +232,10 @@ export const api = {
     return apiRequest('/uploads/design', { method: 'POST', body: formData })
   },
   preview: (payload) => apiRequest('/uploads/preview', { method: 'POST', body: payload }),
-  cart: () => apiRequest('/cart'),
+  cart: () => {
+    if (!hasStoredSession()) return Promise.resolve({ cart: { items: [] } })
+    return apiRequest('/cart')
+  },
   syncCart: (payload) => apiRequest('/cart/sync', { method: 'POST', body: payload }),
   addCartItem: (payload) => apiRequest('/cart/items', { method: 'POST', body: payload }),
   updateCartItem: (itemId, payload) => apiRequest(`/cart/items/${itemId}`, { method: 'PATCH', body: payload }),

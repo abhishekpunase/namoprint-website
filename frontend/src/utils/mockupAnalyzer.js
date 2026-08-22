@@ -1,6 +1,5 @@
 import {
   clipPathFromPolygonPoints,
-  applyHexSlotClip,
   isHexLikeFillRatio,
   normalizeRectPhotoSlot,
 } from './mockupSlotShapes'
@@ -322,8 +321,9 @@ function sortRegionsSpatially(regions) {
 
 function regionToBox(region) {
   const { area, pixelCount, fillRatio, ...box } = region
-  const isHex = isHexLikeFillRatio(fillRatio)
-  const pad = isHex ? 6 : 2
+  // Do NOT auto-apply hex from fillRatio — circles (~0.785) look hex-like by that metric.
+  // Hex clips are applied later only for hex/honeycomb products via finalizePhotoSlots.
+  const pad = 2
 
   const raw = {
     x: box.x + pad,
@@ -333,10 +333,6 @@ function regionToBox(region) {
     rotate: 0,
     borderRadius: 0,
     fillRatio,
-  }
-
-  if (isHex) {
-    return applyHexSlotClip(raw, 0.03)
   }
 
   return normalizeRectPhotoSlot(raw)
@@ -457,7 +453,7 @@ function pickBestSlotRegions(transparentRegions, darkRegions, lightRegions = [],
 }
 
 function buildResultFromRegions(regions, canvasWidth, canvasHeight, options = {}) {
-  const { forAdmin = false } = options
+  const forAdmin = Boolean(options.forAdmin ?? options.admin)
   const sorted = sortRegionsSpatially(regions)
   let boxes = sorted.map(regionToBox)
 

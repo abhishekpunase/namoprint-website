@@ -81,10 +81,19 @@ export function CanvasPreview({
   const canvasW = Number(mockupValue.canvasWidth || 1000)
   const canvasH = Number(mockupValue.canvasHeight || 1000)
   const mockupCanvas = useMemo(() => ({ width: canvasW, height: canvasH }), [canvasW, canvasH])
-  const printBoxes =
-    mockupValue.multiSlot && mockupValue.photoBoxes?.length
-      ? mockupValue.photoBoxes
-      : [mockupValue.photoBox || {}]
+  // Same boxes as MockupEditor — live preview and slot editor stay in sync
+  const printBoxes = useMemo(() => {
+    const multi = Boolean(mockupValue.multiSlot)
+    if (multi && Array.isArray(mockupValue.photoBoxes) && mockupValue.photoBoxes.length > 0) {
+      return mockupValue.photoBoxes.filter((b) => Number(b?.width) > 0 && Number(b?.height) > 0)
+    }
+    if (Array.isArray(mockupValue.photoBoxes) && mockupValue.photoBoxes.length > 1) {
+      return mockupValue.photoBoxes.filter((b) => Number(b?.width) > 0 && Number(b?.height) > 0)
+    }
+    const single = mockupValue.photoBox
+    if (single && Number(single.width) > 0 && Number(single.height) > 0) return [single]
+    return []
+  }, [mockupValue.multiSlot, mockupValue.photoBoxes, mockupValue.photoBox])
   const [layoutFit, setLayoutFit] = useState({ left: 0, top: 0, width: 100, height: 100 })
 
   useEffect(() => {
@@ -101,11 +110,17 @@ export function CanvasPreview({
     }
   }, [form.frameImage, mockupCanvas, printBoxes.length])
 
-  const boxStyle = (box) =>
-    photoBoxToStyle(box, mockupCanvas, {
+  const boxStyle = (box) => {
+    const style = photoBoxToStyle(box, mockupCanvas, {
       fit: layoutFit,
       transparent: true,
     })
+    // Let CSS paint the green slot chrome (same as MockupEditor); keep overflow visible for labels
+    delete style.background
+    delete style.contain
+    style.overflow = 'visible'
+    return style
+  }
 
   const heroImage = previewMode === 'mockup' && form.frameImage
     ? form.frameImage
@@ -185,6 +200,11 @@ export function CanvasPreview({
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
       >
+        {form.frameImage && printBoxes.length > 0 ? (
+          <div className="peditor-preview__slot-badge">
+            {printBoxes.length > 1 ? `${printBoxes.length} photo slots` : 'Single photo slot'}
+          </div>
+        ) : null}
         <div
           className="peditor-preview__canvas"
           style={{
@@ -208,35 +228,38 @@ export function CanvasPreview({
             </div>
           )}
 
+          {/* Same mockup + same detected slots as MockupEditor below */}
+          {showPrintArea && form.frameImage &&
+            printBoxes.map((box, index) => (
+              <div
+                key={`slot-${index}`}
+                className="peditor-preview__slot"
+                style={boxStyle(box)}
+              >
+                <span className="peditor-preview__slot-label">Slot {index + 1}</span>
+              </div>
+            ))}
+
           {heroImage && !form.frameImage && (
             <img src={heroImage} alt="" className="peditor-preview__hero" />
           )}
 
-          {showPrintArea && form.frameImage &&
-            printBoxes.map((box, index) => (
-              <div
-                key={index}
-                className="peditor-preview__print-area"
-                style={boxStyle(box)}
-                aria-hidden="true"
-              />
-            ))}
-
+          {/* If gallery image is used as the only visual and equals a mockup collage, hint is via overlay upload */}
           {showSafeArea && (
             <div className="peditor-preview__safe-area" aria-hidden="true" />
           )}
 
           {!hasVisual && !busy && (
             <div className="peditor-preview__placeholder peditor-preview__upload-zone">
-              <Upload size={32} strokeWidth={1.5} />
+              <Upload size={18} strokeWidth={1.5} />
               <p>Live preview</p>
-              <small>Drop PNG/SVG frame or product images here</small>
+              <small>Drop PNG/SVG frame or product images</small>
               <div className="peditor-preview__upload-actions">
                 <button type="button" className="peditor-preview__upload-btn" onClick={() => frameInputRef.current?.click()}>
-                  <Frame size={16} /> Mockup frame
+                  <Frame size={14} /> Mockup frame
                 </button>
                 <button type="button" className="peditor-preview__upload-btn" onClick={() => galleryInputRef.current?.click()}>
-                  <ImagePlus size={16} /> Product image
+                  <ImagePlus size={14} /> Product image
                 </button>
               </div>
             </div>

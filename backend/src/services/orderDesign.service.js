@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 const uploadDir = path.join(__dirname, '..', '..', 'uploads');
 
 /** Parse "8x10", "8×10 inch", "8-10 inch", "8-10-INCH" → pixel size at DPI */
-export function parsePrintSizePixels(sizeLabel, dpi = 300) {
+export function parsePrintSizePixels(sizeLabel, dpi = 320) {
   const raw = String(sizeLabel || '8x6');
   const match = raw.match(/(\d+(?:\.\d+)?)\s*(?:[x×]|[-–])\s*(\d+(?:\.\d+)?)/i);
   const wIn = match ? parseFloat(match[1]) : 8;
@@ -108,9 +108,9 @@ export function resolveTShirtAssetUrl(item, assetType) {
 
 /**
  * Export full design JPEG at print DPI — entire image preserved, never cropped.
- * Scales to fit inside the ordered print size (letterbox-free output dimensions).
+ * Output is the ordered size at 320 DPI (e.g. 8×12 in → 2560×3840 px).
  */
-export async function exportOrderItemDesignJpeg({ item, dpi = 300 }) {
+export async function exportOrderItemDesignJpeg({ item, dpi = 320 }) {
   const source = await resolveOrderItemDesignSource(item);
   if (!source?.url) throw new ApiError(404, 'No customer design found for this item');
 
@@ -118,21 +118,15 @@ export async function exportOrderItemDesignJpeg({ item, dpi = 300 }) {
   const { widthPx, heightPx } = parsePrintSizePixels(sizeLabel, dpi);
   const input = await loadImageBuffer(source.url);
 
-  const base = sharp(input, { failOn: 'none' }).rotate();
-  const meta = await base.metadata();
-  const srcW = Math.max(1, meta.width || 1);
-  const srcH = Math.max(1, meta.height || 1);
-
-  // Fit entire image inside print bounds — no cover/crop
-  const scale = Math.min(widthPx / srcW, heightPx / srcH);
-  const outW = Math.max(1, Math.round(srcW * scale));
-  const outH = Math.max(1, Math.round(srcH * scale));
-
-  return base
-    .resize(outW, outH, {
+  return sharp(input, { failOn: 'none' })
+    .rotate()
+    .resize(widthPx, heightPx, {
+      fit: 'contain',
+      background: { r: 255, g: 255, b: 255, alpha: 1 },
       kernel: sharp.kernel.lanczos3,
+      withoutEnlargement: false,
     })
-    .jpeg({ quality: 95, mozjpeg: true })
+    .jpeg({ quality: 100, mozjpeg: true, chromaSubsampling: '4:4:4' })
     .withMetadata({ density: dpi })
     .toBuffer();
 }

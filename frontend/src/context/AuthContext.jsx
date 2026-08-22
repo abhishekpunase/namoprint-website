@@ -39,9 +39,26 @@ export function AuthProvider({ children }) {
     api
       .me()
       .then((payload) => {
-        setUser(payload.user)
+        if (payload?.user) {
+          setUser(payload.user)
+          const nextToken = localStorage.getItem('omgs_access_token')
+          if (nextToken) setToken(nextToken)
+          return
+        }
+        setToken(null)
+        setUser(null)
       })
-      .catch(() => {
+      .catch((error) => {
+        const message = String(error?.message || '').toLowerCase()
+        const sessionDead =
+          message.includes('session expired') ||
+          message.includes('authentication required') ||
+          message.includes('invalid token') ||
+          message.includes('invalid session')
+        if (!sessionDead) {
+          setBooting(false)
+          return
+        }
         localStorage.removeItem('omgs_access_token')
         localStorage.removeItem('omgs_refresh_token')
         localStorage.removeItem('omgs_user')

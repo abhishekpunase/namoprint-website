@@ -2,11 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { FiImage, FiUpload, FiType, FiBox, FiX, FiRotateCw, FiTrash2, FiMove, FiPlay, FiPause } from 'react-icons/fi'
 import { getProductFrameImage, getProductBaseImage, usesLiveProductImage } from '../../data/fallbackCatalog'
 import { getFinishStyle, getFrameStyleHint, hexToRgba, parseMaterialThickness } from '../../data/frameVisuals'
-import { resolveCollageMockup, resolvePreviewPhotoBoxes } from '../../data/collageFrameMockup'
+import { resolveCollageMockup, resolvePreviewPhotoBoxes, resolveUploadedFrameImage } from '../../data/collageFrameMockup'
 import { resolveMediaUrl } from '../../utils/mediaUrl'
 import { punchFrameHoles, shouldPunchFrameHoles, inferSlotClipPathsFromFrame } from '../../utils/frameImageUtils'
-import { photoBoxToStyle, resolveMockupLayout } from '../../utils/mockupLayout'
-import { HEX_PHOTO_FILL_SCALE, isHexClipPath } from '../../utils/mockupSlotShapes'
+import { photoBoxToStyle, resolveMockupLayout, fitPhotoBoxesToMockupOpening } from '../../utils/mockupLayout'
+import { HEX_PHOTO_FILL_SCALE, isHexClipPath, forceCircularPhotoSlot } from '../../utils/mockupSlotShapes'
 import { wallWatchShouldUseSvgFrame } from '../../utils/wallWatchFrameUtils'
 
 /** Place 1–12 evenly on a circle — real watch jaisa dial */
@@ -414,7 +414,7 @@ function PhotoSlot({
         <>
           <div className="preview-slot__clip">
             <img
-              src={src}
+              src={resolveMediaUrl(src)}
               alt={label}
               draggable={false}
               className="preview-slot__img h-full w-full min-h-full min-w-full select-none object-cover"
@@ -476,7 +476,6 @@ function PhotoSlot({
       ) : showLabel || onClick ? (
         <div
           className="preview-empty flex h-full w-full flex-col items-center justify-center gap-2 text-gray-400"
-          onClick={onClick}
           style={{ cursor: onClick ? 'pointer' : 'default' }}
         >
           {showLabel && (
@@ -636,7 +635,7 @@ function View3DModal({
     return (
       <div key={key} style={{ ...boxStyle, borderRadius: isCircular ? '50%' : boxStyle.borderRadius }} className={shapeClip}>
         <img
-          src={src}
+          src={resolveMediaUrl(src)}
           alt="preview"
           className="h-full w-full object-cover"
           style={{
@@ -731,7 +730,7 @@ function View3DModal({
       <>
         {photoUrl ? (
           <img
-            src={photoUrl}
+            src={resolveMediaUrl(photoUrl)}
             alt="preview"
             className="h-full w-full object-cover"
             style={{
@@ -953,10 +952,34 @@ export function PreviewFrame({
   const liveBaseImage = getProductBaseImage(product)
   const useLiveProductImage = usesLiveProductImage(product)
   const allowPhotoUpload = product?.personalization?.allowPhotoUpload !== false
-  const photoBoxesList = useMemo(
-    () => resolvePreviewPhotoBoxes(product, variant, options),
-    [product, variant, options],
-  )
+  const photoBoxesList = useMemo(() => {
+    const boxes = resolvePreviewPhotoBoxes(product, variant, options)
+    const uploaded = resolveUploadedFrameImage(product)
+    if (!uploaded || !boxes?.length) return boxes
+    const shape = String(options?.shape || product?.defaultOptions?.shape || '').toLowerCase()
+    const circular = boxes.length === 1 && (shape.includes('circle') || shape.includes('round') || !shape)
+
+    // Round frames: expand slightly so photo fills under the bezel (no white crescent gaps).
+    // Frame overlay sits on top, so a small expand won't show outside the gold rim.
+    if (circular) {
+      const rounded = boxes.map((b) => forceCircularPhotoSlot(b))
+      const mockupCanvas = product?.mockup?.canvas || { width: 1000, height: 1000 }
+      return fitPhotoBoxesToMockupOpening(rounded, mockupCanvas, {
+        circular: true,
+        // Admin slots still get a light expand so tiny undersize doesn't leave gaps
+        expandRatio: product?.mockup?.slotsFromMockup ? 0.025 : 0.05,
+      })
+    }
+
+    // Admin-tuned mockup slots — use exactly as saved (acrylic-style adjust)
+    if (product?.mockup?.slotsFromMockup) return boxes
+    const mockupCanvas = product?.mockup?.canvas || { width: 1000, height: 1000 }
+    // Slight INSET for rect/collage so photo stays inside and never bleeds under AA edges
+    return fitPhotoBoxesToMockupOpening(boxes, mockupCanvas, {
+      circular: false,
+      expandRatio: boxes.length > 1 ? -0.02 : -0.03,
+    })
+  }, [product, variant, options])
   const canvasW = Number(collageMockup?.canvas?.width || product?.mockup?.canvas?.width) || 1000
   const canvasH = Number(collageMockup?.canvas?.height || product?.mockup?.canvas?.height) || 1000
   const canvas = useMemo(() => ({ width: canvasW, height: canvasH }), [canvasW, canvasH])
@@ -968,7 +991,11 @@ export function PreviewFrame({
   )
   const rawFrameImage = useLiveProductImage
     ? null
-    : resolveMediaUrl(collageMockup?.frameImage || getProductFrameImage(product, variant, options))
+    : resolveMediaUrl(
+        resolveUploadedFrameImage(product) ||
+          collageMockup?.frameImage ||
+          getProductFrameImage(product, variant, options),
+      )
   const useFrameOverlay =
     Boolean(rawFrameImage) && wallWatchShouldUseSvgFrame(product, options, variant, rawFrameImage)
   const frameImage = useFrameOverlay ? rawFrameImage : null
@@ -1055,7 +1082,19 @@ export function PreviewFrame({
       setClippedLayoutBoxes(null)
       return undefined
     }
-    if (boxes.every((entry) => entry.clipPath)) {
+        // Circular dials: never derive polygon clips (sparse rays look hexagonal)
+    const shapeText = String(options?.shape || product?.defaultOptions?.shape || '').toLowerCase()
+    const circularDial =
+      boxes.length === 1 &&
+      (shapeText.includes('circle') ||
+        shapeText.includes('round') ||
+        !shapeText ||
+        isCircularPhotoBox(boxes[0]))
+    if (circularDial) {
+      setClippedLayoutBoxes(null)
+      return undefined
+    }
+if (boxes.every((entry) => entry.clipPath)) {
       setClippedLayoutBoxes(null)
       return undefined
     }
@@ -1072,7 +1111,7 @@ export function PreviewFrame({
     return () => {
       cancelled = true
     }
-  }, [frameImage, photosUnderFrame, layoutBoxesKey, useCollageSlots])
+  }, [frameImage, photosUnderFrame, layoutBoxesKey, useCollageSlots, options?.shape, product?.defaultOptions?.shape])
 
   const effectiveLayoutBoxes = clippedLayoutBoxes || layoutBoxes
   const effectiveLayoutBox = effectiveLayoutBoxes[0] || layoutBox
@@ -1083,7 +1122,8 @@ export function PreviewFrame({
       return undefined
     }
     const boxes = layoutBoxesRef.current
-    const needsPunch = useCollageSlots && boxes?.length && shouldPunchFrameHoles(frameImage)
+    // Acrylic-style: punch photo window(s) so image sits inside mockup, never over the frame
+    const needsPunch = Boolean(photosUnderFrame && boxes?.length && shouldPunchFrameHoles(frameImage))
     if (!needsPunch) {
       setProcessedFrameUrl((current) => (current === frameImage ? current : frameImage))
       return undefined
@@ -1109,7 +1149,9 @@ export function PreviewFrame({
   const [localPreviews, setLocalPreviews] = useState({}) // NEW: per-slot fallback { 0: url, 1: url, 2: url... }
   const photos = slotPhotos.length ? slotPhotos : photoUrl || localPreviews[0] ? [{ url: photoUrl || localPreviews[0] }] : []
   const getPhotoSrc = (index) =>
-    slotPhotos.length ? slotPhotos[index]?.url : index === 0 ? photoUrl || localPreviews[0] : localPreviews[index] // NEW
+    resolveMediaUrl(
+      slotPhotos.length ? slotPhotos[index]?.url : index === 0 ? photoUrl || localPreviews[0] : localPreviews[index],
+    )
   const hasPhoto = photos.length > 0 && photos[0]?.url
   const inputRef = useRef(null)
   const activeSlotIndex = useRef(0)
@@ -1122,7 +1164,9 @@ export function PreviewFrame({
     } else {
       activeSlotIndex.current = slotIndex
     }
-    inputRef.current?.click()
+    const input = inputRef.current
+    if (!input) return
+    input.click()
   }
 
   const handleFileChange = (e) => {
@@ -1343,9 +1387,9 @@ export function PreviewFrame({
             <button
               type="button"
               onClick={() => openFilePicker(0)}
-              className="flex shrink-0 items-center gap-2 rounded-xl bg-red-600 px-3 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-red-700 sm:px-4 sm:text-sm"
+              className="flex shrink-0 items-center gap-1 rounded-lg bg-red-600 px-2 py-1.5 text-[11px] font-semibold text-white shadow-md transition hover:bg-red-700 sm:gap-2 sm:rounded-xl sm:px-4 sm:py-2 sm:text-sm"
             >
-              <FiUpload /> {useCollageSlots ? 'Upload Photos' : 'Select Photo'}
+              <FiUpload className="h-3 w-3 sm:h-4 sm:w-4" /> {useCollageSlots ? 'Upload Photos' : 'Select Photo'}
             </button>
           )}
 
@@ -1390,14 +1434,14 @@ export function PreviewFrame({
             <>
               <div className="mx-1 h-6 w-px bg-gray-200" />
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 {frameColors.map((color) => (
                   <button
                     key={color.name}
                     type="button"
                     title={color.name}
                     onClick={() => setActiveColor(color)}
-                    className="h-7 w-7 rounded-md transition"
+                    className="h-5 w-5 rounded-md transition sm:h-7 sm:w-7"
                     style={{
                       backgroundColor: color.value,
                       border: `2px solid ${color.border}`,
@@ -1414,9 +1458,11 @@ export function PreviewFrame({
           <button
             type="button"
             onClick={() => setShow3D(true)}
-            className="flex items-center gap-2 rounded-xl border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-900 hover:bg-gray-900 hover:text-white"
+            className="flex shrink-0 items-center gap-1 rounded-lg border border-gray-300 px-2 py-1.5 text-[11px] font-semibold text-gray-700 transition hover:border-gray-900 hover:bg-gray-900 hover:text-white sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2 sm:text-sm"
           >
-            <FiBox /> View in 3D
+            <FiBox className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="sm:hidden">3D</span>
+            <span className="hidden sm:inline">View in 3D</span>
           </button>
         </div>
       )}
@@ -1556,7 +1602,11 @@ export function PreviewFrame({
                   <PhotoSlot
                     src={getPhotoSrc(index)}
                     crop={getCrop(index)}
-                    clipPath={pb.clipPath}
+                    clipPath={(() => {
+                      const shapeText = String(options?.shape || product?.defaultOptions?.shape || '').toLowerCase()
+                      if (isHexClipPath(pb.clipPath) && !shapeText.includes('hex')) return undefined
+                      return pb.clipPath
+                    })()}
                     label={`Photo ${index + 1}`}
                     showLabel={!getPhotoSrc(index) && !photosUnderFrame}
                     draggable={!!getPhotoSrc(index)}
@@ -1575,9 +1625,14 @@ export function PreviewFrame({
           >
             {slotLayout === 'single' ? (
               <PhotoSlot
-                src={photos[0]?.url}
+                src={getPhotoSrc(0)}
                 crop={getCrop(0)}
-                clipPath={effectiveLayoutBox?.clipPath}
+                clipPath={(() => {
+                  const shapeText = String(options?.shape || product?.defaultOptions?.shape || '').toLowerCase()
+                  if (shapeText.includes('circle') || shapeText.includes('round') || !shapeText) return undefined
+                  if (isHexClipPath(effectiveLayoutBox?.clipPath) && !shapeText.includes('hex')) return undefined
+                  return effectiveLayoutBox?.clipPath
+                })()}
                 label="Upload Photo"
                 showLabel={!useFrameOverlay && !showClockDial}
                 draggable={hasPhoto}
@@ -1591,7 +1646,7 @@ export function PreviewFrame({
                 {Array.from({ length: Math.min(Math.max(photos.length, 4), 9) }).map((_, index) => (
                   <PhotoSlot
                     key={index}
-                    src={photos[index]?.url}
+                    src={getPhotoSrc(index)}
                     crop={getCrop(index)}
                     label={`Photo ${index + 1}`}
                     draggable={!!photos[index]?.url}
@@ -1607,7 +1662,7 @@ export function PreviewFrame({
                 {Array.from({ length: Math.max(photos.length, 1) }).map((_, index) => (
                   <PhotoSlot
                     key={index}
-                    src={photos[index]?.url}
+                    src={getPhotoSrc(index)}
                     crop={getCrop(index)}
                     label={`Photo ${index + 1}`}
                     draggable={!!photos[index]?.url}
@@ -1625,7 +1680,7 @@ export function PreviewFrame({
           {/* Frame overlay (PNG/SVG) — sits on top, photo shows through transparent window */}
           {useFrameOverlay && displayFrameUrl && (
             <img
-              src={displayFrameUrl}
+              src={resolveMediaUrl(displayFrameUrl)}
               alt=""
               aria-hidden
               className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"

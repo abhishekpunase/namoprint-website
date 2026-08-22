@@ -1,18 +1,29 @@
 import { analyzeMockupFromUrl } from './mockupAnalyzer'
 import { resolveMediaUrl } from './mediaUrl'
 import { usesLiveProductImage, getProductBaseImage } from '../data/fallbackCatalog'
-import { COLLAGE_FRAME_MOCKUP, isBuiltInPolaroidFrame } from '../data/collageFrameMockup'
-import { finalizePhotoSlots } from './mockupSlotShapes'
+import { isBuiltInCatalogMockup, resolveUploadedFrameImage } from '../data/collageFrameMockup'
+import { finalizePhotoSlots, forceCircularPhotoSlot } from './mockupSlotShapes'
 import { isWallWatchProduct } from './wallWatchCatalog'
-import { normalizeWallWatchProduct } from './wallWatchProductDefaults'
+import { normalizeWallWatchProduct, getCollagePhotoCount, isCollageWallWatchProduct } from './wallWatchProductDefaults'
+import { insetCollageBoxesInWindow } from './wallWatchCollageLayouts'
+
 
 export function getMockupFrameUrl(product) {
-  return resolveMediaUrl(product?.mockup?.frameImage || product?.images?.[0] || '')
+  const uploaded = resolveUploadedFrameImage(product)
+  if (uploaded) return resolveMediaUrl(uploaded)
+  const saved = product?.mockup?.frameImage
+  if (saved && !isBuiltInCatalogMockup(saved)) return resolveMediaUrl(saved)
+  return ''
 }
 
 function hasConfiguredMockup(product) {
   const mockup = product?.mockup
-  if (!mockup?.frameImage) return false
+  const frameImage = resolveUploadedFrameImage(product) || mockup?.frameImage
+  if (!frameImage || isBuiltInCatalogMockup(frameImage)) return false
+  // Wall-watch uploaded mockup must be analyzed so photo sits inside the frame opening
+  if (isWallWatchProduct(product) && resolveUploadedFrameImage(product) && !mockup?.slotsFromMockup) {
+    return false
+  }
   if (mockup.photoBoxes?.length > 1) return true
   const box = mockup.photoBox
   return Boolean(box && Number(box.width) > 0 && Number(box.height) > 0)
@@ -34,7 +45,7 @@ export async function enrichProductMockup(product) {
     product = normalizeWallWatchProduct(product)
   }
 
-  // Name plates — live product photo only; never auto-detect collage slots on catalog image
+  // Name plates â€” live product photo only; never auto-detect collage slots on catalog image
   if (usesLiveProductImage(product)) {
     const baseImageUrl = resolveMediaUrl(getProductBaseImage(product))
     return {
@@ -47,10 +58,23 @@ export async function enrichProductMockup(product) {
   }
 
   const frameUrl = getMockupFrameUrl(product)
-  if (!frameUrl) return product
+  if (!frameUrl) {
+    const mockup = product.mockup || {}
+    if (isBuiltInCatalogMockup(mockup.frameImage)) {
+      return {
+        ...product,
+        mockup: {
+          ...mockup,
+          frameImage: '',
+        },
+      }
+    }
+    return product
+  }
 
   if (hasConfiguredMockup(product)) {
     const mockup = product.mockup || {}
+    const uploaded = resolveUploadedFrameImage(product)
     const clippedBoxes =
       mockup.photoBoxes?.length > 1 ? finalizePhotoSlots(mockup.photoBoxes, product) : mockup.photoBoxes
 
@@ -58,48 +82,66 @@ export async function enrichProductMockup(product) {
       ...product,
       mockup: {
         ...mockup,
-        frameImage: resolveMediaUrl(mockup.frameImage),
+        frameImage: resolveMediaUrl(uploaded || mockup.frameImage),
         ...(clippedBoxes?.length ? { photoBoxes: clippedBoxes } : {}),
-        photoBox: clippedBoxes?.[0] || mockup.photoBox,
-      },
-    }
-  }
-
-  if (isBuiltInPolaroidFrame(frameUrl)) {
-    return {
-      ...product,
-      mockup: {
-        ...(product.mockup || {}),
-        canvas: COLLAGE_FRAME_MOCKUP.canvas,
-        frameImage: resolveMediaUrl(product.mockup?.frameImage || frameUrl),
-        photoBoxes: COLLAGE_FRAME_MOCKUP.photoBoxes,
-        photoBox: COLLAGE_FRAME_MOCKUP.photoBoxes[0],
-      },
-      personalization: {
-        ...(product.personalization || {}),
-        allowPhotoUpload: true,
-        maxPhotos: COLLAGE_FRAME_MOCKUP.photoBoxes.length,
+        photoBox: (() => {
+        let pb = clippedBoxes?.[0] || mockup.photoBox
+        const shapeText = String(product?.defaultOptions?.shape || mockup?.shape || 'Circle').toLowerCase()
+        if (isWallWatchProduct(product) && shapeText.includes('circle') && pb) {
+          pb = forceCircularPhotoSlot(pb)
+        }
+        return pb
+      })(),
       },
     }
   }
 
   try {
     const analysis = await analyzeMockupFromUrl(frameUrl)
-    const multiBoxes = analysis.photoBoxes?.length > 1 ? analysis.photoBoxes : []
-    const slotCount = multiBoxes.length || 1
+    let multiBoxes = analysis.photoBoxes?.length > 1 ? analysis.photoBoxes : []
+    let photoBox = analysis.photoBox
+    const canvas = {
+      width: Number(analysis.canvasWidth) || 1000,
+      height: Number(analysis.canvasHeight) || 1000,
+    }
+
+    // Collage wall watch + single detected window â†’ nest slots inside the window only
+    if (
+      isWallWatchProduct(product) &&
+      isCollageWallWatchProduct(product) &&
+      multiBoxes.length <= 1 &&
+      photoBox &&
+      Number(photoBox.width) > 0
+    ) {
+      const count = getCollagePhotoCount(product) || 4
+      multiBoxes = insetCollageBoxesInWindow(count, photoBox, canvas)
+      photoBox = multiBoxes[0]
+    }
+
+        // Circle wall watches: clip photo to round inner opening so it never overlaps the mockup ring
+    if (
+      isWallWatchProduct(product) &&
+      String(product?.defaultOptions?.shape || 'Circle').toLowerCase().includes('circle') &&
+      photoBox &&
+      Number(photoBox.width) > 0
+    ) {
+      photoBox = forceCircularPhotoSlot(photoBox)
+    }
+
+    const slotCount = multiBoxes.length > 1 ? multiBoxes.length : 1
+    const nextMockup = {
+      ...(product.mockup || {}),
+      frameImage: resolveUploadedFrameImage(product) || product.mockup?.frameImage || frameUrl,
+      canvas,
+      photoBox,
+      slotsFromMockup: true,
+    }
+    if (multiBoxes.length > 1) nextMockup.photoBoxes = multiBoxes
+    else delete nextMockup.photoBoxes
 
     return {
       ...product,
-      mockup: {
-        ...(product.mockup || {}),
-        frameImage: product.mockup?.frameImage || frameUrl,
-        canvas: {
-          width: analysis.canvasWidth,
-          height: analysis.canvasHeight,
-        },
-        photoBox: analysis.photoBox,
-        ...(multiBoxes.length ? { photoBoxes: multiBoxes } : {}),
-      },
+      mockup: nextMockup,
       personalization: {
         ...(product.personalization || {}),
         allowPhotoUpload: true,

@@ -1,4 +1,5 @@
 import { resolveFrameOverlay } from './frameVisuals'
+import { isBuiltInCatalogMockup, resolveUploadedFrameImage } from './collageFrameMockup'
 
 /** Static mockup assets in frontend/public/products/mockups/ — served at /products/mockups/... */
 export const mockupImages = {
@@ -167,11 +168,22 @@ export function usesLiveProductImage(product) {
 /** Frame overlay used inside the product designer (PNG/SVG with transparent photo window) */
 export function getProductFrameImage(product, variant, options = {}) {
   if (usesLiveProductImage(product)) return null
-  if (product?.mockup?.frameImage) return product.mockup.frameImage
-  if (product?.mockup?.photoBoxes?.length && product?.images?.[0]) return product.images[0]
+  const uploaded = resolveUploadedFrameImage(product)
+  if (uploaded) return uploaded
+  const savedFrame = product?.mockup?.frameImage
+  if (savedFrame && !isBuiltInCatalogMockup(savedFrame)) return savedFrame
+  if (product?.mockup?.photoBoxes?.length && product?.images?.[0] && !isBuiltInCatalogMockup(product.images[0])) {
+    return product.images[0]
+  }
   const resolved = resolveFrameOverlay(product, variant, options)
   if (resolved === null) return null
-  if (resolved) return resolved
+  if (resolved && !isBuiltInCatalogMockup(resolved)) return resolved
+  if (isBuiltInCatalogMockup(resolved)) {
+    const collageLayout =
+      String(variant?.frameType || options?.frameStyle || options?.layout || '').toLowerCase().includes('collage') ||
+      String(options?.shape || '').includes('Four Photo')
+    if (collageLayout) return null
+  }
   const shape = options?.shape || product?.defaultOptions?.shape || ''
   if (
     (product?.productType === 'custom-wall-watch' || product?.productType === 'photo-clock') &&
@@ -180,6 +192,7 @@ export function getProductFrameImage(product, variant, options = {}) {
   ) {
     return null
   }
+  if (resolved) return resolved
   return productTypeDefaultImage[product?.productType] || mockupImages.aluminium
 }
 
@@ -198,8 +211,9 @@ const withDefaultImages = (products) =>
         frameImage: skipMockupFrame
           ? product.mockup?.frameImage || null
           : product.mockup?.frameImage ||
-            productTypeDefaultImage[product.productType] ||
-            mockupImages.aluminium,
+            (product.mockup?.photoBoxes?.length > 1
+              ? null
+              : productTypeDefaultImage[product.productType] || mockupImages.aluminium),
       },
     }
   })
@@ -332,29 +346,29 @@ const CATEGORY_VIDEOS = {
     'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766941654703-romtz.mp4',
   // Verified public CDNs
   namePlate:
-    'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4',
+    'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766941654703-romtz.mp4',
   qrStandee:
-    'https://test-videos.co.uk/vids/sintel/mp4/h264/360/Sintel_360_10s_1MB.mp4',
+    'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766938943981-d5vchq.mp4',
   trophy:
-    'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4',
+    'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766942064646-wtya9i.mp4',
   corporateGift:
-    'https://filesamples.com/samples/video/mp4/sample_960x540.mp4',
+    'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766941654703-romtz.mp4',
   weddingCard:
-    'https://filesamples.com/samples/video/mp4/sample_1280x720.mp4',
+    'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766938943981-d5vchq.mp4',
   monogram:
-    'https://filesamples.com/samples/video/mp4/sample_640x360.mp4',
+    'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766942064646-wtya9i.mp4',
   woodenFrame:
-    'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',
+    'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766941654703-romtz.mp4',
   ledFrame:
     'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766938943981-d5vchq.mp4',
   photoCollage:
-    'https://test-videos.co.uk/vids/sintel/mp4/h264/360/Sintel_360_10s_1MB.mp4',
+    'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766938943981-d5vchq.mp4',
   canvasPrint:
-    'https://filesamples.com/samples/video/mp4/sample_1280x720.mp4',
+    'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766942064646-wtya9i.mp4',
   godFrame:
-    'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4',
+    'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766941654703-romtz.mp4',
   tshirt:
-    'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4',
+    'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766938943981-d5vchq.mp4',
 }
 
 export const homeCategories = [
@@ -527,19 +541,27 @@ const rawFallbackProducts = [
     images: [],
     isFeatured: false,
     mockup: {
-      canvas: { width: 1024, height: 1536 },
-      frameImage: '/products/mockups/frame-collage.svg',
+      canvas: { width: 1000, height: 1000 },
       photoBoxes: [
-        { id: 1, x: 75, y: 95, width: 515, height: 550 },
-        { id: 2, x: 300, y: 500, width: 530, height: 440 },
-        { id: 3, x: 515, y: 940, width: 440, height: 390 },
+        { id: 1, x: 52, y: 52, width: 441, height: 441, rotate: 0, borderRadius: 12 },
+        { id: 2, x: 507, y: 52, width: 441, height: 441, rotate: 0, borderRadius: 12 },
+        { id: 3, x: 52, y: 507, width: 441, height: 441, rotate: 0, borderRadius: 12 },
+        { id: 4, x: 507, y: 507, width: 441, height: 441, rotate: 0, borderRadius: 12 },
       ],
     },
-    personalization: { allowPhotoUpload: true, maxPhotos: 3, allowText: false },
+    personalization: { allowPhotoUpload: true, maxPhotos: 4, allowText: false },
     variants: [
       { _id: 'demo-clock-collage-12', sku: 'CWW-COLLAGE-12', size: '12 inch', material: 'Acrylic', frameType: 'Collage', price: 1199, compareAtPrice: 1699, stock: 45 },
     ],
-    defaultOptions: { shape: 'Four Photo Collage', clockHands: 'Classic Silver', size: '12 inch', dialStyle: 'Modern Numbers' },
+    defaultOptions: {
+      shape: 'Circle',
+      clockHands: 'Classic Silver',
+      size: '12 inch',
+      dialStyle: 'Modern Numbers',
+      layout: 'Collage',
+      collageEnabled: true,
+      collagePhotoCount: 4,
+    },
   },
   {
     _id: 'demo-nameplate',

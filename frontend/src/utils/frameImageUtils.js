@@ -19,9 +19,11 @@ function loadImage(url) {
 /** SVG/PNG/WebP frames usually already have transparent photo windows — don't rasterize/punch */
 export function shouldPunchFrameHoles(frameUrl) {
   const url = String(resolveMediaUrl(frameUrl) || frameUrl || '').toLowerCase()
+  // Transparent PNG/WebP/SVG frames already have clean openings — punching tears/jagged edges on the bezel
   if (url.includes('.svg')) return false
   if (url.includes('.png')) return false
   if (url.includes('.webp')) return false
+  // JPG mockups with white/black placeholders still need holes cut
   return true
 }
 
@@ -63,7 +65,11 @@ export async function punchFrameHoles(frameUrl, photoBoxes = [], canvas = { widt
         const g = data[i + 1]
         const b = data[i + 2]
         const a = data[i + 3]
-        if (a < 140 || (r < 75 && g < 75 && b < 75)) {
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b
+        const sat = Math.max(r, g, b) - Math.min(r, g, b)
+        const isDark = r < 75 && g < 75 && b < 75
+        const isWhiteCenter = lum >= 200 && sat < 55
+        if (a < 140 || isDark || isWhiteCenter) {
           data[i + 3] = 0
         }
       }

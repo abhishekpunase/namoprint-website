@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/free-port.mjs 5173",
     "dev": "vite",
+    "predev:ui": "node scripts/free-port.mjs 5173",
     "dev:ui": "vite",
     "build": "vite build",
     "lint": "eslint .",
