@@ -51,7 +51,7 @@ async function seedAfterListen() {
     await runStartupSeed('T-shirt products', ensureTShirtProducts);
     await runStartupSeed('Home testimonials', ensureHomeTestimonials);
     await runStartupSeed('Home offer marquee', ensureHomeOfferMarquee);
-  } else if (env.isProduction) {
+  } else if (!env.isDev) {
     console.log('Production mode: demo seeds skipped (set SEED_ON_START=true to override).');
   }
 }
@@ -76,14 +76,15 @@ const start = async () => {
     process.kill(process.pid, 'SIGUSR2');
   });
 
-  const host = env.isProduction ? env.apiBaseUrl : `http://127.0.0.1:${env.port}`;
+  const host = env.isDev ? `http://127.0.0.1:${env.port}` : env.apiBaseUrl;
+  console.log(`Backend mode: IS_DEV=${env.isDev}`);
   console.log(`API running on ${host}`);
-  if (env.isProduction) {
-    console.log('Production mode: demo seeds disabled, SPA served from frontend/dist');
-  } else {
+  if (env.isDev) {
     console.log(`Admin login: admin@omgs.com (see seed logs for password)`);
+  } else {
+    console.log('Production mode: demo seeds disabled, SPA served from frontend/dist');
   }
-  if (env.isProduction) {
+  if (!env.isDev) {
     const frontendDist = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'frontend', 'dist');
     if (!fs.existsSync(path.join(frontendDist, 'index.html'))) {
       console.warn('WARNING: frontend/dist not found — run "npm run build" in frontend before production start.');

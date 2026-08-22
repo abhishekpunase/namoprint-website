@@ -1,6 +1,6 @@
 /**
  * Validates production environment without starting the server.
- * Usage: NODE_ENV=production node scripts/check-production-env.js
+ * Usage: IS_DEV=false node scripts/check-production-env.js
  */
 import '../src/config/env.js';
 

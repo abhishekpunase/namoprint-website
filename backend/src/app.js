@@ -32,7 +32,15 @@ export const app = express();
 const isAllowedOrigin = (origin) => {
   if (!origin) return true;
   if (env.clientUrls.includes(origin)) return true;
-  if (env.nodeEnv !== 'production' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
+  try {
+    const { protocol, hostname } = new URL(origin);
+    if (protocol === 'https:' && (hostname === 'namoprints.in' || hostname.endsWith('.namoprints.in'))) {
+      return true;
+    }
+  } catch {
+    /* ignore malformed origin */
+  }
+  if (env.isDev && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
     return true;
   }
   return false;
@@ -45,7 +53,19 @@ app.use(
     crossOriginEmbedderPolicy: false,
   }),
 );
-app.use(cors());
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (isAllowedOrigin(origin)) {
+        callback(null, origin || true);
+      } else {
+        callback(null, false);
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+  }),
+);
 app.use(compression());
 app.use(morgan(env.nodeEnv === 'production' ? 'combined' : 'dev'));
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
@@ -83,7 +103,7 @@ app.get('/health', healthHandler);
 app.get('/api/health', healthHandler);
 app.use('/api', apiLimiter, routes);
 
-if (env.nodeEnv === 'production' && hasFrontendDist) {
+if (!env.isDev && hasFrontendDist) {
   app.use(express.static(frontendDist, { index: false }));
   app.get('*', (req, res, next) => {
     if (
@@ -98,7 +118,7 @@ if (env.nodeEnv === 'production' && hasFrontendDist) {
     }
     res.sendFile(path.join(frontendDist, 'index.html'));
   });
-} else if (env.nodeEnv === 'production') {
+} else if (!env.isDev) {
   console.warn('WARNING: frontend/dist/index.html missing — SPA routes will 404 until frontend is built.');
 }
 

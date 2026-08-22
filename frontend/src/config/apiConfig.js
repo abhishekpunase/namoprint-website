@@ -2,7 +2,6 @@ function normalizeApiBase(raw) {
   if (!raw || typeof raw !== 'string') return ''
   let trimmed = raw.trim().replace(/\/+$/, '')
   if (!trimmed) return ''
-  // Allow pasting http://host/api/health or http://host/api/api from the browser.
   trimmed = trimmed.replace(/\/health$/i, '')
   trimmed = trimmed.replace(/(?:\/api)+$/i, '/api')
   return /\/api$/i.test(trimmed) ? trimmed : `${trimmed}/api`
@@ -19,12 +18,44 @@ export function originFromEnvUrl(raw) {
   }
 }
 
-/** Resolve API base URL for dev (Vite proxy), production (same-origin), or explicit env. */
-export function getApiBaseUrl() {
-  const fromEnv = normalizeApiBase(import.meta.env.VITE_API_BASE_URL)
-  if (fromEnv) return fromEnv
+function parseEnvBool(value, fallback) {
+  if (value === undefined || value === null || String(value).trim() === '') return fallback
+  const v = String(value).trim().toLowerCase()
+  if (v === 'true' || v === '1' || v === 'yes') return true
+  if (v === 'false' || v === '0' || v === 'no') return false
+  return fallback
+}
 
-  // Same-origin /api — works with Vite dev proxy and production reverse proxy / static serve.
+/** true = Vite proxy (local)  |  false = direct hosted API. Set VITE_IS_DEV in .env */
+export function isDev() {
+  return parseEnvBool(import.meta.env.VITE_IS_DEV, import.meta.env.DEV)
+}
+
+function prodApiBaseFromEnv() {
+  return (
+    normalizeApiBase(import.meta.env.VITE_PROD_API_BASE_URL) ||
+    normalizeApiBase(import.meta.env.VITE_API_BASE_URL)
+  )
+}
+
+/** Hosted API origin (production URL or VITE_DEV_API_TARGET origin). */
+export function getRemoteApiOrigin() {
+  const prodBase = prodApiBaseFromEnv()
+  if (prodBase.startsWith('http')) return originFromEnvUrl(prodBase)
+  const devTarget = String(import.meta.env.VITE_DEV_API_TARGET || '').trim()
+  if (devTarget.startsWith('http')) return originFromEnvUrl(devTarget)
+  return ''
+}
+
+/**
+ * API base for fetch():
+ * - isDev true  → /api (Vite proxies to VITE_DEV_API_TARGET)
+ * - isDev false → VITE_PROD_API_BASE_URL (direct, e.g. https://api.namoprints.in/api)
+ */
+export function getApiBaseUrl() {
+  if (!isDev()) {
+    return prodApiBaseFromEnv() || '/api'
+  }
   return '/api'
 }
 
@@ -33,8 +64,6 @@ export function getApiOrigin() {
   if (base.startsWith('http')) {
     return originFromEnvUrl(base)
   }
-
-  // Relative /api: keep media on the same host so Vite/nginx can proxy /uploads.
   if (typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin
   }
@@ -42,13 +71,10 @@ export function getApiOrigin() {
 }
 
 export function getNetworkErrorMessage() {
-  if (import.meta.env.DEV) {
-    return 'API server is not running. From the project root run: npm run dev — then open http://localhost:5173'
+  if (!isDev()) {
+    const base = getApiBaseUrl()
+    return `Cannot reach API at ${base}. Check server status or your network connection.`
   }
-
-  const base = getApiBaseUrl()
-  if (base.startsWith('http')) {
-    return `Cannot reach API at ${base}. Check server status or contact support.`
-  }
-  return 'Cannot reach API server. Please try again in a moment or contact support.'
+  const target = String(import.meta.env.VITE_DEV_API_TARGET || 'http://127.0.0.1:5000').trim()
+  return `Local API is not running. Start the backend (expected at ${target}) or set VITE_IS_DEV=false.`
 }

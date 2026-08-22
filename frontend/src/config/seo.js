@@ -14,7 +14,7 @@ export function getSiteOrigin() {
   const fromEnv = import.meta.env.VITE_SITE_URL?.replace(/\/$/, '')
   if (fromEnv) return fromEnv
   if (typeof window !== 'undefined') return window.location.origin
-  return 'https://namoprint.com'
+  return 'https://www.namoprints.in'
 }
 
 export function absoluteUrl(path = '/') {

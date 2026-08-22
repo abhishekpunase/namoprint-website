@@ -70,9 +70,9 @@ export function StatCard({
 
       {trend.length ? (
         <div className="dash-stat-card__spark" aria-hidden="true">
-          {trend.map((point) => (
+          {trend.map((point, index) => (
             <span
-              key={point.label}
+              key={point.id || `${point.label}-${index}`}
               style={{ height: `${Math.max(12, (point.value / maxTrend) * 100)}%` }}
             />
           ))}

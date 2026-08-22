@@ -1,4 +1,5 @@
 import { User } from '../models/User.js';
+import { env } from './env.js';
 import { ensureDevCatalog, ensureDevCategories, ensureFallbackStorefrontProducts } from './seedCatalog.js';
 
 import { ensureHomeSlides } from './seedHomeSlides.js';
@@ -66,9 +67,7 @@ async function migrateLegacyAdminEmail() {
 export async function ensureDevUsers() {
   if (process.env.SEED_DEV_USERS === 'false') return;
 
-  const isDev = process.env.NODE_ENV !== 'production';
-  const useMemory = process.env.USE_MEMORY_MONGO === 'true';
-  if (!isDev && !useMemory) return;
+  if (!env.isDev && process.env.USE_MEMORY_MONGO !== 'true') return;
 
   await migrateLegacyAdminEmail();
 

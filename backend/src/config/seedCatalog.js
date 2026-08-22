@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import slugify from 'slugify';
 import { Category } from '../models/Category.js';
 import { Product } from '../models/Product.js';
+import { env } from './env.js';
 
 /** Matches storefront homepage sections (frontend homeCategories) */
 const DEV_HOMEPAGE_CATEGORIES = [
@@ -228,9 +229,7 @@ async function findCategoryForProductType(productType) {
 export async function ensureDevCategories() {
   if (process.env.SEED_DEV_CATALOG === 'false') return;
 
-  const isDev = process.env.NODE_ENV !== 'production';
-  const useMemory = process.env.USE_MEMORY_MONGO === 'true';
-  if (!isDev && !useMemory) return;
+  if (!env.isDev && process.env.USE_MEMORY_MONGO !== 'true') return;
 
   let created = 0;
   for (const entry of DEV_HOMEPAGE_CATEGORIES) {
@@ -256,9 +255,7 @@ export async function ensureDevCategories() {
 export async function ensureDevCatalog() {
   if (process.env.SEED_DEV_CATALOG === 'false') return;
 
-  const isDev = process.env.NODE_ENV !== 'production';
-  const useMemory = process.env.USE_MEMORY_MONGO === 'true';
-  if (!isDev && !useMemory) return;
+  if (!env.isDev && process.env.USE_MEMORY_MONGO !== 'true') return;
 
   await ensureDevCategories();
   await ensureFallbackStorefrontProducts();
@@ -288,9 +285,7 @@ export async function ensureDevCatalog() {
 export async function ensureFallbackStorefrontProducts() {
   if (process.env.SEED_DEV_CATALOG === 'false') return;
 
-  const isDev = process.env.NODE_ENV !== 'production';
-  const useMemory = process.env.USE_MEMORY_MONGO === 'true';
-  if (!isDev && !useMemory) return;
+  if (!env.isDev && process.env.USE_MEMORY_MONGO !== 'true') return;
 
   let created = 0;
   for (const entry of FALLBACK_STOREFRONT_PRODUCTS) {

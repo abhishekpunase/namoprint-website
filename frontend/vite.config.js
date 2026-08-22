@@ -48,12 +48,25 @@ const proxyFor = (apiTarget) => {
   }
 }
 
+function parseEnvBool(value, fallback) {
+  if (value === undefined || value === null || String(value).trim() === '') return fallback
+  const v = String(value).trim().toLowerCase()
+  if (v === 'true' || v === '1' || v === 'yes') return true
+  if (v === 'false' || v === '0' || v === 'no') return false
+  return fallback
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const apiTarget = normalizeDevApiTarget(env.VITE_DEV_API_TARGET)
+  const isDev = parseEnvBool(env.VITE_IS_DEV, command === 'serve')
+  const prodApi = String(env.VITE_PROD_API_BASE_URL || env.VITE_API_BASE_URL || '').trim()
   if (command === 'serve') {
-    console.log(`Vite dev server proxying API requests to: ${apiTarget}`)
+    const modeLabel = isDev
+      ? `isDev=true, proxy → ${apiTarget}`
+      : `isDev=false, production API → ${prodApi || '(set VITE_PROD_API_BASE_URL)'}`
+    console.log(`Vite API mode: ${modeLabel}`)
   }
   return {
     plugins: [react(), tailwindcss()],

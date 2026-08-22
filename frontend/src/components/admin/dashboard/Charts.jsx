@@ -91,7 +91,7 @@ export function RevenueChart({ data = [], period, onPeriodChange, loading = fals
               const x = padding + index * step
               const y = height - padding - (item.value / max) * (height - padding * 2)
               return (
-                <g key={item.label}>
+                <g key={item.id || `${item.label}-${index}`}>
                   <circle cx={x} cy={y} r="5" fill="#6366f1">
                     <title>{`${item.label}: ${formatCurrency(item.value)}`}</title>
                   </circle>
@@ -100,8 +100,8 @@ export function RevenueChart({ data = [], period, onPeriodChange, loading = fals
             })}
           </svg>
           <div className="dash-line-chart__labels">
-            {data.map((item) => (
-              <span key={item.label}>{item.label}</span>
+            {data.map((item, index) => (
+              <span key={item.id || `${item.label}-${index}`}>{item.label}</span>
             ))}
           </div>
         </div>

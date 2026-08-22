@@ -1,4 +1,4 @@
-import { getApiOrigin } from '../config/apiConfig'
+import { getApiOrigin, getRemoteApiOrigin, isDev } from '../config/apiConfig'
 
 const LOCALHOST_ORIGIN_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i
 
@@ -15,13 +15,25 @@ function rewriteLocalhostUrl(url) {
   return toSameOriginPath(url)
 }
 
-/** Normalize relative or localhost upload paths for <img src>. Keep media same-origin. */
+function rewriteRemoteUploadForDev(url) {
+  if (isDev() || !/^https?:\/\//i.test(url)) return url
+  const remote = getRemoteApiOrigin()
+  if (remote && url.startsWith(`${remote}/uploads/`)) {
+    return url.slice(remote.length)
+  }
+  return url
+}
+
+/** Normalize relative or localhost upload paths for <img src>. */
 export function resolveMediaUrl(url) {
   if (!url || typeof url !== 'string') return ''
   const trimmed = url.trim()
   if (!trimmed) return ''
   if (trimmed.startsWith('blob:') || trimmed.startsWith('data:')) return trimmed
-  if (/^https?:\/\//i.test(trimmed)) return rewriteLocalhostUrl(trimmed)
+  if (/^https?:\/\//i.test(trimmed)) {
+    if (LOCALHOST_ORIGIN_RE.test(trimmed)) return resolveMediaUrl(rewriteLocalhostUrl(trimmed))
+    return rewriteRemoteUploadForDev(trimmed)
+  }
   if (trimmed.startsWith('//')) return `https:${trimmed}`
   if (trimmed.startsWith('/')) {
     if (trimmed.startsWith('/mockups/')) {
@@ -30,7 +42,11 @@ export function resolveMediaUrl(url) {
     if (FRONTEND_STATIC_PREFIXES.some((prefix) => trimmed.startsWith(prefix))) {
       return trimmed
     }
-    if (trimmed.startsWith('/uploads/')) return trimmed
+    if (trimmed.startsWith('/uploads/')) {
+      if (isDev()) return trimmed
+      const origin = getRemoteApiOrigin()
+      return origin ? `${origin}${trimmed}` : trimmed
+    }
     const origin = getApiOrigin()
     return origin ? `${origin}${trimmed}` : trimmed
   }

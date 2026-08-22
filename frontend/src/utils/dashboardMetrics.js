@@ -97,11 +97,11 @@ export function buildRevenueSeries(orders = [], period = 'monthly') {
 
   const entries = [...buckets.entries()].slice(-8)
   if (!entries.length) {
-    return [
-      { label: '—', value: 0 },
-      { label: '—', value: 0 },
-      { label: '—', value: 0 },
-    ]
+    return Array.from({ length: 3 }, (_, index) => ({
+      label: '—',
+      value: 0,
+      id: `revenue-empty-${index}`,
+    }))
   }
 
   return entries.map(([label, value]) => ({ label, value }))

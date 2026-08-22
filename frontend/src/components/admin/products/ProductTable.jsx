@@ -161,7 +161,9 @@ export function ProductTable({
 
       <div className="prod-cards prod-cards--mobile">
         {products.map((product) => {
-          const image = product.thumbnail || product.images?.[0] || product.mockup?.frameImage
+          const image = resolveMediaUrl(
+            product.thumbnail || product.images?.[0] || product.mockup?.frameImage,
+          )
           return (
             <article key={product._id} className="prod-card">
               <div className="prod-card__head">
