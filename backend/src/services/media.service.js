@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import { putBuffer } from './storage.service.js';
+import { publicS3Url, putBuffer } from './storage.service.js';
 
 const extensionForVideo = (mimeType) => {
   if (mimeType === 'video/webm') return 'webm';
@@ -33,6 +33,17 @@ export const storeUploadedDesign = async ({ file, userId }) => {
     optimizedUrl: store.url,
   };
 };
+
+export const recordStoredObject = ({ key, originalName, mimeType, sizeBytes }) => ({
+  originalName,
+  mimeType,
+  sizeBytes,
+  storage: 's3',
+  key,
+  url: publicS3Url(key),
+  optimizedKey: key,
+  optimizedUrl: publicS3Url(key),
+});
 
 export const storeUploadedVideo = async ({ file, userId }) => {
   const id = nanoid(18);

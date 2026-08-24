@@ -1,5 +1,5 @@
 import { User } from '../models/User.js';
-import { env } from './env.js';
+import { canInsertDevUsers } from './seedGuard.js';
 import { ensureDevCatalog, ensureDevCategories, ensureFallbackStorefrontProducts } from './seedCatalog.js';
 
 import { ensureHomeSlides } from './seedHomeSlides.js';
@@ -65,9 +65,7 @@ async function migrateLegacyAdminEmail() {
 }
 
 export async function ensureDevUsers() {
-  if (process.env.SEED_DEV_USERS === 'false') return;
-
-  if (!env.isDev && process.env.USE_MEMORY_MONGO !== 'true') return;
+  if (!canInsertDevUsers()) return;
 
   await migrateLegacyAdminEmail();
 

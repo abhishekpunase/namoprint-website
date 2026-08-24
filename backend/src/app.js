@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { env } from './config/env.js';
 import { errorHandler, notFound } from './middlewares/error.middleware.js';
 import { apiLimiter } from './middlewares/rateLimit.middleware.js';
+import { attachSignedMediaJson } from './middlewares/signedMedia.middleware.js';
 import routes from './routes/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -101,7 +102,7 @@ const healthHandler = async (_req, res) => {
 
 app.get('/health', healthHandler);
 app.get('/api/health', healthHandler);
-app.use('/api', apiLimiter, routes);
+app.use('/api', apiLimiter, attachSignedMediaJson, routes);
 
 if (!env.isDev && hasFrontendDist) {
   app.use(express.static(frontendDist, { index: false }));

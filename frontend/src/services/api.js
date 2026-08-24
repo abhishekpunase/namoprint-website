@@ -217,6 +217,70 @@ export async function apiRequest(path, options = {}, retry = true) {
   return response.json()
 }
 
+async function uploadDirectToS3(kind, file) {
+  const contentType = file.type || 'application/octet-stream'
+  const presign = await apiRequest('/uploads/presigned-url', {
+    method: 'POST',
+    body: {
+      kind,
+      fileName: file.name || 'upload',
+      contentType,
+      sizeBytes: file.size,
+    },
+  })
+
+  if (!presign?.directUpload || !presign.uploadUrl) return null
+
+  const put = await fetch(presign.uploadUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': presign.contentType || contentType },
+    body: file,
+  })
+  if (!put.ok) {
+    const detail = await put.text().catch(() => '')
+    throw new Error(
+      put.status === 404
+        ? 'S3 bucket or object path was not found. Check AWS_S3_BUCKET, region, and CORS.'
+        : `Could not upload file to storage (${put.status})${detail ? `: ${detail.slice(0, 180)}` : ''}`,
+    )
+  }
+
+  return apiRequest('/uploads/complete', {
+    method: 'POST',
+    body: {
+      kind,
+      key: presign.key,
+      fileName: file.name || 'upload',
+      contentType: presign.contentType || contentType,
+    },
+  })
+}
+
+function isFatalUploadError(error) {
+  const message = String(error?.message || '').toLowerCase()
+  return (
+    message.includes('authentication required') ||
+    message.includes('session expired') ||
+    message.includes('only jpeg') ||
+    message.includes('only mp4') ||
+    message.includes('executable') ||
+    message.includes('forbidden') ||
+    message.includes('only admins') ||
+    message.includes('could not upload file to storage') ||
+    message.includes('s3 bucket or object path')
+  )
+}
+
+async function tryDirectThenMultipart(kind, file, sendMultipart) {
+  try {
+    const direct = await uploadDirectToS3(kind, file)
+    if (direct) return direct
+  } catch (error) {
+    if (isFatalUploadError(error)) throw error
+  }
+  return sendMultipart()
+}
+
 export const api = {
   login: (payload) => apiRequest('/auth/login', { method: 'POST', body: payload }),
   adminLogin: (payload) => apiRequest('/auth/admin/login', { method: 'POST', body: payload }),
@@ -238,7 +302,7 @@ export const api = {
   products: (query = '') => fetchAllPaginated((q) => apiRequest(`/products${q}`), query),
   product: (slug) => apiRequest(`/products/${slug}`),
   uploadPhoto: async (file) => {
-    const send = async (photo) => {
+    const sendMultipart = async (photo) => {
       const formData = new FormData()
       formData.append('photo', photo)
       return apiRequest('/uploads/photo', { method: 'POST', body: formData })
@@ -246,25 +310,29 @@ export const api = {
 
     const prepared = await prepareUploadImage(file)
     try {
-      return await send(prepared)
+      return await tryDirectThenMultipart('photo', prepared, () => sendMultipart(prepared))
     } catch (error) {
       if (!isLikelyUploadTooLarge(error) || prepared.size <= 900 * 1024) {
         throw error
       }
-      return send(await prepareProxySafeUploadImage(file))
+      const safer = await prepareProxySafeUploadImage(file)
+      return tryDirectThenMultipart('photo', safer, () => sendMultipart(safer))
     }
   },
-  uploadVideo: (file) => {
-    const formData = new FormData()
-    formData.append('video', file)
-    return apiRequest('/uploads/video', { method: 'POST', body: formData })
-  },
-  uploadDesign: (file) => {
-    const formData = new FormData()
-    formData.append('design', file)
-    return apiRequest('/uploads/design', { method: 'POST', body: formData })
-  },
+  uploadVideo: (file) =>
+    tryDirectThenMultipart('video', file, () => {
+      const formData = new FormData()
+      formData.append('video', file)
+      return apiRequest('/uploads/video', { method: 'POST', body: formData })
+    }),
+  uploadDesign: (file) =>
+    tryDirectThenMultipart('design', file, () => {
+      const formData = new FormData()
+      formData.append('design', file)
+      return apiRequest('/uploads/design', { method: 'POST', body: formData })
+    }),
   preview: (payload) => apiRequest('/uploads/preview', { method: 'POST', body: payload }),
+  uploadPreview: (uploadId) => apiRequest(`/uploads/${uploadId}/preview`),
   cart: () => {
     if (!hasStoredSession()) return Promise.resolve({ cart: { items: [] } })
     return apiRequest('/cart')

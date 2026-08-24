@@ -1,5 +1,30 @@
 import Joi from 'joi';
 
+const uploadKind = Joi.string().valid('photo', 'design', 'video').required();
+
+export const presignSchema = Joi.object({
+  body: Joi.object({
+    kind: uploadKind,
+    fileName: Joi.string().max(255),
+    filename: Joi.string().max(255),
+    contentType: Joi.string().max(120).required(),
+    sizeBytes: Joi.number().integer().min(1).required(),
+  }).or('fileName', 'filename'),
+  params: Joi.object(),
+  query: Joi.object(),
+});
+
+export const completeSchema = Joi.object({
+  body: Joi.object({
+    kind: uploadKind,
+    key: Joi.string().max(512).required(),
+    fileName: Joi.string().max(255).required(),
+    contentType: Joi.string().max(120).required(),
+  }),
+  params: Joi.object(),
+  query: Joi.object(),
+});
+
 export const previewSchema = Joi.object({
   body: Joi.object({
     productId: Joi.string().required(),

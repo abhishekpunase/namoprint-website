@@ -9,7 +9,8 @@
     "dev:clean": "node scripts/predev.js && nodemon src/server.js",
     "start": "node src/server.js",
     "check:production": "node scripts/check-production-env.js",
-    "seed": "node src/scripts/seed.js",
+    "seed": "node src/scripts/seedDemoContent.js",
+    "seed:wipe": "node src/scripts/seed.js",
     "seed:god-nameplate": "node src/scripts/seedGodAndNamePlate.js",
     "lint": "eslint src scripts --ext .js",
     "check:mongo": "node scripts/check-mongo.js"

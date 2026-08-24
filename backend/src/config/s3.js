@@ -10,7 +10,10 @@ export const s3Client = isS3Enabled
       region: env.aws.region,
       credentials: {
         accessKeyId: env.aws.accessKeyId,
-        secretAccessKey: env.aws.secretAccessKey
-      }
+        secretAccessKey: env.aws.secretAccessKey,
+      },
+      // Required for browser presigned PUT: SDK v3.729+ otherwise signs empty CRC32 into the URL.
+      requestChecksumCalculation: 'WHEN_REQUIRED',
+      responseChecksumValidation: 'WHEN_REQUIRED',
     })
   : null;

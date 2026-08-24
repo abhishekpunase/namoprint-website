@@ -2,65 +2,13 @@ import { app } from './app.js';
 import { connectDb, disconnectDb } from './config/db.js';
 import { env } from './config/env.js';
 import { getStorageBackend } from './services/storage.service.js';
-import { shouldSeedDemoContent } from './config/seedGuard.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  ensureDevUsers,
-  ensureDevCatalog,
-  ensureHomeSlides,
-  ensureProductReviews,
-  ensureCategoryCarousel,
-  ensureProductReels,
-  ensureStoreSettings,
-  ensureCorporateGifts,
-  ensureBabyBirthFrames,
-  ensureTrophies,
-  ensurePenPrints,
-  ensureUvDtfStickers,
-  ensureProductLabelStickers,
-  ensureTShirtProducts,
-  ensureHomeTestimonials,
-  ensureHomeOfferMarquee,
-} from './config/seedDev.js';
-
-async function runStartupSeed(label, fn) {
-  try {
-    await fn();
-  } catch (err) {
-    console.warn(`${label} seed skipped:`, err?.message || err);
-  }
-}
-
-async function seedAfterListen() {
-  await ensureStoreSettings();
-
-  if (shouldSeedDemoContent()) {
-    await runStartupSeed('Dev users', ensureDevUsers);
-    await runStartupSeed('Dev catalog', ensureDevCatalog);
-    await runStartupSeed('Home slides', ensureHomeSlides);
-    await runStartupSeed('Product reviews', ensureProductReviews);
-    await runStartupSeed('Category carousel', ensureCategoryCarousel);
-    await runStartupSeed('Product reels', ensureProductReels);
-    await runStartupSeed('Corporate gifts', ensureCorporateGifts);
-    await runStartupSeed('Baby birth frames', ensureBabyBirthFrames);
-    await runStartupSeed('Trophies', ensureTrophies);
-    await runStartupSeed('Pen prints', ensurePenPrints);
-    await runStartupSeed('UV DTF stickers', ensureUvDtfStickers);
-    await runStartupSeed('Product label stickers', ensureProductLabelStickers);
-    await runStartupSeed('T-shirt products', ensureTShirtProducts);
-    await runStartupSeed('Home testimonials', ensureHomeTestimonials);
-    await runStartupSeed('Home offer marquee', ensureHomeOfferMarquee);
-  } else if (!env.isDev) {
-    console.log('Production mode: demo seeds skipped (set SEED_ON_START=true to override).');
-  }
-}
 
 const start = async () => {
   await connectDb();
 
-  // Listen first so Vite's proxy is not refused while Atlas seeds run.
   const server = await listenWithRetry(app, env.port);
 
   const shutdown = async (label, { exitAfter = true } = {}) => {
@@ -84,22 +32,16 @@ const start = async () => {
   console.log(`Upload storage: ${storage}`);
   if (storage === 'local') {
     console.warn(
-      'WARNING: uploads are stored on this server disk. Set AWS_S3_BUCKET + AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY so React → Node → S3 → MongoDB URL.',
+      'WARNING: uploads are stored on this server disk. Set AWS_S3_BUCKET + AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY so React → S3 → MongoDB URL.',
     );
   }
-  if (env.isDev) {
-    console.log(`Admin login: admin@omgs.com (see seed logs for password)`);
-  } else {
-    console.log('Production mode: demo seeds disabled, SPA served from frontend/dist');
-  }
   if (!env.isDev) {
+    console.log('Production mode: SPA served from frontend/dist');
     const frontendDist = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'frontend', 'dist');
     if (!fs.existsSync(path.join(frontendDist, 'index.html'))) {
       console.warn('WARNING: frontend/dist not found — run "npm run build" in frontend before production start.');
     }
   }
-
-  await seedAfterListen();
 };
 
 function listenWithRetry(appInstance, port, maxAttempts = 10) {

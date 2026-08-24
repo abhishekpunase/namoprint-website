@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import {
+  completeUpload,
+  getSignedAssetPreview,
+  presignUpload,
   previewProductPhoto,
   uploadAdminVideo,
   uploadCustomerPhoto,
@@ -9,10 +12,14 @@ import { authorize, optionalAuth, protect } from '../middlewares/auth.middleware
 import { uploadLimiter } from '../middlewares/rateLimit.middleware.js';
 import { upload, uploadDesign, uploadVideo } from '../middlewares/upload.middleware.js';
 import { validate } from '../middlewares/validate.middleware.js';
-import { previewSchema } from '../validators/upload.validator.js';
+import { completeSchema, presignSchema, previewSchema } from '../validators/upload.validator.js';
 
 export const uploadRoutes = Router();
 
+uploadRoutes.post('/presign', optionalAuth, uploadLimiter, validate(presignSchema), presignUpload);
+uploadRoutes.post('/presigned-url', optionalAuth, uploadLimiter, validate(presignSchema), presignUpload);
+uploadRoutes.post('/complete', optionalAuth, uploadLimiter, validate(completeSchema), completeUpload);
+uploadRoutes.get('/:id/preview', optionalAuth, getSignedAssetPreview);
 uploadRoutes.post('/photo', optionalAuth, uploadLimiter, upload.single('photo'), uploadCustomerPhoto);
 uploadRoutes.use(protect);
 uploadRoutes.post('/design', uploadLimiter, uploadDesign.single('design'), uploadDesignFile);

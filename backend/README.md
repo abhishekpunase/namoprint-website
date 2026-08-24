@@ -11,6 +11,8 @@ npm run seed
 npm run dev
 ```
 
+Demo catalog, admin user, and homepage content are **not** created when the API starts. Run `npm run seed` when you want that data.
+
 Required before real payment/upload production:
 
 - Add `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`.
@@ -44,7 +46,10 @@ Required before real payment/upload production:
 - `POST /api/products`
 - `PATCH /api/products/:id`
 - `DELETE /api/products/:id`
-- `POST /api/uploads/photo` multipart field `photo`
+- `POST /api/uploads/presigned-url` (alias: `/presign`) JSON `{ kind, fileName, contentType, sizeBytes }` — signed PUT URL
+- `POST /api/uploads/complete` JSON `{ kind, key, fileName, contentType }` — saves S3 key, returns `{ asset }` with signed GET `url`
+- `GET /api/uploads/:id/preview` — signed GET URL for `preview.webp` / original
+- `POST /api/uploads/photo` multipart fallback when S3 is unset
 - `POST /api/uploads/preview`
 - `GET /api/cart`
 - `POST /api/cart/items`
@@ -76,8 +81,29 @@ Cart, upload, checkout, payment, account, and admin routes require JWT Bearer au
 
 ## Image Upload To Preview Logic
 
-1. Frontend uploads photo to `POST /api/uploads/photo` as multipart `photo`.
-2. Backend validates file type/size, rotates using EXIF, creates print-quality optimized image and lightweight preview using `sharp`.
-3. File is stored in S3 when configured, otherwise local dev storage.
-4. Frontend calls `POST /api/uploads/preview` with `productId`, `assetId`, and crop data.
-5. Backend returns product mockup canvas, photo box, crop, and layer instructions. Vite frontend can render this on canvas/CSS for customer preview.
+Direct-to-S3 with a **private** bucket (no AWS SDK in React):
+
+1. React `POST /api/uploads/presigned-url` with file metadata only (not the bytes).
+2. Express creates a short-lived **PUT** URL (`PutObject` + `getSignedUrl`). Keys stay on the server.
+3. React `PUT`s the file straight to S3.
+4. React `POST /api/uploads/complete` with the S3 `key`. Express verifies the object, for photos builds `preview.webp`, and stores **key** (not the file) in MongoDB.
+5. Every API JSON response rewrites stored S3 URLs to short-lived **GET** signed URLs. React uses `<img src={url} />`.
+6. `GET /api/uploads/:id/preview` refreshes a signed GET URL for one asset.
+
+Local fallback: if AWS keys are missing, presign returns `directUpload: false` and the client uses multipart to disk.
+
+### AWS setup (required once)
+
+The bucket stays **private** — no public-read policy.
+
+1. **IAM** — attach `deploy/iam-backend-s3-policy.json` to the IAM user in `AWS_ACCESS_KEY_ID`.
+   A presigned URL only carries the signer's own permissions, so without `s3:PutObject`
+   every upload fails with `AccessDenied`.
+2. **Bucket CORS** — apply `deploy/s3-cors.json` so the browser is allowed to `PUT` and `GET`.
+
+```bash
+aws iam put-user-policy --user-name namoprint-backend \
+  --policy-name namoprint-s3 --policy-document file://deploy/iam-backend-s3-policy.json
+aws s3api put-bucket-cors --bucket namoprint-uploads \
+  --cors-configuration file://deploy/s3-cors.json --region ap-south-1
+```

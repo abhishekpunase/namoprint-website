@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import sharp from 'sharp';
-import { putBuffer } from './storage.service.js';
+import { putBuffer, signStoredUrl } from './storage.service.js';
 
 const extensionFor = (format) => (format === 'jpeg' ? 'jpg' : format);
 
@@ -76,25 +76,30 @@ export const optimizeCustomerImage = async ({ file, userId }) => {
   };
 };
 
-export const buildPreviewPayload = ({ product, asset, crop }) => ({
-  product: {
-    id: product._id,
-    title: product.title,
-    mockup: product.mockup
-  },
-  photo: {
-    assetId: asset._id,
-    originalUrl: asset.url,
-    previewUrl: asset.optimizedUrl || asset.url,
-    crop: crop || asset.crop
-  },
-  renderInstructions: {
-    canvas: product.mockup?.canvas || { width: 1000, height: 1000 },
-    photoBox: product.mockup?.photoBox || { x: 0, y: 0, width: 1, height: 1, rotate: 0 },
-    layers: [
-      { type: 'image', role: 'base', url: product.mockup?.baseImageUrl },
-      { type: 'customer-photo', url: asset.optimizedUrl || asset.url, crop: crop || asset.crop },
-      { type: 'image', role: 'overlay', url: product.mockup?.overlayImageUrl }
-    ].filter((layer) => layer.url || layer.type === 'customer-photo')
-  }
-});
+export const buildPreviewPayload = async ({ product, asset, crop }) => {
+  const originalUrl = await signStoredUrl(asset.url, asset.key);
+  const previewUrl = await signStoredUrl(asset.optimizedUrl || asset.url, asset.optimizedKey || asset.key);
+
+  return {
+    product: {
+      id: product._id,
+      title: product.title,
+      mockup: product.mockup,
+    },
+    photo: {
+      assetId: asset._id,
+      originalUrl,
+      previewUrl,
+      crop: crop || asset.crop,
+    },
+    renderInstructions: {
+      canvas: product.mockup?.canvas || { width: 1000, height: 1000 },
+      photoBox: product.mockup?.photoBox || { x: 0, y: 0, width: 1, height: 1, rotate: 0 },
+      layers: [
+        { type: 'image', role: 'base', url: product.mockup?.baseImageUrl },
+        { type: 'customer-photo', url: previewUrl, crop: crop || asset.crop },
+        { type: 'image', role: 'overlay', url: product.mockup?.overlayImageUrl },
+      ].filter((layer) => layer.url || layer.type === 'customer-photo'),
+    },
+  };
+};
