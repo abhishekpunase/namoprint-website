@@ -1,5 +1,12 @@
 import dotenv from 'dotenv';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+/** Resolve backend/.env by file location, so pm2/systemd can start from any cwd. */
+const backendRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const envPath = path.join(backendRoot, '.env');
+
+dotenv.config({ path: envPath });
 dotenv.config();
 
 function parseEnvBool(value, fallback) {
@@ -82,7 +89,9 @@ const required = ['MONGO_URI', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
 
 for (const key of required) {
   if (!process.env[key]) {
-    throw new Error(`Missing required env variable: ${key}`);
+    throw new Error(
+      `Missing required env variable: ${key}. Checked ${envPath} — create it there (cp .env.example .env) or export ${key} in the process environment.`,
+    );
   }
 }
 
