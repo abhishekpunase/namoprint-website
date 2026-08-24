@@ -12,7 +12,7 @@ export const uploadCustomerPhoto = asyncHandler(async (req, res) => {
   const data = await optimizeCustomerImage({ file: req.file, userId: req.user?._id });
   const asset = await UploadAsset.create({ ...data, user: req.user?._id });
 
-  res.status(201).json({ success: true, asset });
+  res.status(201).json({ success: true, asset: asset.toJSON() });
 });
 
 export const uploadDesignFile = asyncHandler(async (req, res) => {
@@ -21,7 +21,7 @@ export const uploadDesignFile = asyncHandler(async (req, res) => {
   const data = await storeUploadedDesign({ file: req.file, userId: req.user?._id });
   const asset = await UploadAsset.create({ ...data, user: req.user?._id });
 
-  res.status(201).json({ success: true, asset });
+  res.status(201).json({ success: true, asset: asset.toJSON() });
 });
 
 export const uploadAdminVideo = asyncHandler(async (req, res) => {
@@ -30,7 +30,7 @@ export const uploadAdminVideo = asyncHandler(async (req, res) => {
   const data = await storeUploadedVideo({ file: req.file, userId: req.user?._id });
   const asset = await UploadAsset.create({ ...data, user: req.user?._id });
 
-  res.status(201).json({ success: true, asset });
+  res.status(201).json({ success: true, asset: asset.toJSON() });
 });
 
 export const previewProductPhoto = asyncHandler(async (req, res) => {

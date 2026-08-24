@@ -1,5 +1,6 @@
 import { getApiBaseUrl, getNetworkErrorMessage } from '../config/apiConfig'
 import { fetchAllPaginated } from '../utils/fetchAllProducts'
+import { prepareProxySafeUploadImage, prepareUploadImage } from '../utils/prepareUploadImage'
 
 export async function checkApiHealth() {
   try {
@@ -75,7 +76,24 @@ const redirectToLoginIfAdmin = () => {
   }
 }
 
+const UPLOAD_TOO_LARGE_MESSAGE =
+  'This image is too large to upload. Please choose a smaller photo and try again.'
+
+const isLikelyUploadTooLarge = (error) => {
+  const message = String(error?.message || '').toLowerCase()
+  return (
+    message.includes('413') ||
+    message.includes('too large') ||
+    message.includes('entity too large') ||
+    message.includes('failed to fetch') ||
+    message.includes('cannot reach api')
+  )
+}
+
 const readErrorMessage = async (response) => {
+  if (response.status === 413) {
+    return UPLOAD_TOO_LARGE_MESSAGE
+  }
   if (response.status === 502 || response.status === 503 || response.status === 504) {
     return getNetworkErrorMessage()
   }
@@ -168,6 +186,9 @@ export async function apiRequest(path, options = {}, retry = true) {
           : options.body,
     })
   } catch {
+    if (options.body instanceof FormData) {
+      throw new Error(UPLOAD_TOO_LARGE_MESSAGE)
+    }
     throw new Error(getNetworkErrorMessage())
   }
 
@@ -216,10 +237,22 @@ export const api = {
   categories: () => apiRequest('/categories'),
   products: (query = '') => fetchAllPaginated((q) => apiRequest(`/products${q}`), query),
   product: (slug) => apiRequest(`/products/${slug}`),
-  uploadPhoto: (file) => {
-    const formData = new FormData()
-    formData.append('photo', file)
-    return apiRequest('/uploads/photo', { method: 'POST', body: formData })
+  uploadPhoto: async (file) => {
+    const send = async (photo) => {
+      const formData = new FormData()
+      formData.append('photo', photo)
+      return apiRequest('/uploads/photo', { method: 'POST', body: formData })
+    }
+
+    const prepared = await prepareUploadImage(file)
+    try {
+      return await send(prepared)
+    } catch (error) {
+      if (!isLikelyUploadTooLarge(error) || prepared.size <= 900 * 1024) {
+        throw error
+      }
+      return send(await prepareProxySafeUploadImage(file))
+    }
   },
   uploadVideo: (file) => {
     const formData = new FormData()

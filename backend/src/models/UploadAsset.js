@@ -32,5 +32,12 @@ const uploadAssetSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+uploadAssetSchema.virtual('previewUrl').get(function previewUrl() {
+  return this.optimizedUrl || this.url;
+});
+
+uploadAssetSchema.set('toJSON', { virtuals: true });
+uploadAssetSchema.set('toObject', { virtuals: true });
+
 export const UploadAsset = mongoose.model('UploadAsset', uploadAssetSchema);
 export { cropSchema };

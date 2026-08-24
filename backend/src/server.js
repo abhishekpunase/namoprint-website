@@ -1,6 +1,7 @@
 import { app } from './app.js';
 import { connectDb, disconnectDb } from './config/db.js';
 import { env } from './config/env.js';
+import { getStorageBackend } from './services/storage.service.js';
 import { shouldSeedDemoContent } from './config/seedGuard.js';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -79,6 +80,13 @@ const start = async () => {
   const host = env.isDev ? `http://127.0.0.1:${env.port}` : env.apiBaseUrl;
   console.log(`Backend mode: IS_DEV=${env.isDev}`);
   console.log(`API running on ${host}`);
+  const storage = getStorageBackend();
+  console.log(`Upload storage: ${storage}`);
+  if (storage === 'local') {
+    console.warn(
+      'WARNING: uploads are stored on this server disk. Set AWS_S3_BUCKET + AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY so React → Node → S3 → MongoDB URL.',
+    );
+  }
   if (env.isDev) {
     console.log(`Admin login: admin@omgs.com (see seed logs for password)`);
   } else {

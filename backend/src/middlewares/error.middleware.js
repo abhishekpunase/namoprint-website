@@ -1,3 +1,4 @@
+import { env } from '../config/env.js';
 import { ApiError } from '../utils/apiError.js';
 
 export const notFound = (req, _res, next) => {
@@ -5,6 +6,13 @@ export const notFound = (req, _res, next) => {
 };
 
 export const errorHandler = (err, _req, res, _next) => {
+  if (err?.code === 'LIMIT_FILE_SIZE' || err?.type === 'entity.too.large') {
+    return res.status(413).json({
+      success: false,
+      message: `File is too large. Maximum upload size is ${env.maxImageMb}MB.`,
+    });
+  }
+
   if (err?.code === 11000) {
     const field = Object.keys(err.keyPattern || {})[0] || 'value';
     const duplicate = err.keyValue?.[field];
