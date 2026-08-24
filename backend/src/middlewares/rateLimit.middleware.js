@@ -7,9 +7,15 @@ const base = {
   windowMs: env.rateLimitWindowMs
 };
 
+/** Admin panel screens fan out to many endpoints per page, so they get a larger budget. */
+const ADMIN_MULTIPLIER = 4;
+
 export const apiLimiter = rateLimit({
   ...base,
-  max: env.nodeEnv === 'development' ? 2000 : env.rateLimitMax,
+  max: (req) => {
+    if (env.nodeEnv === 'development') return 5000;
+    return req.path.startsWith('/admin') ? env.rateLimitMax * ADMIN_MULTIPLIER : env.rateLimitMax;
+  },
   message: { success: false, message: 'Too many requests. Please try again later.' },
 });
 
