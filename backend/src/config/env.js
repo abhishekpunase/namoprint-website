@@ -58,7 +58,7 @@ const apiBaseUrl = pickDevProd(
 const parseClientUrls = (raw) =>
   String(raw || '')
     .split(',')
-    .map((value) => value.trim())
+    .map((value) => value.trim().replace(/\/+$/, '').replace(/\.+$/, ''))
     .filter(Boolean);
 
 const clientUrls = parseClientUrls(

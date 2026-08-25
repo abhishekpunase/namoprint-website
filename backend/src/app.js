@@ -32,21 +32,33 @@ export const app = express();
 
 const ALLOWED_HTTPS_DOMAINS = ['namoprints.in'];
 
+/** Browsers sometimes send Origin as https://www.namoprints.in. (FQDN trailing dot). */
+function originParts(origin) {
+  try {
+    const url = new URL(String(origin).trim());
+    const hostname = url.hostname.replace(/\.+$/, '').toLowerCase();
+    const port = url.port ? `:${url.port}` : '';
+    return { protocol: url.protocol, hostname, normalized: `${url.protocol}//${hostname}${port}` };
+  } catch {
+    return null;
+  }
+}
+
+const allowedClientOrigins = new Set(
+  env.clientUrls.map((value) => originParts(value)?.normalized).filter(Boolean),
+);
+
 const isAllowedOrigin = (origin) => {
   if (!origin) return true;
-  if (env.clientUrls.includes(origin)) return true;
-  try {
-    const { protocol, hostname } = new URL(origin);
-    if (
-      protocol === 'https:' &&
-      ALLOWED_HTTPS_DOMAINS.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`))
-    ) {
+  const parts = originParts(origin);
+  if (parts && allowedClientOrigins.has(parts.normalized)) return true;
+  if (parts?.protocol === 'https:') {
+    const { hostname } = parts;
+    if (ALLOWED_HTTPS_DOMAINS.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`))) {
       return true;
     }
-  } catch {
-    /* ignore malformed origin */
   }
-  if (env.isDev && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
+  if (env.isDev && parts && /^https?:$/.test(parts.protocol) && /^(localhost|127\.0\.0\.1)$/i.test(parts.hostname)) {
     return true;
   }
   return false;
