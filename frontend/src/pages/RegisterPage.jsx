@@ -18,7 +18,6 @@ export function RegisterPage() {
 
   const submit = async (event) => {
     event.preventDefault()
-    if (apiOnline === false) return
     setError('')
     setSubmitting(true)
     try {
@@ -60,7 +59,7 @@ export function RegisterPage() {
         <button
           className="btn btn-primary full-width"
           type="submit"
-          disabled={submitting || apiOnline === false}
+          disabled={submitting}
         >
           {submitting ? 'Creating account…' : 'Register'}
         </button>

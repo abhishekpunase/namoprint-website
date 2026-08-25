@@ -47,10 +47,11 @@ export function AdminLoginPage() {
     navigate(returnPath.startsWith('/admin') ? returnPath : '/admin', { replace: true })
   }, [booting, isAdmin, navigate, returnPath])
 
+  // The health probe is advisory only. Blocking submit on it locks admins out
+  // whenever /api/health is unreachable for an unrelated reason (CORS, proxy hiccup).
   const submit = async (event) => {
     event.preventDefault()
     setError('')
-    if (apiOnline === false) return
     setSubmitting(true)
     try {
       await adminLogin(form)
@@ -179,6 +180,7 @@ export function AdminLoginPage() {
           {apiOnline === false ? (
             <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
               {getBackendOfflineMessage()}
+              <p className="mt-2 text-xs text-amber-800">You can still try signing in.</p>
               {!import.meta.env.PROD ? (
                 <p className="mt-2 text-xs text-amber-800">{getBackendOfflineHint()}</p>
               ) : null}
@@ -195,7 +197,7 @@ export function AdminLoginPage() {
           {/* Button */}
           <button
             type="submit"
-            disabled={submitting || apiOnline === false}
+            disabled={submitting}
             className="mt-8 flex w-full items-center justify-center rounded-xl bg-orange-500 py-4 text-lg font-semibold text-white transition hover:bg-orange-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
           >
             <FiShield className="mr-2" />

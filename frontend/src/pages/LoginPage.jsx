@@ -17,7 +17,6 @@ export function LoginPage() {
 
   const submit = async (event) => {
     event.preventDefault()
-    if (apiOnline === false) return
     setError('')
     setSubmitting(true)
     try {
@@ -53,7 +52,7 @@ export function LoginPage() {
         <button
           className="btn btn-primary full-width"
           type="submit"
-          disabled={submitting || apiOnline === false}
+          disabled={submitting}
         >
           {submitting ? 'Logging in…' : 'Login'}
         </button>

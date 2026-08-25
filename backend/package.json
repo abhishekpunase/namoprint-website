@@ -11,6 +11,7 @@
     "check:production": "node scripts/check-production-env.js",
     "seed": "node src/scripts/seedDemoContent.js",
     "seed:wipe": "node src/scripts/seed.js",
+    "clean:seeded": "node src/scripts/removeSeededProducts.js",
     "seed:god-nameplate": "node src/scripts/seedGodAndNamePlate.js",
     "lint": "eslint src scripts --ext .js",
     "check:mongo": "node scripts/check-mongo.js"
