@@ -30,12 +30,17 @@ function resolveFrontendStatic(subPath) {
 
 export const app = express();
 
+const ALLOWED_HTTPS_DOMAINS = ['namoprints.in'];
+
 const isAllowedOrigin = (origin) => {
   if (!origin) return true;
   if (env.clientUrls.includes(origin)) return true;
   try {
     const { protocol, hostname } = new URL(origin);
-    if (protocol === 'https:' && (hostname === 'namoprints.in' || hostname.endsWith('.namoprints.in'))) {
+    if (
+      protocol === 'https:' &&
+      ALLOWED_HTTPS_DOMAINS.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`))
+    ) {
       return true;
     }
   } catch {
@@ -45,6 +50,18 @@ const isAllowedOrigin = (origin) => {
     return true;
   }
   return false;
+};
+
+// A blocked origin still returns 200 without CORS headers, which looks like a server
+// bug in the browser. Log each one once so pm2 logs name the real cause.
+const loggedBlockedOrigins = new Set();
+
+const rejectOrigin = (origin) => {
+  if (loggedBlockedOrigins.has(origin)) return;
+  loggedBlockedOrigins.add(origin);
+  console.warn(
+    `CORS blocked origin: ${origin} — add it to PROD_CLIENT_URL in backend/.env, then pm2 restart --update-env.`,
+  );
 };
 
 app.set('trust proxy', 1);
@@ -59,13 +76,18 @@ app.use(
     origin(origin, callback) {
       if (isAllowedOrigin(origin)) {
         callback(null, origin || true);
-      } else {
-        callback(null, false);
+        return;
       }
+      rejectOrigin(origin);
+      callback(null, false);
     },
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
   }),
+);
+
+console.log(
+  `CORS allowed: ${env.clientUrls.join(', ') || '(none from env)'} + https://*.${ALLOWED_HTTPS_DOMAINS.join(', https://*.')}`,
 );
 app.use(compression());
 app.use(morgan(env.nodeEnv === 'production' ? 'combined' : 'dev'));
