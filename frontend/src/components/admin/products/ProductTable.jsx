@@ -2,7 +2,6 @@ import { resolveMediaUrl } from '../../../utils/mediaUrl'
 import { Copy, Edit2, ExternalLink, Eye, MoreHorizontal, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { formatCurrency } from '../../../utils/format'
-import { isCatalogDemoProduct } from '../../../utils/adminProductCatalog'
 import { getMinPrice, getPrimarySku, getSalePrice, getTotalStock } from '../../../utils/productFormUtils'
 import { Skeleton } from '../ui/Loader'
 import { ProductStatusBadge } from './ProductStatusBadge'
@@ -143,9 +142,8 @@ export function ProductTable({
                         <button
                           type="button"
                           className="prod-icon-btn is-danger"
-                          title={isCatalogDemoProduct(product) ? 'Demo — publish via Edit' : 'Deactivate'}
+                          title="Deactivate"
                           onClick={() => onDelete(product)}
-                          disabled={isCatalogDemoProduct(product)}
                         >
                           <Trash2 size={14} />
                         </button>

@@ -3,11 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Copy, Edit2, ExternalLink, Trash2 } from 'lucide-react'
 import { api } from '../../../services/api'
 import { formatCurrency } from '../../../utils/format'
-import {
-  findAdminProductById,
-  isCatalogDemoProduct,
-  loadAdminProductCatalog,
-} from '../../../utils/adminProductCatalog'
+import { findAdminProductById, loadAdminProductCatalog } from '../../../utils/adminProductCatalog'
 import { getMinPrice, getTotalStock, productToForm, buildProductPayload } from '../../../utils/productFormUtils'
 import { ProductStatusBadge } from './ProductStatusBadge'
 import { ActivityTimeline } from '../dashboard/ActivityTimeline'
@@ -59,13 +55,13 @@ export function ProductDetailView() {
   }
 
   const deactivate = async () => {
-    if (isCatalogDemoProduct(product)) {
-      setError('Catalog demo products are not in the database. Use Edit → Save to publish, or duplicate to create a database copy.')
-      return
-    }
     if (!window.confirm('Deactivate this product?')) return
-    await api.adminDeleteProduct(id)
-    navigate('/admin/products')
+    try {
+      await api.adminDeleteProduct(id)
+      navigate('/admin/products')
+    } catch (err) {
+      setError(err.message)
+    }
   }
 
   if (loading) {
@@ -106,11 +102,6 @@ export function ProductDetailView() {
 
   return (
     <div className="prod-detail">
-      {isCatalogDemoProduct(product) ? (
-        <div className="prod-alert prod-alert--info">
-          This product is shown on the website from the catalog demo. Edit and save to publish it to the database, or duplicate to create a copy.
-        </div>
-      ) : null}
       <div className="prod-detail__head">
         <div>
           <nav className="prod-breadcrumb">

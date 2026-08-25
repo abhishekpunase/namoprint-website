@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { useProductList } from '../../hooks/useProductList'
 import { api } from '../../services/api'
-import { isCatalogDemoProduct, countCatalogSources } from '../../utils/adminProductCatalog'
+import { countCatalogSources } from '../../utils/adminProductCatalog'
 import { productToForm, buildProductPayload } from '../../utils/productFormUtils'
 import {
   BulkActionsBar,
@@ -35,14 +35,13 @@ export function AdminProductsPage() {
 
   const confirmDelete = async () => {
     if (!deleteTarget) return
-    if (isCatalogDemoProduct(deleteTarget)) {
-      alert('This is a catalog demo product (shown on the website). It is not stored in the database — use Edit → Save to publish it, or duplicate to create a copy.')
+    try {
+      await api.adminDeleteProduct(deleteTarget._id)
       setDeleteTarget(null)
-      return
+      list.load()
+    } catch (err) {
+      alert(err.message)
     }
-    await api.adminDeleteProduct(deleteTarget._id)
-    setDeleteTarget(null)
-    list.load()
   }
 
   const duplicateProduct = async (product) => {

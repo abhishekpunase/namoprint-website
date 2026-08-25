@@ -175,7 +175,7 @@ export function useProductList() {
   }
 
   const bulkUpdate = async (mutator) => {
-    const targets = products.filter((p) => selected.includes(p._id) && !isCatalogDemoProduct(p))
+    const targets = products.filter((p) => selected.includes(p._id))
     for (const product of targets) {
       await mutator(product)
     }

@@ -1,6 +1,4 @@
-import { fallbackProducts } from '../data/fallbackCatalog'
 import { api } from '../services/api'
-import { mergeCatalogProducts } from './catalog'
 
 /** Same demo IDs as storefront cart — not stored in MongoDB until published. */
 export function isCatalogDemoProduct(productOrId) {
@@ -26,9 +24,12 @@ export async function fetchAllAdminProducts() {
   return all
 }
 
-/** Website catalog + admin DB — API wins on same slug (same as storefront). */
+/**
+ * Database only. Hardcoded catalog entries were merged in here before, but they have
+ * no MongoDB _id, so every delete/deactivate action had to refuse them.
+ */
 export function mergeAdminProductCatalog(apiItems = []) {
-  return mergeCatalogProducts(apiItems).map((product) => ({
+  return apiItems.map((product) => ({
     ...product,
     _catalogSource: isCatalogDemoProduct(product) ? 'demo' : 'database',
   }))
@@ -45,11 +46,7 @@ export async function loadAdminProductCatalog() {
 
 export function findAdminProductById(id, catalog = null) {
   if (!id) return null
-  if (catalog?.length) {
-    const fromCatalog = catalog.find((item) => item._id === id)
-    if (fromCatalog) return fromCatalog
-  }
-  return fallbackProducts.find((item) => item._id === id) || null
+  return catalog?.find((item) => item._id === id) || null
 }
 
 export function countCatalogSources(products = []) {

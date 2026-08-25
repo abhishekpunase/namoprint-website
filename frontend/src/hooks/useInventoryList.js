@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../services/api'
-import { loadAdminProductCatalog, isCatalogDemoProduct, findAdminProductById } from '../utils/adminProductCatalog'
+import { loadAdminProductCatalog, findAdminProductById } from '../utils/adminProductCatalog'
 import { productToForm, buildProductPayload } from '../utils/productFormUtils'
 import {
   DEFAULT_COLUMNS,
@@ -264,10 +264,6 @@ export function useInventoryDetail(productId) {
   const adjustStock = useCallback(
     async ({ variantId, variantIndex, delta, reason, notes, type = 'adjustment' }) => {
       if (!product) return
-      if (isCatalogDemoProduct(product)) {
-        setError('Demo catalog products must be published to the database before stock updates.')
-        return
-      }
 
       setSaving(true)
       setError('')
