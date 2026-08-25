@@ -27,14 +27,16 @@ const nodeEnv = isDev ? 'development' : 'production';
 
 const WEAK_SECRET_PATTERN = /change_this|dev_|^test|^secret$/i;
 
-function assertProductionSecret(name, value) {
+function productionSecretProblem(name, value) {
   const trimmed = String(value || '').trim();
+  if (!trimmed) return `${name} is not set`;
   if (trimmed.length < 32) {
-    throw new Error(`${name} must be at least 32 characters in production`);
+    return `${name} must be at least 32 characters (currently ${trimmed.length})`;
   }
   if (WEAK_SECRET_PATTERN.test(trimmed)) {
-    throw new Error(`${name} must be changed from default/dev placeholder in production`);
+    return `${name} still looks like a dev placeholder — generate a new random value`;
   }
+  return null;
 }
 
 function pickDevProd(devVar, prodVar, legacyVar, devDefault = '', prodDefault = '') {
@@ -87,38 +89,48 @@ const localUploadPublicUrl = pickDevProd(
 
 const required = ['MONGO_URI', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
 
+const problems = [];
+const missing = new Set();
+
 for (const key of required) {
   if (!process.env[key]) {
-    throw new Error(
-      `Missing required env variable: ${key}. Checked ${envPath} — create it there (cp .env.example .env) or export ${key} in the process environment.`,
-    );
+    problems.push(`${key} is not set`);
+    missing.add(key);
   }
 }
 
 if (isProduction) {
-  assertProductionSecret('JWT_ACCESS_SECRET', process.env.JWT_ACCESS_SECRET);
-  assertProductionSecret('JWT_REFRESH_SECRET', process.env.JWT_REFRESH_SECRET);
-  assertProductionSecret('COOKIE_SECRET', process.env.COOKIE_SECRET);
+  for (const name of ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'COOKIE_SECRET']) {
+    if (missing.has(name)) continue;
+    const problem = productionSecretProblem(name, process.env[name]);
+    if (problem) problems.push(problem);
+  }
 
   if (process.env.USE_MEMORY_MONGO === 'true') {
-    throw new Error('USE_MEMORY_MONGO must be false in production — use MongoDB Atlas or a managed MongoDB service');
+    problems.push('USE_MEMORY_MONGO must be false — use MongoDB Atlas or another managed MongoDB');
   }
 
   if (/localhost|127\.0\.0\.1/i.test(localUploadPublicUrl)) {
-    throw new Error('PROD_LOCAL_UPLOAD_PUBLIC_URL must use your public domain when IS_DEV=false');
+    problems.push('PROD_LOCAL_UPLOAD_PUBLIC_URL must use your public domain, not localhost');
   }
 
   if (/localhost|127\.0\.0\.1/i.test(apiBaseUrl)) {
-    throw new Error('PROD_API_BASE_URL must use your public domain when IS_DEV=false');
+    problems.push('PROD_API_BASE_URL must use your public domain, not localhost');
   }
 
   if (!clientUrls.length) {
-    throw new Error('PROD_CLIENT_URL must list at least one frontend origin when IS_DEV=false');
-  }
-
-  if (!/^https:\/\//i.test(clientUrls[0] || '')) {
+    problems.push('PROD_CLIENT_URL must list at least one frontend origin');
+  } else if (!/^https:\/\//i.test(clientUrls[0])) {
     console.warn('WARNING: PROD_CLIENT_URL should use https:// in production for secure cookies and CORS.');
   }
+}
+
+// Report every problem at once — fixing these one restart at a time is slow.
+if (problems.length) {
+  throw new Error(
+    `Backend environment is invalid (${problems.length} problem${problems.length > 1 ? 's' : ''}), checked ${envPath}:\n` +
+      problems.map((problem) => `  - ${problem}`).join('\n'),
+  );
 }
 
 export const env = {
