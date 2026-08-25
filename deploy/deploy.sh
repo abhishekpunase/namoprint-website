@@ -10,7 +10,6 @@
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
-ROOT="$(pwd)"
 
 step() { printf '\n\033[1;34m==> %s\033[0m\n' "$1"; }
 fail() { printf '\n\033[1;31mFAILED: %s\033[0m\n' "$1" >&2; exit 1; }
@@ -28,6 +27,13 @@ for key in AWS_REGION AWS_S3_BUCKET AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
 done
 
 step "Pulling latest code"
+# A tracked file edited on the server aborts the merge with a confusing message.
+# Nothing here should be edited on the server, so name the files and stop cleanly.
+dirty="$(git status --porcelain --untracked-files=no)"
+if [ -n "$dirty" ]; then
+  printf 'Locally modified tracked files on this server:\n%s\n\n' "$dirty"
+  fail "Discard them with 'git checkout -- .' (server-side edits are not kept) and re-run."
+fi
 git pull --ff-only
 
 step "Installing dependencies"
