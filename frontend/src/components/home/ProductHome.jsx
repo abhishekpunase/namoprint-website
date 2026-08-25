@@ -5,10 +5,8 @@ import { ProductCard } from "../product/ProductCard";
 import { api } from "../../services/api";
 import { excludeWallWatchProducts } from "../../utils/wallWatchCatalog";
 
-import {
-  DEFAULT_HOME_OFFER_MARQUEE,
-  mapApiHomeOfferMarqueeItem,
-} from "../../data/defaultHomeOfferMarquee";
+import { DEFAULT_HOME_OFFER_MARQUEE } from "../../data/defaultHomeOfferMarquee";
+import { useHomeOfferMarquee } from "../../hooks/useHomeOfferMarquee";
 
 function OfferMarquee({ lines = DEFAULT_HOME_OFFER_MARQUEE.map((item) => item.text) }) {
   const activeLines = lines.filter(Boolean);
@@ -56,21 +54,7 @@ export default function ProductHome() {
   const [products, setProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [visibleCount, setVisibleCount] = useState(12);
-  const [marqueeLines, setMarqueeLines] = useState(DEFAULT_HOME_OFFER_MARQUEE.map((item) => item.text));
-
-  useEffect(() => {
-    api
-      .homeOfferMarquee()
-      .then((payload) => {
-        const lines = (payload.items || [])
-          .map((item) => mapApiHomeOfferMarqueeItem(item).text)
-          .filter(Boolean);
-        if (lines.length > 0) setMarqueeLines(lines);
-      })
-      .catch(() => {
-        /* keep defaults */
-      });
-  }, []);
+  const marqueeLines = useHomeOfferMarquee();
 
   useEffect(() => {
     api

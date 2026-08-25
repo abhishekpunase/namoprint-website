@@ -15,11 +15,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 import { useWishlist } from "../../hooks/useWishlist";
-import { api } from "../../services/api";
-import {
-  DEFAULT_HOME_OFFER_MARQUEE,
-  mapApiHomeOfferMarqueeItem,
-} from "../../data/defaultHomeOfferMarquee";
+import { DEFAULT_HOME_OFFER_MARQUEE } from "../../data/defaultHomeOfferMarquee";
+import { useHomeOfferMarquee } from "../../hooks/useHomeOfferMarquee";
 
 const primaryNavItems = [
   { to: "/", label: "Home" },
@@ -61,7 +58,7 @@ function buildMarqueeItems(lines) {
 export function Header() {
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const [offerLines, setOfferLines] = useState(defaultOfferLines);
+  const offerLines = useHomeOfferMarquee();
   const moreRef = useRef(null);
 
   const { isAuthenticated, logout } = useAuth();
@@ -71,20 +68,6 @@ export function Header() {
 
   const marqueeItems = useMemo(() => buildMarqueeItems(offerLines), [offerLines]);
   const isMoreActive = moreNavItems.some((item) => location.pathname.startsWith(item.to));
-
-  useEffect(() => {
-    api
-      .homeOfferMarquee()
-      .then((payload) => {
-        const lines = (payload.items || [])
-          .map((item) => mapApiHomeOfferMarqueeItem(item).text)
-          .filter(Boolean);
-        if (lines.length > 0) setOfferLines(lines);
-      })
-      .catch(() => {
-        /* keep defaults */
-      });
-  }, []);
 
   useEffect(() => {
     if (!moreOpen) return undefined;
