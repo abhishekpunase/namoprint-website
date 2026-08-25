@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import { FiArrowRight } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { ProductCard } from "../product/ProductCard";
-import { fallbackProducts } from "../../data/fallbackCatalog";
 import { api } from "../../services/api";
-import { mergeCatalogProducts } from "../../utils/catalog";
 import { excludeWallWatchProducts } from "../../utils/wallWatchCatalog";
 
 import {
@@ -55,8 +53,8 @@ function OfferMarquee({ lines = DEFAULT_HOME_OFFER_MARQUEE.map((item) => item.te
 }
 
 export default function ProductHome() {
-  const [products, setProducts] = useState(fallbackProducts);
-  const [allProducts, setAllProducts] = useState(fallbackProducts);
+  const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [visibleCount, setVisibleCount] = useState(12);
   const [marqueeLines, setMarqueeLines] = useState(DEFAULT_HOME_OFFER_MARQUEE.map((item) => item.text));
 
@@ -78,12 +76,15 @@ export default function ProductHome() {
     api
       .products('')
       .then((payload) => {
-        const merged = excludeWallWatchProducts(mergeCatalogProducts(payload.items));
-        setProducts(merged);
-        setAllProducts(merged);
-        setVisibleCount(merged.length);
+        const items = excludeWallWatchProducts(payload.items || []);
+        setProducts(items);
+        setAllProducts(items);
+        setVisibleCount(items.length);
       })
-      .catch(() => {});
+      .catch(() => {
+        setProducts([]);
+        setAllProducts([]);
+      });
   }, []);
 
   const featured = products

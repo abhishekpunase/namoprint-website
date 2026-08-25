@@ -11,10 +11,15 @@ import {
 } from "react-icons/fi";
 import { BrandLogo } from "./BrandLogo";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 import { useWishlist } from "../../hooks/useWishlist";
+import { api } from "../../services/api";
+import {
+  DEFAULT_HOME_OFFER_MARQUEE,
+  mapApiHomeOfferMarqueeItem,
+} from "../../data/defaultHomeOfferMarquee";
 
 const primaryNavItems = [
   { to: "/", label: "Home" },
@@ -41,48 +46,22 @@ const navLinkClass = ({ isActive }) =>
     isActive ? "text-[#F5B400]" : "text-gray-800 hover:text-[#F5B400]"
   }`;
 
-const offers = [
-  {
-    icon: <FiTruck />,
-    text: "Free Shipping on Orders Above ₹999",
-  },
-  {
-    icon: <FiPercent />,
-    text: "Flat 10% OFF on First Order",
-  },
-  {
-    icon: <FiGift />,
-    text: "Bulk Orders? Get Special Corporate Discounts",
-  },
-   {
-    icon: <FiTruck />,
-    text: "Free Shipping on Orders Above ₹999",
-  },
-  {
-    icon: <FiPercent />,
-    text: "Flat 10% OFF on First Order",
-  },
-  {
-    icon: <FiGift />,
-    text: "Bulk Orders? Get Special Corporate Discounts",
-  },
-   {
-    icon: <FiTruck />,
-    text: "Free Shipping on Orders Above ₹999",
-  },
-  {
-    icon: <FiPercent />,
-    text: "Flat 10% OFF on First Order",
-  },
-  {
-    icon: <FiGift />,
-    text: "Bulk Orders? Get Special Corporate Discounts",
-  },
-];
+const offerIcons = [<FiTruck />, <FiPercent />, <FiGift />];
+
+const defaultOfferLines = DEFAULT_HOME_OFFER_MARQUEE.map((item) => item.text);
+
+/** Repeat the admin lines so a short list still fills the bar before the loop resets. */
+function buildMarqueeItems(lines) {
+  const base = lines.length ? lines : defaultOfferLines;
+  const copies = Math.max(2, Math.ceil(9 / base.length));
+  const track = Array.from({ length: copies }, () => base).flat();
+  return [...track, ...track];
+}
 
 export function Header() {
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [offerLines, setOfferLines] = useState(defaultOfferLines);
   const moreRef = useRef(null);
 
   const { isAuthenticated, logout } = useAuth();
@@ -90,8 +69,22 @@ export function Header() {
   const { count: wishlistCount } = useWishlist();
   const location = useLocation();
 
-  const marqueeItems = [...offers, ...offers];
+  const marqueeItems = useMemo(() => buildMarqueeItems(offerLines), [offerLines]);
   const isMoreActive = moreNavItems.some((item) => location.pathname.startsWith(item.to));
+
+  useEffect(() => {
+    api
+      .homeOfferMarquee()
+      .then((payload) => {
+        const lines = (payload.items || [])
+          .map((item) => mapApiHomeOfferMarqueeItem(item).text)
+          .filter(Boolean);
+        if (lines.length > 0) setOfferLines(lines);
+      })
+      .catch(() => {
+        /* keep defaults */
+      });
+  }, []);
 
   useEffect(() => {
     if (!moreOpen) return undefined;
@@ -110,13 +103,13 @@ export function Header() {
 
   <div className="overflow-hidden bg-gradient-to-l from-black via-zinc-900 to-yellow-700  text-white" >
         <div className="flex animate-marquee whitespace-nowrap">
-          {marqueeItems.map((item, index) => (
+          {marqueeItems.map((text, index) => (
             <div
-              key={index}
+              key={`${text}-${index}`}
               className="flex min-w-max items-center gap-2 px-8 py-2 text-xs font-medium md:px-12 md:text-sm"
             >
-              <span className="text-base">{item.icon}</span>
-              <span>{item.text}</span>
+              <span className="text-base">{offerIcons[index % offerIcons.length]}</span>
+              <span>{text}</span>
             </div>
           ))}
         </div>

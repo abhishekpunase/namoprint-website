@@ -18,6 +18,7 @@ export default function NamePlateProductDetailPage() {
   const { isAuthenticated } = useAuth()
   const { addNamePlateItem } = useCart()
   const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [relatedProducts, setRelatedProducts] = useState([])
   const [activeImage, setActiveImage] = useState(0)
   const [selectedOptionId, setSelectedOptionId] = useState('')
@@ -28,6 +29,7 @@ export default function NamePlateProductDetailPage() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
+    setLoading(true)
     namePlateApi
       .get(slug)
       .then((payload) => {
@@ -35,6 +37,7 @@ export default function NamePlateProductDetailPage() {
         setSelectedOptionId(payload.product?.qualityOptions?.[0]?._id || '')
       })
       .catch(() => setProduct(null))
+      .finally(() => setLoading(false))
   }, [slug])
 
   useEffect(() => {
@@ -47,11 +50,26 @@ export default function NamePlateProductDetailPage() {
       .catch(() => setRelatedProducts([]))
   }, [slug])
 
-  if (!product) {
+  if (loading) {
     return <div className="mx-auto max-w-3xl px-6 py-24 text-center text-slate-500">Loading product…</div>
   }
 
-  const selectedOption = product.qualityOptions.find((o) => o._id === selectedOptionId)
+  if (!product) {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-24 text-center">
+        <h1 className="text-2xl font-bold text-slate-900">Name plate not found</h1>
+        <p className="mt-3 text-slate-500">This design is no longer available.</p>
+        <Link
+          to="/name-plates"
+          className="mt-6 inline-flex items-center rounded-xl bg-orange-500 px-6 py-3 font-semibold text-white transition hover:bg-orange-600"
+        >
+          Browse name plates
+        </Link>
+      </div>
+    )
+  }
+
+  const selectedOption = product.qualityOptions?.find((o) => o._id === selectedOptionId)
   const total = (selectedOption?.price || 0) * quantity
   const canAddToCart = Boolean(selectedOptionId && headingText.trim() && subText.trim())
 

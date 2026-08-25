@@ -2,16 +2,15 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { FiArrowRight, FiSearch } from 'react-icons/fi'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ProductCard } from '../components/product/ProductCard'
-import { catalogProductTypes, fallbackProducts } from '../data/fallbackCatalog'
+import { catalogProductTypes } from '../data/fallbackCatalog'
 import { api } from '../services/api'
-import { mergeCatalogProducts } from '../utils/catalog'
 import { getDedicatedListingPath } from '../config/categoryRoutes'
 import { excludeWallWatchProducts } from '../utils/wallWatchCatalog'
 
 export function CatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
-  const [products, setProducts] = useState(fallbackProducts)
+  const [products, setProducts] = useState([])
   const [query, setQuery] = useState(searchParams.get('q') || '')
   const activeType = searchParams.get('type') || ''
   const activeBtnRef = useRef(null)
@@ -22,8 +21,8 @@ export function CatalogPage() {
     if (query) params.set('q', query)
     api
       .products(params.toString() ? `?${params}` : '')
-      .then((payload) => setProducts(mergeCatalogProducts(payload.items)))
-      .catch(() => setProducts(fallbackProducts))
+      .then((payload) => setProducts(payload.items || []))
+      .catch(() => setProducts([]))
   }, [activeType, query])
 
   useEffect(() => {
