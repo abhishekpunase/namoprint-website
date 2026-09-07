@@ -37,7 +37,7 @@ export default function NamePlatePage() {
         {error && <p className="text-center text-red-500">{error}</p>}
 
         {!loading && !error && (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-2 xl:grid-cols-3">
             {products.map((product) => (
               <NamePlateProductCard key={product._id} product={product} />
             ))}

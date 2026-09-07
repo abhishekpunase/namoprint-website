@@ -122,6 +122,7 @@ export function AdminIntegrationsPage() {
       setStatus(payload.integrations)
       setMessage(payload.message || 'Settings saved.')
       load()
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -221,6 +222,12 @@ export function AdminIntegrationsPage() {
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
               />
             </label>
+            <div className="flex justify-end pt-2">
+              <button type="button" onClick={save} disabled={saving} className="admin-btn admin-btn--primary">
+                <FiSave className="mr-1 inline" />
+                {saving ? 'Saving…' : 'Save Razorpay'}
+              </button>
+            </div>
           </div>
         </section>
 
@@ -273,6 +280,12 @@ export function AdminIntegrationsPage() {
               <FiSend />
               {testingShiprocket ? 'Testing Shiprocket…' : 'Test Shiprocket connection'}
             </button>
+            <div className="flex justify-end pt-2">
+              <button type="button" onClick={save} disabled={saving} className="admin-btn admin-btn--primary">
+                <FiSave className="mr-1 inline" />
+                {saving ? 'Saving…' : 'Save Shiprocket'}
+              </button>
+            </div>
           </div>
         </section>
 
@@ -367,6 +380,12 @@ export function AdminIntegrationsPage() {
                 {testing ? 'Sending…' : 'Test mailer'}
               </button>
             </div>
+            <div className="flex justify-end pt-2">
+              <button type="button" onClick={save} disabled={saving} className="admin-btn admin-btn--primary">
+                <FiSave className="mr-1 inline" />
+                {saving ? 'Saving…' : 'Save email settings'}
+              </button>
+            </div>
           </div>
         </section>
 
@@ -408,10 +427,16 @@ export function AdminIntegrationsPage() {
               />
             </label>
           </div>
+          <div className="mt-4 flex justify-end">
+            <button type="button" onClick={save} disabled={saving} className="admin-btn admin-btn--primary">
+              <FiSave className="mr-1 inline" />
+              {saving ? 'Saving…' : 'Save contact details'}
+            </button>
+          </div>
         </section>
 
-        <div className="flex justify-end">
-          <button type="button" onClick={save} disabled={saving} className="admin-btn admin-btn--primary">
+        <div className="sticky bottom-4 z-20 flex justify-end">
+          <button type="button" onClick={save} disabled={saving} className="admin-btn admin-btn--primary shadow-lg">
             <FiSave className="mr-1 inline" />
             {saving ? 'Saving…' : 'Save all integrations'}
           </button>

@@ -3,7 +3,7 @@ import ShopByCategory from "../components/Category/ShopByCategory";
 import CategorySection from "../components/home/CategorySection";
 import FeedbackReels from "../components/home/Feedbackreels";
 import HeroSection from "../components/home/HeroSection";
-import Process from "../components/home/ProcessSection";
+// import Process from "../components/home/ProcessSection";
 import ProductHome from "../components/home/ProductHome";
 import SpecialOffers from "../components/home/SpecialOffers";
 import Testimonial from "../components/home/Testimonial";
@@ -21,7 +21,7 @@ export function HomePage() {
     <>
       <HeroSection />
       {/* <BrandSlider /> */}
-      <Process />
+      {/* <Process /> */}
       <CategorySection/>
       {/* <ShopByCategory/> */}
       <ProductHome />

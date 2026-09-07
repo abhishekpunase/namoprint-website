@@ -12,11 +12,11 @@ const SHAPE_STYLES = {
 }
 
 const SIZE_BY_SHAPE = {
-  round: 'h-44 w-44 sm:h-48 sm:w-48',
-  square: 'h-44 w-44 sm:h-48 sm:w-48',
-  leaf: 'h-44 w-44 sm:h-48 sm:w-48',
-  collage: 'h-44 w-44 sm:h-48 sm:w-48',
-  portrait: 'h-52 w-40 sm:h-56 sm:w-44',
+  round: 'h-28 w-28 sm:h-48 sm:w-48',
+  square: 'h-28 w-28 sm:h-48 sm:w-48',
+  leaf: 'h-28 w-28 sm:h-48 sm:w-48',
+  collage: 'h-28 w-28 sm:h-48 sm:w-48',
+  portrait: 'h-32 w-24 sm:h-56 sm:w-44',
 }
 
 /** Product types that show the real uploaded photo on cards (not dummy frame presets). */
@@ -37,19 +37,19 @@ function LiveProductCardImage({ product, className = '', fit = 'contain', compac
 
   if (compact) {
     return (
-      <div className={`overflow-hidden bg-white ${className}`}>
+      <div className={`flex h-36 items-center justify-center overflow-hidden bg-white p-2 sm:h-auto sm:p-0 ${className}`}>
         {src ? (
           <img
             src={src}
             alt={product?.title || 'Product'}
-            className="block w-full h-auto"
+            className="max-h-full max-w-full object-contain sm:block sm:h-auto sm:w-full"
             loading="lazy"
             onError={() => {
               if (index < candidates.length - 1) setIndex((i) => i + 1)
             }}
           />
         ) : (
-          <div className="flex h-48 w-full items-center justify-center bg-neutral-100 text-sm text-neutral-500">
+          <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-sm text-neutral-500">
             No image
           </div>
         )}
@@ -59,13 +59,17 @@ function LiveProductCardImage({ product, className = '', fit = 'contain', compac
 
   return (
     <div
-      className={`flex h-64 items-center justify-center overflow-hidden bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 ${className}`}
+      className={`flex h-36 items-center justify-center overflow-hidden bg-white p-2 sm:h-64 sm:bg-gradient-to-br sm:from-orange-50 sm:via-amber-50 sm:to-yellow-50 sm:p-0 ${className}`}
     >
       {src ? (
         <img
           src={src}
           alt={product?.title || 'Product'}
-          className={fit === 'cover' ? 'h-full w-full object-cover' : 'max-h-full max-w-full object-contain drop-shadow-lg'}
+          className={
+            fit === 'cover'
+              ? 'h-full w-full object-contain sm:object-cover'
+              : 'max-h-full max-w-full object-contain drop-shadow-lg'
+          }
           loading="lazy"
           onError={() => {
             if (index < candidates.length - 1) setIndex((i) => i + 1)
@@ -88,12 +92,12 @@ export function ProductCardFrameImage({ product, productType, className = '' }) 
   if (adminThumbnail) {
     return (
       <div
-        className={`flex h-64 items-center justify-center overflow-hidden bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 ${className}`}
+        className={`flex h-36 items-center justify-center overflow-hidden bg-white p-2 sm:h-64 sm:bg-gradient-to-br sm:from-orange-50 sm:via-amber-50 sm:to-yellow-50 sm:p-0 ${className}`}
       >
         <img
           src={adminThumbnail}
           alt={product?.title || 'Product'}
-          className="h-full w-full object-cover"
+          className="max-h-full max-w-full object-contain sm:h-full sm:w-full sm:object-cover"
           loading="lazy"
         />
       </div>
@@ -134,7 +138,7 @@ export function ProductCardFrameImage({ product, productType, className = '' }) 
 
   return (
     <div
-      className={`flex h-64 items-center justify-center bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-4 ${className}`}
+      className={`flex h-36 items-center justify-center bg-white p-2 sm:h-64 sm:bg-gradient-to-br sm:from-orange-50 sm:via-amber-50 sm:to-yellow-50 sm:p-4 ${className}`}
     >
       <div
         className={`relative overflow-hidden border-[5px] border-neutral-800 bg-neutral-900 p-1.5 shadow-lg ${shapeClass} ${sizeClass}`}

@@ -51,7 +51,7 @@ export default function WallWatchPage() {
         {error && <p className="text-center text-red-500">{error}</p>}
 
         {!loading && !error && sorted.length > 0 && (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
             {sorted.map((product) => (
               <WallWatchProductCard key={product._id || product.slug} product={product} />
             ))}

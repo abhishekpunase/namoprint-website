@@ -6,7 +6,7 @@ import { resolveCollageMockup, resolvePreviewPhotoBoxes, resolveUploadedFrameIma
 import { resolveMediaUrl } from '../../utils/mediaUrl'
 import { punchFrameHoles, shouldPunchFrameHoles, inferSlotClipPathsFromFrame } from '../../utils/frameImageUtils'
 import { photoBoxToStyle, resolveMockupLayout, fitPhotoBoxesToMockupOpening } from '../../utils/mockupLayout'
-import { HEX_PHOTO_FILL_SCALE, isHexClipPath, forceCircularPhotoSlot } from '../../utils/mockupSlotShapes'
+import { HEX_PHOTO_FILL_SCALE, isHexClipPath, isHexFrameProduct, forceCircularPhotoSlot } from '../../utils/mockupSlotShapes'
 import { wallWatchShouldUseSvgFrame } from '../../utils/wallWatchFrameUtils'
 
 /** Place 1–12 evenly on a circle — real watch jaisa dial */
@@ -79,6 +79,18 @@ function isCircularPhotoBox(photoBox) {
 
 function isCircularPreview(shapeClass, photoBox) {
   return shapeClass.includes('circle') || isCircularPhotoBox(photoBox)
+}
+
+/** Keep slot clip so uploads stay inside the mockup window (hex, organic, etc.). */
+function resolveSlotClipPath(box, product, options) {
+  const clipPath = box?.clipPath
+  if (!clipPath) return undefined
+  const shapeText = String(options?.shape || product?.defaultOptions?.shape || '').toLowerCase()
+  if (shapeText.includes('circle') || shapeText.includes('round')) return undefined
+  if (isHexClipPath(clipPath) && !isHexFrameProduct(product) && !shapeText.includes('hex')) {
+    return undefined
+  }
+  return clipPath
 }
 
 const getSlotLayout = (options, productType) => {
@@ -406,6 +418,7 @@ function PhotoSlot({
         cursor: draggable && src ? 'grab' : onClick ? 'pointer' : 'default',
         width: '100%',
         height: '100%',
+        overflow: 'hidden',
         touchAction: draggable && src ? 'none' : 'auto',
         ...(clipPath ? { clipPath, WebkitClipPath: clipPath } : {}),
       }}
@@ -633,7 +646,15 @@ function View3DModal({
       )
     }
     return (
-      <div key={key} style={{ ...boxStyle, borderRadius: isCircular ? '50%' : boxStyle.borderRadius }} className={shapeClip}>
+      <div
+        key={key}
+        style={{
+          ...boxStyle,
+          overflow: 'hidden',
+          borderRadius: isCircular ? '50%' : boxStyle.borderRadius,
+        }}
+        className={shapeClip}
+      >
         <img
           src={resolveMediaUrl(src)}
           alt="preview"
@@ -1078,7 +1099,7 @@ export function PreviewFrame({
 
   useEffect(() => {
     const boxes = layoutBoxesRef.current
-    if (!frameImage || !photosUnderFrame || !boxes.length || useCollageSlots) {
+    if (!frameImage || !photosUnderFrame || !boxes.length) {
       setClippedLayoutBoxes(null)
       return undefined
     }
@@ -1111,7 +1132,7 @@ if (boxes.every((entry) => entry.clipPath)) {
     return () => {
       cancelled = true
     }
-  }, [frameImage, photosUnderFrame, layoutBoxesKey, useCollageSlots, options?.shape, product?.defaultOptions?.shape])
+  }, [frameImage, photosUnderFrame, layoutBoxesKey, options?.shape, product?.defaultOptions?.shape])
 
   const effectiveLayoutBoxes = clippedLayoutBoxes || layoutBoxes
   const effectiveLayoutBox = effectiveLayoutBoxes[0] || layoutBox
@@ -1602,11 +1623,7 @@ if (boxes.every((entry) => entry.clipPath)) {
                   <PhotoSlot
                     src={getPhotoSrc(index)}
                     crop={getCrop(index)}
-                    clipPath={(() => {
-                      const shapeText = String(options?.shape || product?.defaultOptions?.shape || '').toLowerCase()
-                      if (isHexClipPath(pb.clipPath) && !shapeText.includes('hex')) return undefined
-                      return pb.clipPath
-                    })()}
+                    clipPath={resolveSlotClipPath(pb, product, options)}
                     label={`Photo ${index + 1}`}
                     showLabel={!getPhotoSrc(index) && !photosUnderFrame}
                     draggable={!!getPhotoSrc(index)}
@@ -1627,12 +1644,7 @@ if (boxes.every((entry) => entry.clipPath)) {
               <PhotoSlot
                 src={getPhotoSrc(0)}
                 crop={getCrop(0)}
-                clipPath={(() => {
-                  const shapeText = String(options?.shape || product?.defaultOptions?.shape || '').toLowerCase()
-                  if (shapeText.includes('circle') || shapeText.includes('round') || !shapeText) return undefined
-                  if (isHexClipPath(effectiveLayoutBox?.clipPath) && !shapeText.includes('hex')) return undefined
-                  return effectiveLayoutBox?.clipPath
-                })()}
+                clipPath={resolveSlotClipPath(effectiveLayoutBox, product, options)}
                 label="Upload Photo"
                 showLabel={!useFrameOverlay && !showClockDial}
                 draggable={hasPhoto}

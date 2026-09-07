@@ -61,15 +61,15 @@ export default function HeroSection() {
       {slides.map((item, index) => (
         <SwiperSlide key={item._id || index}>
           <section
-            className={`relative flex min-h-[420px] items-center overflow-hidden md:min-h-[560px] ${item.bg}`}
+            className={`relative flex min-h-0 items-center overflow-hidden md:min-h-[560px] ${item.bg}`}
           >
-            <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-8 px-6 py-12 md:flex-row md:gap-4 md:px-10 md:py-0">
+            <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-4 px-5 py-6 md:flex-row md:gap-4 md:px-10 md:py-0">
               <div className="w-full text-center md:w-1/2 md:text-left">
-                <h1 className="whitespace-pre-line font-heading text-4xl font-bold leading-tight text-gray-900 sm:text-5xl lg:text-6xl">
+                <h1 className="whitespace-pre-line font-heading text-[1.65rem] font-bold leading-tight text-gray-900 sm:text-5xl lg:text-6xl">
                   {item.title}
                 </h1>
 
-                <p className="mt-4 text-lg text-gray-600 sm:text-xl">
+                <p className="mt-2 text-sm text-gray-600 sm:mt-4 sm:text-xl">
                   {item.subtitle}
                   {item.price ? (
                     <>
@@ -82,7 +82,7 @@ export default function HeroSection() {
 
                 <Link
                   to={item.linkUrl || "/products"}
-                  className="mt-8 inline-block rounded-full bg-[#F5B400] px-8 py-3 text-base font-semibold text-white transition duration-300 hover:bg-[#D89B00]"
+                  className="mt-3 inline-block rounded-full bg-[#F5B400] px-6 py-2 text-sm font-semibold text-white transition duration-300 hover:bg-[#D89B00] sm:mt-8 sm:px-8 sm:py-3 sm:text-base"
                 >
                   {item.buttonLabel || "Shop Now"}
                 </Link>
@@ -92,7 +92,7 @@ export default function HeroSection() {
                 <img
                   src={resolveMediaUrl(item.image)}
                   alt={item.title.replace("\n", " ")}
-                  className="h-[260px] w-full rounded-2xl object-cover shadow-xl sm:h-[340px] md:h-[420px] lg:h-[480px]"
+                  className="h-[168px] w-full rounded-2xl object-cover shadow-xl sm:h-[340px] md:h-[420px] lg:h-[480px]"
                   loading={index === 0 ? "eager" : "lazy"}
                 />
               </div>

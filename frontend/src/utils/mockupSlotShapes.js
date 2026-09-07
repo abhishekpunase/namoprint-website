@@ -113,7 +113,7 @@ export function isHexFrameProduct(product) {
   if (product.mockup?.slotShape === 'rect') return false
 
   const text = [product.title, product.slug, product.description].filter(Boolean).join(' ').toLowerCase()
-  return /\b(hex|hexa|hexagonal|honeycomb)\b/.test(text)
+  return /\b(hex|hexa|hexagon|hexagonal|honeycomb)\b/.test(text)
 }
 
 /** Apply hex clip only when the slot shape (or product) is hex — otherwise keep square/rect. */

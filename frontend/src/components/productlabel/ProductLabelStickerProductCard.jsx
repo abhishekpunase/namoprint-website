@@ -3,6 +3,7 @@ import { FiArrowRight, FiStar } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 import { formatCurrency } from '../../utils/format'
 import { resolveMediaUrl } from '../../utils/mediaUrl'
+import { ProductCardMobileFooter } from '../product/ProductCardMobileFooter'
 
 export function ProductLabelStickerProductCard({ product }) {
   const prices = (product.qualityOptions || []).map((o) => o.price).filter(Number.isFinite)
@@ -18,30 +19,32 @@ export function ProductLabelStickerProductCard({ product }) {
   const detailPath = `/product-label-stickers/${product.slug}`
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-orange-100 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-      <div className="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-r from-orange-500 via-orange-400 to-yellow-400" />
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:border-amber-400 hover:shadow-md sm:rounded-2xl sm:border-orange-100 sm:shadow-md sm:hover:-translate-y-1 sm:hover:shadow-xl">
+      <div className="absolute inset-x-0 top-0 z-10 hidden h-1 bg-gradient-to-r from-orange-500 via-orange-400 to-yellow-400 sm:block" />
 
-      <Link to={detailPath} className="relative block shrink-0 overflow-hidden bg-neutral-900">
-        <span className="absolute right-3 top-3 z-10 rounded-full bg-black/75 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+      <Link to={detailPath} className="relative block shrink-0 overflow-hidden bg-white sm:bg-neutral-900">
+        <span className="absolute right-3 top-3 z-10 hidden rounded-full bg-black/75 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white sm:inline-flex">
           Custom Label
         </span>
         {mainSrc ? (
-          <div className="relative aspect-[4/3] w-full overflow-hidden">
+          <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden p-2 sm:aspect-[4/3] sm:p-0">
             <img
               src={mainSrc}
               alt={product.title}
-              className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+              className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105 sm:absolute sm:inset-0 sm:h-full sm:w-full sm:object-cover sm:object-center"
               loading="lazy"
             />
           </div>
         ) : (
-          <div className="flex aspect-[4/3] w-full items-center justify-center bg-neutral-100 text-sm text-neutral-500">
+          <div className="flex aspect-square w-full items-center justify-center bg-neutral-100 text-sm text-neutral-500 sm:aspect-[4/3]">
             No image
           </div>
         )}
       </Link>
 
-      <div className="flex flex-1 flex-col gap-3 p-4">
+      <ProductCardMobileFooter to={detailPath} title={product.title} />
+
+      <div className="hidden flex-1 flex-col gap-3 p-4 sm:flex">
         <div className="flex items-center justify-between gap-2">
           <span className="truncate rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
             Product Labels

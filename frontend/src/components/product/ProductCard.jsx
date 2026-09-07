@@ -8,6 +8,7 @@ import {
 import { getProductDetailPath } from "../../config/categoryRoutes";
 import { useWishlist } from "../../hooks/useWishlist";
 import { ProductCardFrameImage } from "./ProductCardFrameImage";
+import { ProductCardMobileFooter } from "./ProductCardMobileFooter";
 
 export function ProductCard({ product }) {
   const price = getProductPrice(product);
@@ -20,14 +21,14 @@ export function ProductCard({ product }) {
   const detailPath = getProductDetailPath(product);
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:shadow-lg">
+    <article className="group h-full overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:border-amber-400 hover:shadow-md sm:rounded-2xl sm:border-gray-100 sm:shadow-sm sm:hover:shadow-lg">
       <div className="relative">
         <Link to={detailPath} className="block">
           <ProductCardFrameImage product={product} />
         </Link>
 
         {discount > 0 && (
-          <span className="absolute right-3 top-3 rounded-full bg-slate-900 px-3 py-1 text-xs font-bold text-white">
+          <span className="absolute right-2 top-2 hidden rounded-full bg-slate-900 px-3 py-1 text-xs font-bold text-white sm:right-3 sm:top-3 sm:inline-flex">
             {discount}% OFF
           </span>
         )}
@@ -39,7 +40,7 @@ export function ProductCard({ product }) {
             event.stopPropagation();
             toggleItem(product);
           }}
-          className={`absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full shadow-md transition ${
+          className={`absolute left-3 top-3 hidden h-9 w-9 items-center justify-center rounded-full shadow-md transition sm:flex ${
             liked ? "bg-orange-500 text-white" : "bg-white/95 text-gray-600 hover:text-orange-500"
           }`}
           aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
@@ -48,7 +49,9 @@ export function ProductCard({ product }) {
         </button>
       </div>
 
-      <div className="space-y-2 p-4">
+      <ProductCardMobileFooter to={detailPath} title={product.title} />
+
+      <div className="hidden space-y-2 p-4 sm:block">
         <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
           {product.productType?.replaceAll("-", " ")}
         </p>

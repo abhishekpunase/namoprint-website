@@ -68,6 +68,12 @@ export function Header() {
 
   const marqueeItems = useMemo(() => buildMarqueeItems(offerLines), [offerLines]);
   const isMoreActive = moreNavItems.some((item) => location.pathname.startsWith(item.to));
+  const mobileNavRef = useRef(null);
+
+  useEffect(() => {
+    const active = mobileNavRef.current?.querySelector("[data-active='true']");
+    active?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!moreOpen) return undefined;
@@ -227,6 +233,36 @@ export function Header() {
       </button>
     </div>
   </div>
+
+  <nav
+    className="border-t border-gray-100 bg-white lg:hidden"
+    aria-label="Mobile navigation"
+  >
+    <div ref={mobileNavRef} className="flex gap-1 overflow-x-auto px-3 scrollbar-hide">
+      {navItems.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end={item.to === "/"}
+          data-active={location.pathname === item.to || (item.to !== "/" && location.pathname.startsWith(item.to)) ? "true" : undefined}
+          className={({ isActive }) =>
+            `relative shrink-0 whitespace-nowrap px-3 py-2.5 text-[13px] font-semibold transition ${
+              isActive ? "text-gray-900" : "text-gray-700"
+            }`
+          }
+        >
+          {({ isActive }) => (
+            <>
+              {item.label}
+              {isActive ? (
+                <span className="absolute inset-x-2 bottom-0 h-[3px] rounded-full bg-gray-800" />
+              ) : null}
+            </>
+          )}
+        </NavLink>
+      ))}
+    </div>
+  </nav>
 
   {/* Mobile Menu */}
   <div

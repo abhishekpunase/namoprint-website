@@ -88,17 +88,17 @@ return (
 
     {/* ================= Featured ================= */}
 
-    <section className="bg-[#F5F5F5] py-20">
+    <section className="bg-[#F5F5F5] py-8 sm:py-20">
 
-      <div className="max-w-7xl mx-auto px-5">
+      <div className="max-w-7xl mx-auto px-3 sm:px-5">
 
-        <div className="mb-12">
+        <div className="mb-6 sm:mb-12">
 
-          <p className="uppercase tracking-[3px] text-yellow-500 font-semibold">
+          <p className="uppercase tracking-[3px] text-yellow-500 font-semibold text-xs sm:text-base">
             Curated Collection
           </p>
 
-          <h2 className="text-5xl font-bold mt-2">
+          <h2 className="text-2xl font-bold mt-2 sm:text-5xl">
             Featured{" "}
             <span className="italic text-yellow-500">
               Products
@@ -107,19 +107,10 @@ return (
 
         </div>
 
-        <div className="grid xl:grid-cols-4 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-8">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
 
           {displayFeatured.map((product) => (
-
-            <div
-              key={product._id}
-              className="rounded-[28px] overflow-hidden bg-white border border-gray-200 hover:shadow-2xl transition duration-500 hover:-translate-y-2"
-            >
-
-              <ProductCard product={product} />
-
-            </div>
-
+            <ProductCard key={product._id} product={product} />
           ))}
 
         </div>
@@ -130,17 +121,17 @@ return (
 
     {/* ================= All Products ================= */}
 
-    <section className="max-w-7xl mx-auto px-5 py-20">
+    <section className="max-w-7xl mx-auto px-3 py-10 sm:px-5 sm:py-20">
 
-      <div className="flex items-end justify-between mb-12">
+      <div className="flex items-end justify-between mb-6 sm:mb-12">
 
         <div>
 
-          <p className="uppercase tracking-[3px] text-yellow-500 font-semibold">
+          <p className="uppercase tracking-[3px] text-yellow-500 font-semibold text-xs sm:text-base">
             Full Catalog
           </p>
 
-          <h2 className="text-5xl font-bold mt-2">
+          <h2 className="text-2xl font-bold mt-2 sm:text-5xl">
             All{" "}
             <span className="italic text-yellow-500">
               Products
@@ -163,19 +154,10 @@ return (
 
         <>
 
-          <div className="grid xl:grid-cols-4 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-8">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
 
             {allProducts.slice(0, visibleCount).map((product) => (
-
-              <div
-                key={product._id}
-                className="rounded-[28px] overflow-hidden bg-white border border-gray-200 hover:shadow-2xl transition duration-500 hover:-translate-y-2"
-              >
-
-                <ProductCard product={product} />
-
-              </div>
-
+              <ProductCard key={product._id} product={product} />
             ))}
 
           </div>

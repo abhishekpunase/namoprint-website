@@ -9,7 +9,7 @@ export function RelatedProductsSection({
   viewAllHref,
   viewAllLabel = 'View all',
   title = 'Related Products',
-  gridClassName = 'sm:grid-cols-2 lg:grid-cols-4',
+  gridClassName = 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-4',
   children,
 }) {
   const items = Children.toArray(children).filter(Boolean)
@@ -28,7 +28,7 @@ export function RelatedProductsSection({
           </Link>
         ) : null}
       </div>
-      <div className={`grid gap-6 ${gridClassName}`}>{items}</div>
+      <div className={`grid gap-3 sm:gap-6 ${gridClassName}`}>{items}</div>
     </section>
   )
 }

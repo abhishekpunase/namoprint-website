@@ -6,6 +6,7 @@ import { getProductCardThumbnails } from '../../data/productFrameGallery'
 import { formatCurrency, getCompareAtPrice, getProductPrice } from '../../utils/format'
 import { resolveMediaUrl } from '../../utils/mediaUrl'
 import { WALL_WATCH_CATALOG_BASE } from '../../utils/wallWatchCatalog'
+import { ProductCardMobileFooter } from '../product/ProductCardMobileFooter'
 
 function hashSlug(slug = '') {
   return slug.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0)
@@ -56,32 +57,34 @@ export function WallWatchProductCard({ product }) {
     product?.productType?.replaceAll('-', ' ')
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-      <div className="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-r from-orange-500 via-orange-400 to-yellow-400" />
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:border-amber-400 hover:shadow-md sm:rounded-2xl sm:border-slate-200 sm:shadow-md sm:hover:-translate-y-1 sm:hover:shadow-xl">
+      <div className="absolute inset-x-0 top-0 z-10 hidden h-1 bg-gradient-to-r from-orange-500 via-orange-400 to-yellow-400 sm:block" />
 
-      <Link to={detailPath} className="relative block shrink-0 overflow-hidden bg-slate-100">
+      <Link to={detailPath} className="relative block shrink-0 overflow-hidden bg-white sm:bg-slate-100">
         {shapeLabel ? (
-          <span className="absolute left-3 top-3 z-10 rounded-md bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 shadow-sm">
+          <span className="absolute left-3 top-3 z-10 hidden rounded-md bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 shadow-sm sm:inline-flex">
             {shapeLabel}
           </span>
         ) : null}
         {mainSrc ? (
-          <div className="relative aspect-[4/3] w-full overflow-hidden">
+          <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden p-2 sm:aspect-[4/3] sm:p-0">
             <img
               src={mainSrc}
               alt={product.title}
-              className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+              className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105 sm:absolute sm:inset-0 sm:h-full sm:w-full sm:object-cover sm:object-center"
               loading="lazy"
             />
           </div>
         ) : (
-          <div className="flex aspect-[4/3] w-full items-center justify-center text-sm text-slate-500">
+          <div className="flex aspect-square w-full items-center justify-center text-sm text-slate-500 sm:aspect-[4/3]">
             No image
           </div>
         )}
       </Link>
 
-      <div className="flex flex-1 flex-col gap-2.5 p-4">
+      <ProductCardMobileFooter to={detailPath} title={product.title} />
+
+      <div className="hidden flex-1 flex-col gap-2.5 p-4 sm:flex">
         <Link to={detailPath}>
           <h3 className="line-clamp-2 min-h-[2.5rem] text-base font-bold leading-snug text-slate-900 transition-colors group-hover:text-orange-600">
             {product.title}
