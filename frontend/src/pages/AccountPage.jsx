@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { FiEdit2, FiMapPin, FiPackage, FiPlus, FiSave, FiTrash2, FiUser } from 'react-icons/fi'
+import { FiEdit2, FiLifeBuoy, FiMapPin, FiPackage, FiPlus, FiSave, FiTrash2, FiUser } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { api } from '../services/api'
@@ -124,7 +124,7 @@ export function AccountPage() {
           </div>
         )}
   
-        <div className="mt-8 grid gap-6 lg:grid-cols-3">
+        <div className="mt-8 grid gap-6 md:grid-cols-2">
   
           {/* Orders */}
   
@@ -148,10 +148,32 @@ export function AccountPage() {
               View Orders →
             </div>
           </Link>
+
+          <Link
+            to="/account/support"
+            className="group rounded-3xl bg-white p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+          >
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-100 text-orange-600">
+              <FiLifeBuoy size={30} />
+            </div>
+
+            <h2 className="mt-6 text-2xl font-semibold">
+              My Support Tickets
+            </h2>
+
+            <p className="mt-2 text-gray-500">
+              Raise a ticket, track support requests and view replies from our team.
+            </p>
+
+            <div className="mt-6 text-orange-600 font-medium">
+              View Tickets →
+            </div>
+          </Link>
+        </div>
   
           {/* Profile */}
   
-          <div className="rounded-3xl bg-white p-8 shadow-sm lg:col-span-2">
+          <div className="mt-8 rounded-3xl bg-white p-8 shadow-sm">
   
             <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
   
@@ -291,8 +313,6 @@ export function AccountPage() {
             )}
   
           </div>
-  
-        </div>
   
         {/* Address */}
   

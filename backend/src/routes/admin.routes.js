@@ -120,6 +120,15 @@ import {
 import { headerMenuSchema, headerMenuUpdateSchema } from '../validators/headerMenu.validator.js';
 import { getAdminFooter, updateAdminFooter } from '../controllers/footer.controller.js';
 import { footerUpdateSchema } from '../validators/footer.validator.js';
+import {
+  listAdminSupportTickets,
+  replyAdminSupportTicket,
+  updateAdminSupportTicket,
+} from '../controllers/supportTicket.controller.js';
+import {
+  adminUpdateSupportTicketSchema,
+  replySupportTicketSchema,
+} from '../validators/supportTicket.validator.js';
 
 export const adminRoutes = Router();
 
@@ -204,3 +213,7 @@ adminRoutes.get('/managed-coupons', listAdminCoupons);
 adminRoutes.post('/managed-coupons', validate(adminCouponCreateSchema), createAdminCoupon);
 adminRoutes.patch('/managed-coupons/:id', validate(adminCouponUpdateSchema), updateAdminCoupon);
 adminRoutes.delete('/managed-coupons/:id', deleteAdminCoupon);
+
+adminRoutes.get('/support-tickets', listAdminSupportTickets);
+adminRoutes.patch('/support-tickets/:id', validate(adminUpdateSupportTicketSchema), updateAdminSupportTicket);
+adminRoutes.post('/support-tickets/:id/replies', validate(replySupportTicketSchema), replyAdminSupportTicket);

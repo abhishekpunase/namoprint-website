@@ -30,6 +30,7 @@ import { bulkOrderRoutes } from './bulkOrder.routes.js';
 import { productOfTheMonthRoutes } from './productOfTheMonth.routes.js';
 import { headerMenuRoutes } from './headerMenu.routes.js';
 import { footerRoutes } from './footer.routes.js';
+import { supportTicketRoutes } from './supportTicket.routes.js';
 
 const routes = Router();
 
@@ -64,5 +65,6 @@ routes.use('/bulk-orders', bulkOrderRoutes);
 routes.use('/product-of-the-month', productOfTheMonthRoutes);
 routes.use('/header-menu', headerMenuRoutes);
 routes.use('/footer', footerRoutes);
+routes.use('/support-tickets', supportTicketRoutes);
 
 export default routes;

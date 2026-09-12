@@ -9,6 +9,7 @@ import {
   Menu,
   MessageSquareQuote,
   PanelBottom,
+  Headphones,
   LayoutDashboard,
   LogOut,
   Package,
@@ -163,6 +164,12 @@ export const adminNavigation = [
     icon: Star,
   },
   {
+    id: 'support-tickets',
+    label: 'Support Tickets',
+    to: '/admin/support-tickets',
+    icon: Headphones,
+  },
+  {
     id: 'users',
     label: 'Users',
     to: '/admin/users',
@@ -254,6 +261,9 @@ export function getAdminPageMeta(pathname) {
   }
   if (pathname.startsWith('/admin/reviews')) {
     return { title: 'Reviews', description: 'Manage customer product reviews' }
+  }
+  if (pathname.startsWith('/admin/support-tickets')) {
+    return { title: 'Support Tickets', description: 'Customer support tickets and replies' }
   }
   if (pathname.startsWith('/admin/home-slides')) {
     return { title: 'Home Slider', description: 'Manage homepage banner slides' }

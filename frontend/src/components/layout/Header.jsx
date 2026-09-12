@@ -8,6 +8,8 @@ import {
   FiGift,
   FiPercent,
   FiChevronDown,
+  FiHeadphones,
+  FiUser,
 } from "react-icons/fi";
 import { BrandLogo } from "./BrandLogo";
 import { Link, NavLink, useLocation } from "react-router-dom";
@@ -157,6 +159,23 @@ export function Header() {
     {/* Actions — right */}
     <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3 lg:ml-0 lg:gap-4 xl:gap-5">
       <Link
+        to="/support"
+        className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 px-2.5 py-1.5 text-xs font-semibold text-slate-800 transition hover:border-orange-400 hover:bg-orange-50 sm:px-3 lg:px-3.5 lg:text-sm"
+        aria-label="Support"
+      >
+        <FiHeadphones className="h-4 w-4 text-orange-500" aria-hidden />
+        <span className="hidden sm:inline">Support</span>
+      </Link>
+      {isAuthenticated ? (
+        <Link
+          to="/account"
+          className="hidden text-xl text-gray-800 transition hover:text-[#F5B400] lg:inline-flex sm:text-2xl"
+          aria-label="My Account"
+        >
+          <FiUser />
+        </Link>
+      ) : null}
+      <Link
         to="/wishlist"
         className="relative text-xl text-gray-800 transition hover:text-[#F5B400] sm:text-2xl"
         aria-label="Wishlist"
@@ -268,6 +287,34 @@ export function Header() {
           {item.label}
         </NavLink>
       ))}
+
+      <Link
+        to="/support"
+        onClick={() => setOpen(false)}
+        className="flex items-center gap-2 rounded-lg px-4 py-3 text-gray-800 transition hover:bg-[#FFF8E1] hover:text-[#F5B400]"
+      >
+        <FiHeadphones className="text-orange-500" aria-hidden />
+        Support
+      </Link>
+
+      {isAuthenticated ? (
+        <>
+          <Link
+            to="/account"
+            onClick={() => setOpen(false)}
+            className="block rounded-lg px-4 py-3 text-gray-800 transition hover:bg-[#FFF8E1] hover:text-[#F5B400]"
+          >
+            My Account
+          </Link>
+          <Link
+            to="/account/support"
+            onClick={() => setOpen(false)}
+            className="block rounded-lg px-4 py-3 text-gray-800 transition hover:bg-[#FFF8E1] hover:text-[#F5B400]"
+          >
+            My Support Tickets
+          </Link>
+        </>
+      ) : null}
 
       <Link
         to="/wishlist"

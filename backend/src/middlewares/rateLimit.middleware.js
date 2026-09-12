@@ -30,6 +30,7 @@ const PUBLIC_GET_PREFIXES = [
   '/header-menu',
   '/footer',
   '/product-of-the-month',
+  '/support-tickets',
   '/health',
 ];
 

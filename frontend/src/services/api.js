@@ -371,6 +371,7 @@ export const api = {
     apiRequest(`/admin/managed-coupons/${id}`, { method: 'PATCH', body: payload }),
   adminDeleteManagedCoupon: (id) => apiRequest(`/admin/managed-coupons/${id}`, { method: 'DELETE' }),
   orders: () => apiRequest('/orders/my'),
+  order: (id) => apiRequest(`/orders/${id}`),
   createPayment: (payload) => apiRequest('/payments/razorpay/order', { method: 'POST', body: payload }),
   verifyPayment: (payload) => apiRequest('/payments/razorpay/verify', { method: 'POST', body: payload }),
   adminDashboard: () => apiRequest('/admin/dashboard'),
@@ -482,4 +483,16 @@ export const api = {
   adminUsers: (query = '') => apiRequest(`/admin/users${query}`),
   adminUser: (id) => apiRequest(`/admin/users/${id}`),
   adminUpdateUserStatus: (id, payload) => apiRequest(`/admin/users/${id}/status`, { method: 'PATCH', body: payload }),
+  createSupportTicket: (payload) => apiRequest('/support-tickets', { method: 'POST', body: payload }),
+  mySupportTickets: () => apiRequest('/support-tickets'),
+  trackSupportTicket: (ticketId) => apiRequest(`/support-tickets/track/${encodeURIComponent(ticketId)}`),
+  getSupportTicket: (id, email) =>
+    apiRequest(`/support-tickets/${encodeURIComponent(id)}${email ? `?email=${encodeURIComponent(email)}` : ''}`),
+  replySupportTicket: (id, payload) =>
+    apiRequest(`/support-tickets/${encodeURIComponent(id)}/replies`, { method: 'POST', body: payload }),
+  adminSupportTickets: (query = '') => apiRequest(`/admin/support-tickets${query}`),
+  adminUpdateSupportTicket: (id, payload) =>
+    apiRequest(`/admin/support-tickets/${id}`, { method: 'PATCH', body: payload }),
+  adminReplySupportTicket: (id, payload) =>
+    apiRequest(`/admin/support-tickets/${id}/replies`, { method: 'POST', body: payload }),
 }

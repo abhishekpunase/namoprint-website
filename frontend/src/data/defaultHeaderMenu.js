@@ -30,6 +30,9 @@ export const HEADER_MENU_PATH_PRESETS = [
   { label: 'Contact', path: '/contact' },
   { label: 'Bulk Orders', path: '/bulk-orders' },
   { label: 'FAQ', path: '/faq' },
+  { label: 'Support Center', path: '/support' },
+  { label: 'Raise a Ticket', path: '/support/new' },
+  { label: 'Track Ticket', path: '/support/track' },
 ]
 
 export function mapApiHeaderMenuItem(item) {

@@ -9,6 +9,7 @@ import { CartProvider } from './context/CartContext'
 import { WishlistProvider } from './context/WishlistContext'
 import { DesignProvider } from './context/DesignContext'
 import FloatingWhatsApp from './components/layout/FloatingWhatsApp'
+import { FloatingSupportButton } from './components/support/FloatingSupportButton'
 
 const named = (loader, exportName) =>
   lazy(() => loader().then((mod) => ({ default: mod[exportName] })))
@@ -37,6 +38,13 @@ const CheckoutPage = named(() => import('./pages/CheckoutPage'), 'CheckoutPage')
 const PaymentSuccessPage = named(() => import('./pages/PaymentSuccessPage'), 'PaymentSuccessPage')
 const AccountPage = named(() => import('./pages/AccountPage'), 'AccountPage')
 const OrdersPage = named(() => import('./pages/OrdersPage'), 'OrdersPage')
+const AccountOrderDetailPage = named(() => import('./pages/AccountOrderDetailPage'), 'AccountOrderDetailPage')
+const SupportCenterPage = named(() => import('./pages/SupportCenterPage'), 'SupportCenterPage')
+const RaiseTicketPage = named(() => import('./pages/RaiseTicketPage'), 'RaiseTicketPage')
+const SupportTicketSuccessPage = named(() => import('./pages/SupportTicketSuccessPage'), 'SupportTicketSuccessPage')
+const TrackTicketPage = named(() => import('./pages/TrackTicketPage'), 'TrackTicketPage')
+const MySupportTicketsPage = named(() => import('./pages/MySupportTicketsPage'), 'MySupportTicketsPage')
+const SupportTicketDetailPage = named(() => import('./pages/SupportTicketDetailPage'), 'SupportTicketDetailPage')
 const NotFoundPage = named(() => import('./pages/NotFoundPage'), 'NotFoundPage')
 
 const GodPhotosPage = lazy(() => import('./pages/GodPhotosPage'))
@@ -108,6 +116,7 @@ const AdminProductReelsPage = named(() => import('./pages/admin/AdminProductReel
 const AdminIntegrationsPage = named(() => import('./pages/admin/AdminIntegrationsPage'), 'AdminIntegrationsPage')
 const AdminAnalyticsPage = named(() => import('./pages/admin/AdminAnalyticsPage'), 'AdminAnalyticsPage')
 const AdminReviewsPage = named(() => import('./pages/admin/AdminReviewsPage'), 'AdminReviewsPage')
+const AdminSupportTicketsPage = named(() => import('./pages/admin/AdminSupportTicketsPage'), 'AdminSupportTicketsPage')
 const AdminRolesPage = named(() => import('./pages/admin/AdminRolesPage'), 'AdminRolesPage')
 const AdminNotificationsPage = named(() => import('./pages/admin/AdminNotificationsPage'), 'AdminNotificationsPage')
 const AdminSystemPage = named(() => import('./pages/admin/AdminSystemPage'), 'AdminSystemPage')
@@ -186,6 +195,7 @@ function App() {
                 <Route path="integrations" element={<AdminIntegrationsPage />} />
                 <Route path="analytics" element={<AdminAnalyticsPage />} />
                 <Route path="reviews" element={<AdminReviewsPage />} />
+                <Route path="support-tickets" element={<AdminSupportTicketsPage />} />
                 <Route path="roles" element={<AdminRolesPage />} />
                 <Route path="notifications" element={<AdminNotificationsPage />} />
                 <Route path="system" element={<AdminSystemPage />} />
@@ -228,6 +238,11 @@ function App() {
                 <Route path="refund-policy" element={<RefundPolicyPage />} />
                 <Route path="shipping-policy" element={<ShippingPolicyPage />} />
                 <Route path="faq" element={<FaqPage />} />
+                <Route path="support" element={<SupportCenterPage />} />
+                <Route path="support/new" element={<RaiseTicketPage />} />
+                <Route path="support/success/:ticketId" element={<SupportTicketSuccessPage />} />
+                <Route path="support/track" element={<TrackTicketPage />} />
+                <Route path="support/tickets/:ticketId" element={<SupportTicketDetailPage />} />
                 <Route path="login" element={<LoginPage />} />
                 <Route path="register" element={<RegisterPage />} />
                 <Route path="forgot-password" element={<ForgotPasswordPage />} />
@@ -272,10 +287,27 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="account/orders/:orderId"
+                  element={
+                    <ProtectedRoute>
+                      <AccountOrderDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="account/support"
+                  element={
+                    <ProtectedRoute>
+                      <MySupportTicketsPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Routes>
             </Suspense>
+             <FloatingSupportButton />
              <FloatingWhatsApp />
           </DesignProvider>
           </WishlistProvider>

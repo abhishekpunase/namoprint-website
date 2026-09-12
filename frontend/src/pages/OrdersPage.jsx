@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { FiPackage } from 'react-icons/fi'
+import { Link } from 'react-router-dom'
 import { api } from '../services/api'
 import { formatCurrency } from '../utils/format'
 
@@ -126,9 +127,33 @@ export function OrdersPage() {
                     </h3>
                   </div>
   
-                  <button className="rounded-xl border border-orange-500 px-4 py-2 text-sm font-medium text-orange-500 transition hover:bg-orange-500 hover:text-white">
+                  <Link
+                    to={`/account/orders/${order._id}`}
+                    className="rounded-xl border border-orange-500 px-4 py-2 text-sm font-medium text-orange-500 transition hover:bg-orange-500 hover:text-white"
+                  >
                     View Details
-                  </button>
+                  </Link>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Link
+                    to={`/account/orders/${order._id}`}
+                    className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+                  >
+                    Track Order
+                  </Link>
+                  <Link
+                    to={`/support/new?orderNo=${encodeURIComponent(order.orderNo || '')}&issue=${encodeURIComponent('Return / Replacement')}`}
+                    className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+                  >
+                    Return Product
+                  </Link>
+                  <Link
+                    to={`/support/new?orderNo=${encodeURIComponent(order.orderNo || '')}&issue=${encodeURIComponent('Order Issue')}`}
+                    className="rounded-xl bg-orange-500 px-3 py-2 text-xs font-semibold text-white hover:bg-orange-600"
+                  >
+                    Need Help?
+                  </Link>
                 </div>
               </div>
             ))}
