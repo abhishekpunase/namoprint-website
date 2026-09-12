@@ -2,7 +2,7 @@ import { analyzeMockupFromUrl } from './mockupAnalyzer'
 import { resolveMediaUrl } from './mediaUrl'
 import { usesLiveProductImage, getProductBaseImage } from '../data/fallbackCatalog'
 import { isBuiltInCatalogMockup, resolveUploadedFrameImage } from '../data/collageFrameMockup'
-import { finalizePhotoSlots, forceCircularPhotoSlot } from './mockupSlotShapes'
+import { finalizePhotoSlots, forceCircularPhotoSlot, shouldUseCircularPhotoSlot } from './mockupSlotShapes'
 import { isWallWatchProduct } from './wallWatchCatalog'
 import { normalizeWallWatchProduct, getCollagePhotoCount, isCollageWallWatchProduct } from './wallWatchProductDefaults'
 import { insetCollageBoxesInWindow } from './wallWatchCollageLayouts'
@@ -16,17 +16,32 @@ export function getMockupFrameUrl(product) {
   return ''
 }
 
+function looksLikePlaceholderSlot(box, canvas) {
+  if (!box || !(Number(box.width) > 0) || !(Number(box.height) > 0)) return true
+  const cw = Number(canvas?.width) || 1000
+  const ch = Number(canvas?.height) || 1000
+  const x = Number(box.x) || 0
+  const y = Number(box.y) || 0
+  const w = Number(box.width) || 0
+  const h = Number(box.height) || 0
+  const near = (a, b) => Math.abs(a - b) <= 3
+  if (near(x, 90) && near(y, 90) && near(w, 820) && near(h, 820)) return true
+  if (near(x, 120) && near(y, 120) && near(w, 760) && near(h, 760)) return true
+  if (cw === 1000 && ch === 1000 && near(w, 820) && near(h, 820) && near(x, y)) return true
+  return false
+}
+
 function hasConfiguredMockup(product) {
   const mockup = product?.mockup
   const frameImage = resolveUploadedFrameImage(product) || mockup?.frameImage
   if (!frameImage || isBuiltInCatalogMockup(frameImage)) return false
-  // Wall-watch uploaded mockup must be analyzed so photo sits inside the frame opening
   if (isWallWatchProduct(product) && resolveUploadedFrameImage(product) && !mockup?.slotsFromMockup) {
     return false
   }
-  if (mockup.photoBoxes?.length > 1) return true
+  if (mockup.photoBoxes?.length > 1 && mockup.slotsFromMockup) return true
   const box = mockup.photoBox
-  return Boolean(box && Number(box.width) > 0 && Number(box.height) > 0)
+  if (!mockup.slotsFromMockup) return false
+  return Boolean(box && Number(box.width) > 0 && !looksLikePlaceholderSlot(box, mockup.canvas))
 }
 
 export function productNeedsMockupAnalysis(product) {
@@ -86,8 +101,7 @@ export async function enrichProductMockup(product) {
         ...(clippedBoxes?.length ? { photoBoxes: clippedBoxes } : {}),
         photoBox: (() => {
         let pb = clippedBoxes?.[0] || mockup.photoBox
-        const shapeText = String(product?.defaultOptions?.shape || mockup?.shape || 'Circle').toLowerCase()
-        if (isWallWatchProduct(product) && shapeText.includes('circle') && pb) {
+        if (pb && shouldUseCircularPhotoSlot(product, product?.defaultOptions, pb)) {
           pb = forceCircularPhotoSlot(pb)
         }
         return pb
@@ -97,7 +111,7 @@ export async function enrichProductMockup(product) {
   }
 
   try {
-    const analysis = await analyzeMockupFromUrl(frameUrl)
+    const analysis = await analyzeMockupFromUrl(frameUrl, { forAdmin: true })
     let multiBoxes = analysis.photoBoxes?.length > 1 ? analysis.photoBoxes : []
     let photoBox = analysis.photoBox
     const canvas = {
@@ -118,13 +132,8 @@ export async function enrichProductMockup(product) {
       photoBox = multiBoxes[0]
     }
 
-        // Circle wall watches: clip photo to round inner opening so it never overlaps the mockup ring
-    if (
-      isWallWatchProduct(product) &&
-      String(product?.defaultOptions?.shape || 'Circle').toLowerCase().includes('circle') &&
-      photoBox &&
-      Number(photoBox.width) > 0
-    ) {
+    // Circle wall watches only — keep admin-detected rounded squares as-is
+    if (photoBox && Number(photoBox.width) > 0 && shouldUseCircularPhotoSlot(product, product?.defaultOptions, photoBox)) {
       photoBox = forceCircularPhotoSlot(photoBox)
     }
 
@@ -178,5 +187,6 @@ export function analysisToFormPatch(analysis, frameUrl) {
     boxRadius: String(analysis.photoBox?.borderRadius ?? 0),
     maxPhotos: String(analysis.slotCount || 1),
     allowPhotoUpload: true,
+    slotsFromMockup: true,
   }
 }

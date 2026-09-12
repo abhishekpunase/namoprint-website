@@ -39,6 +39,7 @@ export const emptyForm = {
   boxRotate: '0',
   boxRadius: '18',
   multiSlot: false,
+  slotsFromMockup: false,
   photoBoxes: [],
   customizationGroups: [],
   seoTitle: '',
@@ -96,6 +97,7 @@ export function productToForm(product) {
     canvasWidth: String(canvas.width || 1000),
     canvasHeight: String(canvas.height || 1000),
     frameImage: mockup.frameImage || '',
+    slotsFromMockup: Boolean(mockup.slotsFromMockup || mockup.frameImage),
     boxX: String(box.x ?? 0),
     boxY: String(box.y ?? 0),
     boxWidth: String(box.width ?? canvas.width),
@@ -168,6 +170,7 @@ export function buildProductPayload(form, categories) {
     },
     mockup: {
       frameImage: form.frameImage || undefined,
+      slotsFromMockup: Boolean(form.slotsFromMockup || form.frameImage),
       canvas: { width: Number(form.canvasWidth || 1000), height: Number(form.canvasHeight || 1000) },
       photoBox: {
         x: Number(form.boxX || 0),
@@ -176,6 +179,7 @@ export function buildProductPayload(form, categories) {
         height: Number(form.boxHeight || 0),
         rotate: Number(form.boxRotate || 0),
         borderRadius: Number(form.boxRadius || 0),
+        ...(form.photoBoxes?.[0]?.slotShape ? { slotShape: form.photoBoxes[0].slotShape } : {}),
       },
         ...(form.photoBoxes?.length > 1
         ? {
@@ -192,6 +196,7 @@ export function buildProductPayload(form, categories) {
               borderRadius: Number(box.borderRadius ?? 0),
               ...(box.clipPath ? { clipPath: box.clipPath } : {}),
               ...(box.fillRatio != null ? { fillRatio: Number(box.fillRatio) } : {}),
+              ...(box.slotShape ? { slotShape: box.slotShape } : {}),
             })),
           }
         : {}),

@@ -102,6 +102,7 @@ export function ProductEditor({ editor, mode = 'create', productId }) {
       lastDetectedFrameRef.current = url
       handleMockupChange({
         frameImage: url,
+        slotsFromMockup: true,
         canvasWidth: String(analysis.canvasWidth),
         canvasHeight: String(analysis.canvasHeight),
         photoBox: analysis.photoBox,
@@ -124,6 +125,7 @@ export function ProductEditor({ editor, mode = 'create', productId }) {
       if (url) lastDetectedFrameRef.current = url
       handleMockupChange({
         ...(url ? { frameImage: url } : {}),
+        slotsFromMockup: true,
         canvasWidth: String(analysis.canvasWidth),
         canvasHeight: String(analysis.canvasHeight),
         photoBox: analysis.photoBox,
@@ -165,6 +167,7 @@ export function ProductEditor({ editor, mode = 'create', productId }) {
         const analysis = await analyzeMockupFromUrl(frameUrl, { forAdmin: true })
         if (cancelled) return
         handleMockupChange({
+          slotsFromMockup: true,
           canvasWidth: String(analysis.canvasWidth),
           canvasHeight: String(analysis.canvasHeight),
           photoBox: analysis.photoBox,

@@ -93,7 +93,7 @@ export function enhanceHexSlotBox(box, fillRatio, expandRatio = 0.05) {
 /** Strip hex/organic clip paths — photo slots stay rectangular from frame detection. */
 export function normalizeRectPhotoSlot(box) {
   if (!box) return box
-  const { clipPath: _clipPath, fillRatio: _fillRatio, ...rest } = box
+  const { fillRatio: _fillRatio, ...rest } = box
   return {
     ...rest,
     rotate: rest.rotate || 0,
@@ -266,6 +266,31 @@ export function isHexClipPath(clipPath) {
 
   )
 
+}
+
+export function isExplicitCircleShape(shape = '') {
+  const s = String(shape || '').toLowerCase().trim()
+  if (!s) return false
+  if (s.includes('square') || s.includes('rect') || s.includes('oval')) return false
+  return s === 'circle' || s === 'round' || s === 'circular' || /\bcircle\b/.test(s)
+}
+
+/** Circle only for real round clocks / explicit circle slots — never empty shape or rounded-square mockups. */
+export function shouldUseCircularPhotoSlot(product, options = {}, box = null) {
+  const slotShape = String(box?.slotShape || product?.mockup?.slotShape || '').toLowerCase()
+  if (slotShape === 'rect' || slotShape === 'square') return false
+  if (slotShape === 'circle' || slotShape === 'round') return true
+
+  // Admin auto-detect / saved slots from the mockup image — keep that geometry
+  if (product?.mockup?.slotsFromMockup) return false
+
+  const productType = product?.productType || ''
+  const isClock = productType === 'custom-wall-watch' || productType === 'photo-clock'
+  const shape = options?.shape || product?.defaultOptions?.shape || ''
+
+  if (product?.mockup?.frameImage && !isClock) return false
+  if (!isClock) return isExplicitCircleShape(shape)
+  return isExplicitCircleShape(shape || 'Circle')
 }
 
 

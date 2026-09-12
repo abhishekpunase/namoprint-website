@@ -31,6 +31,8 @@ const mockupSchema = new mongoose.Schema(
     // product designer (e.g. an acrylic frame, wall photo mockup, clock face).
     // This is what admin uploads from the Admin > Products screen.
     frameImage: String,
+    slotsFromMockup: { type: Boolean, default: false },
+    slotShape: { type: String, enum: ['rect', 'square', 'circle', 'round', 'hex'], default: undefined },
     photoBox: {
       x: { type: Number, default: 0 },
       y: { type: Number, default: 0 },
@@ -38,7 +40,8 @@ const mockupSchema = new mongoose.Schema(
       height: { type: Number, default: 1 },
       rotate: { type: Number, default: 0 },
       borderRadius: { type: Number, default: 0 },
-      clipPath: String
+      clipPath: String,
+      slotShape: { type: String, enum: ['rect', 'square', 'circle', 'round', 'hex'], default: undefined },
     },
     // Optional independent photo windows for collage-style mockups
     // (e.g. Photo Collage Frame, 4-photo clock) — each entry uses the
@@ -52,7 +55,8 @@ const mockupSchema = new mongoose.Schema(
           height: Number,
           rotate: { type: Number, default: 0 },
           borderRadius: { type: Number, default: 0 },
-          clipPath: String
+          clipPath: String,
+          slotShape: { type: String, enum: ['rect', 'square', 'circle', 'round', 'hex'], default: undefined },
         }
       ],
       default: undefined

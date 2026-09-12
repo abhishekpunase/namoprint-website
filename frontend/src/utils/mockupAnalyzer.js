@@ -110,6 +110,44 @@ function defaultInsetBox(width, height, insetRatio = 0.12) {
   }
 }
 
+/** How far the opening is inset from each bbox corner — rounded-rect / circle radius. */
+function estimateRoundedRectRadius(isSlotPixel, minX, minY, maxX, maxY) {
+  const width = maxX - minX + 1
+  const height = maxY - minY + 1
+  const maxR = Math.floor(Math.min(width, height) * 0.49)
+  if (maxR < 4) return 0
+
+  const cornerInset = (cx, cy, dirX, dirY) => {
+    let alongX = maxR
+    let alongY = maxR
+    for (let i = 0; i <= maxR; i += 1) {
+      if (isSlotPixel(cx + dirX * i, cy)) {
+        alongX = i
+        break
+      }
+    }
+    for (let i = 0; i <= maxR; i += 1) {
+      if (isSlotPixel(cx, cy + dirY * i)) {
+        alongY = i
+        break
+      }
+    }
+    return Math.round((alongX + alongY) / 2)
+  }
+
+  const samples = [
+    cornerInset(minX, minY, 1, 1),
+    cornerInset(maxX, minY, -1, 1),
+    cornerInset(minX, maxY, 1, -1),
+    cornerInset(maxX, maxY, -1, -1),
+  ].filter((radius) => radius > 2)
+
+  if (samples.length < 2) return 0
+  samples.sort((a, b) => a - b)
+  const mid = samples[Math.floor(samples.length / 2)]
+  return mid < 6 ? 0 : mid
+}
+
 function regionIoU(a, b) {
   const x0 = Math.max(a.x, b.x)
   const y0 = Math.max(a.y, b.y)
@@ -200,7 +238,7 @@ function bboxForSegment(region, imageData, width, height, isSlotPixel, axis, seg
     width: bboxW,
     height: bboxH,
     rotate: 0,
-    borderRadius: 0,
+    borderRadius: estimateRoundedRectRadius(isSlotPixel, minX, minY, maxX, maxY),
     area: bboxArea,
     pixelCount: count,
     fillRatio: count / bboxArea,
@@ -323,18 +361,34 @@ function regionToBox(region) {
   const { area, pixelCount, fillRatio, ...box } = region
   // Do NOT auto-apply hex from fillRatio — circles (~0.785) look hex-like by that metric.
   // Hex clips are applied later only for hex/honeycomb products via finalizePhotoSlots.
-  const pad = 2
+  const pad = 1
+
+  const width = Math.max(8, box.width - pad * 2)
+  const height = Math.max(8, box.height - pad * 2)
+  const aspect = width / height
+  const circularOpening =
+    Number(fillRatio) > 0.72 &&
+    Number(fillRatio) < 0.84 &&
+    aspect > 0.88 &&
+    aspect < 1.12
+
+  const borderRadius = circularOpening
+    ? Math.round(Math.min(width, height) / 2)
+    : Math.round(Number(box.borderRadius) || 0)
 
   const raw = {
     x: box.x + pad,
     y: box.y + pad,
-    width: Math.max(8, box.width - pad * 2),
-    height: Math.max(8, box.height - pad * 2),
+    width,
+    height,
     rotate: 0,
-    borderRadius: 0,
+    borderRadius,
     fillRatio,
+    slotShape: circularOpening ? 'circle' : box.slotShape || 'rect',
+    ...(box.clipPath ? { clipPath: box.clipPath } : {}),
   }
 
+  if (raw.clipPath) return raw
   return normalizeRectPhotoSlot(raw)
 }
 
@@ -378,7 +432,8 @@ function findSlotRegions(imageData, width, height, isSlotPixel, maxRegions = MAX
       if (count < minRegionPixels) continue
       if (bboxArea / canvasArea < MIN_BBOX_RATIO) continue
       if (fillRatio < minFillRatio) continue
-      if (bboxArea / canvasArea > 0.82) continue
+      // Thin-border frames have a large inner window — only reject near-full-canvas noise
+      if (bboxArea / canvasArea > 0.96) continue
 
       regions.push({
         x: minX,
@@ -386,7 +441,7 @@ function findSlotRegions(imageData, width, height, isSlotPixel, maxRegions = MAX
         width: bboxW,
         height: bboxH,
         rotate: 0,
-        borderRadius: 0,
+        borderRadius: estimateRoundedRectRadius(isSlotPixel, minX, minY, maxX, maxY),
         area: bboxArea,
         pixelCount: count,
         fillRatio,
@@ -527,6 +582,7 @@ function drawImageToCanvas(img, options = {}) {
     y: Math.round(box.y / scale),
     width: Math.round(box.width / scale),
     height: Math.round(box.height / scale),
+    borderRadius: Math.round((Number(box.borderRadius) || 0) / scale),
   })
 
   let boxesAtScale = regions.map(regionToBox)

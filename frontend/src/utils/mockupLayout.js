@@ -128,9 +128,7 @@ export function fitPhotoBoxesToMockupOpening(boxes = [], canvas = { width: 1000,
     width = width + growX
     height = height + growY
 
-    const nearCircular =
-      forceCircular ||
-      borderRadius >= Math.min(width, height) * 0.4
+    const nearCircular = forceCircular
 
     if (nearCircular) {
       // Fill the full circular opening (use max side) so no crescent gap remains under the frame
@@ -214,15 +212,19 @@ export async function resolveMockupLayout(frameImage, mockupCanvas, photoBoxes) 
 export function photoBoxToStyle(box, canvas, options = {}) {
   const cw = Number(canvas?.width) || 1
   const ch = Number(canvas?.height) || 1
+  const bw = Number(box.width) || 0
+  const bh = Number(box.height) || 0
   const radius = Number(box.borderRadius) || 0
+  const rx = bw > 0 ? Math.min(50, (radius / bw) * 100) : 0
+  const ry = bh > 0 ? Math.min(50, (radius / bh) * 100) : 0
 
   const style = {
     position: 'absolute',
     left: `${((Number(box.x) || 0) / cw) * 100}%`,
     top: `${((Number(box.y) || 0) / ch) * 100}%`,
-    width: `${((Number(box.width) || 0) / cw) * 100}%`,
-    height: `${((Number(box.height) || 0) / ch) * 100}%`,
-    borderRadius: radius ? `${radius}px` : undefined,
+    width: `${(bw / cw) * 100}%`,
+    height: `${(bh / ch) * 100}%`,
+    borderRadius: radius ? `${rx}% / ${ry}%` : undefined,
     transform: box.rotate ? `rotate(${box.rotate}deg)` : undefined,
     transformOrigin: 'center center',
     overflow: 'hidden',

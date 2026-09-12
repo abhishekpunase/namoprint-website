@@ -6,7 +6,7 @@ import { resolveCollageMockup, resolvePreviewPhotoBoxes, resolveUploadedFrameIma
 import { resolveMediaUrl } from '../../utils/mediaUrl'
 import { punchFrameHoles, shouldPunchFrameHoles, inferSlotClipPathsFromFrame } from '../../utils/frameImageUtils'
 import { photoBoxToStyle, resolveMockupLayout, fitPhotoBoxesToMockupOpening } from '../../utils/mockupLayout'
-import { HEX_PHOTO_FILL_SCALE, isHexClipPath, isHexFrameProduct, forceCircularPhotoSlot } from '../../utils/mockupSlotShapes'
+import { HEX_PHOTO_FILL_SCALE, isHexClipPath, isHexFrameProduct, forceCircularPhotoSlot, isExplicitCircleShape, shouldUseCircularPhotoSlot } from '../../utils/mockupSlotShapes'
 import { wallWatchShouldUseSvgFrame } from '../../utils/wallWatchFrameUtils'
 
 /** Place 1–12 evenly on a circle — real watch jaisa dial */
@@ -58,35 +58,26 @@ const getClockShapeClass = (shape = '', frameStyle = '', frameType = '') => {
   if (normalized.includes('oval')) return 'clock-shape-oval'
   if (normalized.includes('heart')) return 'clock-shape-heart'
   if (normalized.includes('leaf')) return 'clock-shape-leaf'
-  if (
-    normalized.includes('circle') ||
-    normalized.includes('square round') ||
-    /\bround\b/.test(normalized)
-  ) {
+  if (normalized.includes('square round') || normalized.includes('rounded square')) {
+    return 'clock-shape-square'
+  }
+  if (normalized.includes('circle') || (/\bround\b/.test(normalized) && !normalized.includes('square'))) {
     return 'clock-shape-circle'
   }
   if (normalized.includes('square')) return 'clock-shape-square'
   return 'clock-shape-square'
 }
 
-/** Detect circular dial from mockup photoBox (borderRadius ≈ half of min side) */
-function isCircularPhotoBox(photoBox) {
-  if (!photoBox?.width || !photoBox?.height) return false
-  const minDim = Math.min(photoBox.width, photoBox.height)
-  const br = Number(photoBox.borderRadius) || 0
-  return br >= minDim / 2 - 4
-}
-
-function isCircularPreview(shapeClass, photoBox) {
-  return shapeClass.includes('circle') || isCircularPhotoBox(photoBox)
+function isCircularPreview(_shapeClass, photoBox, product, options) {
+  return shouldUseCircularPhotoSlot(product, options, photoBox)
 }
 
 /** Keep slot clip so uploads stay inside the mockup window (hex, organic, etc.). */
 function resolveSlotClipPath(box, product, options) {
   const clipPath = box?.clipPath
   if (!clipPath) return undefined
-  const shapeText = String(options?.shape || product?.defaultOptions?.shape || '').toLowerCase()
-  if (shapeText.includes('circle') || shapeText.includes('round')) return undefined
+  const shapeText = String(options?.shape || product?.defaultOptions?.shape || '')
+  if (isExplicitCircleShape(shapeText)) return undefined
   if (isHexClipPath(clipPath) && !isHexFrameProduct(product) && !shapeText.includes('hex')) {
     return undefined
   }
@@ -559,6 +550,8 @@ function View3DModal({
   photoBox,
   canvas,
   productType = '',
+  product = null,
+  options = {},
   useFrameOverlay = false,
   slotPhotos = [],
   photoBoxesList = [],
@@ -624,7 +617,7 @@ function View3DModal({
   const backColor = frameColor || '#f3f4f6'
   const radius = getShapeRadius(shapeClass, borderRadius)
   const faceClip = shapeClass.includes('heart') ? 'clip-path-heart' : undefined
-  const isCircular = isCircularPreview(shapeClass, photoBox)
+  const isCircular = isCircularPreview(shapeClass, photoBox, product, options)
   const effectiveDepth = isCircular ? 6 : depth
   const isWatchProduct = productType === 'custom-wall-watch' || productType === 'photo-clock'
   const useLayeredFace = showClockDial || isWatchProduct || useFrameOverlay || Boolean(displayFrameUrl)
@@ -977,11 +970,11 @@ export function PreviewFrame({
     const boxes = resolvePreviewPhotoBoxes(product, variant, options)
     const uploaded = resolveUploadedFrameImage(product)
     if (!uploaded || !boxes?.length) return boxes
-    const shape = String(options?.shape || product?.defaultOptions?.shape || '').toLowerCase()
-    const circular = boxes.length === 1 && (shape.includes('circle') || shape.includes('round') || !shape)
+    const circular =
+      boxes.length === 1 && shouldUseCircularPhotoSlot(product, options, boxes[0])
 
-    // Round frames: expand slightly so photo fills under the bezel (no white crescent gaps).
-    // Frame overlay sits on top, so a small expand won't show outside the gold rim.
+    // Round clocks only: expand slightly so photo fills under the bezel (no white crescent gaps).
+    // Admin mockups keep the saved slot (rounded square, rect, etc.).
     if (circular) {
       const rounded = boxes.map((b) => forceCircularPhotoSlot(b))
       const mockupCanvas = product?.mockup?.canvas || { width: 1000, height: 1000 }
@@ -992,13 +985,11 @@ export function PreviewFrame({
       })
     }
 
-    // Admin-tuned mockup slots — use exactly as saved (acrylic-style adjust)
-    if (product?.mockup?.slotsFromMockup) return boxes
+    // Detected / uploaded frame — keep the opening and tuck ~1% under the bezel so no gap
     const mockupCanvas = product?.mockup?.canvas || { width: 1000, height: 1000 }
-    // Slight INSET for rect/collage so photo stays inside and never bleeds under AA edges
     return fitPhotoBoxesToMockupOpening(boxes, mockupCanvas, {
       circular: false,
-      expandRatio: boxes.length > 1 ? -0.02 : -0.03,
+      expandRatio: 0.01,
     })
   }, [product, variant, options])
   const canvasW = Number(collageMockup?.canvas?.width || product?.mockup?.canvas?.width) || 1000
@@ -1035,7 +1026,7 @@ export function PreviewFrame({
         options.frameStyle || variant?.frameType,
         variant?.frameType,
       )
-    : isCircularPhotoBox(box)
+    : shouldUseCircularPhotoSlot(product, options, box)
       ? 'clock-shape-circle'
       : ''
 
@@ -1103,14 +1094,9 @@ export function PreviewFrame({
       setClippedLayoutBoxes(null)
       return undefined
     }
-        // Circular dials: never derive polygon clips (sparse rays look hexagonal)
-    const shapeText = String(options?.shape || product?.defaultOptions?.shape || '').toLowerCase()
+    // Circular dials: never derive polygon clips (sparse rays look hexagonal)
     const circularDial =
-      boxes.length === 1 &&
-      (shapeText.includes('circle') ||
-        shapeText.includes('round') ||
-        !shapeText ||
-        isCircularPhotoBox(boxes[0]))
+      boxes.length === 1 && shouldUseCircularPhotoSlot(product, options, boxes[0])
     if (circularDial) {
       setClippedLayoutBoxes(null)
       return undefined
@@ -1132,7 +1118,7 @@ if (boxes.every((entry) => entry.clipPath)) {
     return () => {
       cancelled = true
     }
-  }, [frameImage, photosUnderFrame, layoutBoxesKey, options?.shape, product?.defaultOptions?.shape])
+  }, [frameImage, photosUnderFrame, layoutBoxesKey, options?.shape, product])
 
   const effectiveLayoutBoxes = clippedLayoutBoxes || layoutBoxes
   const effectiveLayoutBox = effectiveLayoutBoxes[0] || layoutBox
@@ -1637,7 +1623,9 @@ if (boxes.every((entry) => entry.clipPath)) {
             })
           ) : (
           <div
-            className={`preview-photo-box ${shapeClass} ${photosUnderFrame ? 'preview-photo-box--under-frame' : ''}`}
+            className={`preview-photo-box ${
+              shouldUseCircularPhotoSlot(product, options, effectiveLayoutBox) ? 'clock-shape-circle' : ''
+            } ${photosUnderFrame ? 'preview-photo-box--under-frame' : ''}`}
             style={{ ...photoBoxStyle, zIndex: photoLayerZ }}
           >
             {slotLayout === 'single' ? (
@@ -1861,6 +1849,8 @@ if (boxes.every((entry) => entry.clipPath)) {
         photoBox={effectiveLayoutBox}
         canvas={layoutCanvas}
         productType={product?.productType}
+        product={product}
+        options={options}
         useFrameOverlay={useFrameOverlay}
         slotPhotos={slotPhotos.length ? slotPhotos : photos}
         photoBoxesList={photoBoxesList}
