@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { FiAlertCircle, FiPaperclip, FiX } from 'react-icons/fi'
 import { useAuth } from '../hooks/useAuth'
@@ -56,8 +56,6 @@ export function RaiseTicketPage() {
     return next
   }
 
-  const fileNames = useMemo(() => files.map((file) => file.name), [files])
-
   const handleSubmit = async (event) => {
     event.preventDefault()
     const nextErrors = validate()
@@ -69,8 +67,15 @@ export function RaiseTicketPage() {
     try {
       const attachments = []
       for (const file of files.slice(0, 5)) {
-        const payload = file.type.startsWith('video/') ? await api.uploadVideo(file) : await api.uploadPhoto(file)
-        if (payload.asset?.url) attachments.push(payload.asset.url)
+        if (file.type.startsWith('video/')) continue
+        const payload = file.type.startsWith('image/') || !file.type
+          ? await api.uploadPhoto(file)
+          : isAuthenticated
+            ? await api.uploadDesign(file)
+            : await api.uploadPhoto(file)
+        const url =
+          payload?.asset?.previewUrl || payload?.asset?.optimizedUrl || payload?.asset?.url || payload?.url
+        if (url) attachments.push(url)
       }
 
       const payload = await api.createSupportTicket({
@@ -224,11 +229,19 @@ export function RaiseTicketPage() {
                   onChange={(e) => setFiles(Array.from(e.target.files || []).slice(0, 5))}
                 />
               </label>
-              {fileNames.length ? (
-                <ul className="flex flex-wrap gap-2">
-                  {fileNames.map((name) => (
-                    <li key={name} className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
-                      {name}
+              {files.length ? (
+                <ul className="flex flex-wrap items-center gap-3">
+                  {files.map((file) => (
+                    <li key={`${file.name}-${file.size}`} className="text-xs text-slate-600">
+                      {file.type.startsWith('image/') ? (
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={file.name}
+                          className="h-20 w-20 rounded-xl border border-slate-200 object-cover"
+                        />
+                      ) : (
+                        <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1">{file.name}</span>
+                      )}
                     </li>
                   ))}
                   <button type="button" onClick={() => setFiles([])} className="text-xs text-rose-600">

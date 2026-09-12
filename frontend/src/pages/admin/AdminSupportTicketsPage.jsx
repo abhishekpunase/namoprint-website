@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { api } from '../../services/api'
 import { SUPPORT_STATUSES, formatSupportDateTime } from '../../data/supportCenter'
 import { SupportStatusBadge } from '../../components/support/SupportStatusBadge'
+import { TicketCustomerDetails } from '../../components/support/TicketCustomerDetails'
+import { TicketAttachments, collectTicketAttachments } from '../../components/support/TicketAttachments'
 
 export function AdminSupportTicketsPage() {
   const [tickets, setTickets] = useState([])
@@ -113,10 +115,6 @@ export function AdminSupportTicketsPage() {
               <div>
                 <h2 className="text-lg font-bold text-slate-900">#{selected.ticketId}</h2>
                 <p className="text-sm text-slate-600">{selected.subject}</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {selected.customerName} · {selected.email} · {selected.phone}
-                </p>
-                <p className="text-xs text-slate-500">Order: {selected.orderNo || '—'}</p>
               </div>
               <select
                 value={selected.status}
@@ -132,6 +130,9 @@ export function AdminSupportTicketsPage() {
               </select>
             </div>
 
+            <TicketCustomerDetails ticket={selected} />
+            <TicketAttachments urls={collectTicketAttachments(selected)} />
+
             <div className="mt-4 max-h-[360px] space-y-3 overflow-y-auto">
               {(selected.messages || []).map((item) => (
                 <div key={item._id || item.createdAt} className="rounded-xl bg-slate-50 p-3 text-sm">
@@ -140,6 +141,7 @@ export function AdminSupportTicketsPage() {
                     <span className="font-normal text-slate-400">{formatSupportDateTime(item.createdAt)}</span>
                   </p>
                   <p className="mt-1 whitespace-pre-wrap text-slate-700">{item.message}</p>
+                  <TicketAttachments urls={item.attachments} title="" compact />
                 </div>
               ))}
             </div>

@@ -5,8 +5,9 @@ import { api } from '../services/api'
 import { useAuth } from '../hooks/useAuth'
 import { SupportStatusBadge } from '../components/support/SupportStatusBadge'
 import { TicketTimeline } from '../components/support/TicketTimeline'
+import { TicketCustomerDetails } from '../components/support/TicketCustomerDetails'
+import { TicketAttachments, collectTicketAttachments } from '../components/support/TicketAttachments'
 import { formatSupportDateTime } from '../data/supportCenter'
-import { resolveMediaUrl } from '../utils/mediaUrl'
 
 export function SupportTicketDetailPage() {
   const { ticketId } = useParams()
@@ -40,7 +41,8 @@ export function SupportTicketDetailPage() {
       const attachments = []
       for (const file of files.slice(0, 5)) {
         const payload = await api.uploadPhoto(file)
-        if (payload.asset?.url) attachments.push(payload.asset.url)
+        const url = payload?.asset?.previewUrl || payload?.asset?.optimizedUrl || payload?.asset?.url || payload?.url
+        if (url) attachments.push(url)
       }
       const payload = await api.replySupportTicket(ticketId, {
         message: reply.trim(),
@@ -101,6 +103,9 @@ export function SupportTicketDetailPage() {
             <SupportStatusBadge status={ticket.status} />
           </div>
 
+          <TicketCustomerDetails ticket={ticket} />
+          <TicketAttachments urls={collectTicketAttachments(ticket)} />
+
           <div className="mt-6 rounded-2xl bg-slate-50 p-4">
             <TicketTimeline status={ticket.status} />
           </div>
@@ -122,29 +127,7 @@ export function SupportTicketDetailPage() {
                     <p className="text-xs text-slate-400">{formatSupportDateTime(message.createdAt)}</p>
                   </div>
                   <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{message.message}</p>
-                  {message.attachments?.length ? (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {message.attachments.map((url) => {
-                        const src = resolveMediaUrl(url)
-                        const isImage = /\.(png|jpe?g|gif|webp|avif)(\?|$)/i.test(url)
-                        return (
-                          <a
-                            key={url}
-                            href={src}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-xs font-semibold text-orange-600 hover:underline"
-                          >
-                            {isImage ? (
-                              <img src={src} alt="Uploaded attachment" className="h-20 w-20 rounded-lg object-cover" />
-                            ) : (
-                              'View attachment'
-                            )}
-                          </a>
-                        )
-                      })}
-                    </div>
-                  ) : null}
+                  <TicketAttachments urls={message.attachments} title="" compact />
                 </article>
               )
             })}

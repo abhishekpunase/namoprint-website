@@ -3,6 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../services/api'
 import { SupportStatusBadge } from '../components/support/SupportStatusBadge'
 import { TicketTimeline } from '../components/support/TicketTimeline'
+import { TicketCustomerDetails } from '../components/support/TicketCustomerDetails'
+import { TicketAttachments, collectTicketAttachments } from '../components/support/TicketAttachments'
 import { formatTicketId } from '../data/supportCenter'
 
 export function TrackTicketPage() {
@@ -87,6 +89,8 @@ export function TrackTicketPage() {
                 </div>
                 <SupportStatusBadge status={ticket.status} />
               </div>
+              <TicketCustomerDetails ticket={ticket} />
+              <TicketAttachments urls={collectTicketAttachments(ticket)} />
               <div className="mt-6 rounded-2xl bg-white p-4">
                 <TicketTimeline status={ticket.status} />
               </div>

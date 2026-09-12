@@ -2,6 +2,8 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { api } from '../services/api'
 import { SupportStatusBadge } from '../components/support/SupportStatusBadge'
+import { TicketCustomerDetails } from '../components/support/TicketCustomerDetails'
+import { TicketAttachments, collectTicketAttachments } from '../components/support/TicketAttachments'
 import { formatSupportDate } from '../data/supportCenter'
 
 export function SupportTicketSuccessPage() {
@@ -56,6 +58,8 @@ export function SupportTicketSuccessPage() {
                   </dd>
                 </div>
               </dl>
+              <TicketCustomerDetails ticket={ticket} />
+              <TicketAttachments urls={collectTicketAttachments(ticket)} />
             </div>
           ) : (
             <p className="mt-6 text-sm text-slate-500">Loading ticket details…</p>
