@@ -9,7 +9,6 @@ import { CartProvider } from './context/CartContext'
 import { WishlistProvider } from './context/WishlistContext'
 import { DesignProvider } from './context/DesignContext'
 import FloatingWhatsApp from './components/layout/FloatingWhatsApp'
-import { FloatingSupportButton } from './components/support/FloatingSupportButton'
 
 const named = (loader, exportName) =>
   lazy(() => loader().then((mod) => ({ default: mod[exportName] })))
@@ -307,7 +306,6 @@ function App() {
               </Route>
             </Routes>
             </Suspense>
-             <FloatingSupportButton />
              <FloatingWhatsApp />
           </DesignProvider>
           </WishlistProvider>

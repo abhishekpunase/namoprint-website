@@ -1,11 +1,17 @@
+import { Link, useLocation } from "react-router-dom";
+import { FiHeadphones } from "react-icons/fi";
 import { useFooter } from "../../hooks/useFooter";
 import { DEFAULT_FOOTER } from "../../data/defaultFooter";
 
+const HIDE_SUPPORT_PREFIXES = ["/admin", "/checkout", "/cart", "/support"];
+
 export default function FloatingWhatsApp() {
+  const { pathname } = useLocation();
   const footer = useFooter();
   const instagramLink =
     footer?.socials?.instagram || DEFAULT_FOOTER.socials.instagram;
   const whatsappNumber = "+919098570277";
+  const showSupport = !HIDE_SUPPORT_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
     "Hi Namo Print, I am interested in your products."
@@ -13,6 +19,16 @@ export default function FloatingWhatsApp() {
 
   return (
     <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-center gap-3">
+      {showSupport ? (
+        <Link
+          to="/support"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-500 text-white shadow-lg transition-all duration-300 hover:scale-110 hover:bg-orange-600"
+          aria-label="Need Help? Open support center"
+        >
+          <FiHeadphones className="h-7 w-7" />
+        </Link>
+      ) : null}
+
       <a
         href={instagramLink}
         target="_blank"
