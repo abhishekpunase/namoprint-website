@@ -44,12 +44,10 @@ export function useFooter() {
 
     refresh()
     window.addEventListener(FOOTER_CHANGED, onChanged)
-    window.addEventListener('focus', onChanged)
 
     return () => {
       active = false
       window.removeEventListener(FOOTER_CHANGED, onChanged)
-      window.removeEventListener('focus', onChanged)
     }
   }, [])
 

@@ -49,12 +49,10 @@ export function useHeaderMenu() {
 
     refresh()
     window.addEventListener(HEADER_MENU_CHANGED, onChanged)
-    window.addEventListener('focus', onChanged)
 
     return () => {
       active = false
       window.removeEventListener(HEADER_MENU_CHANGED, onChanged)
-      window.removeEventListener('focus', onChanged)
     }
   }, [])
 

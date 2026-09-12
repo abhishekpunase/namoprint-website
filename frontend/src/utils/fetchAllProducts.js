@@ -6,7 +6,7 @@ const MAX_PAGES = 50;
 export async function fetchAllPaginated(requestPage, query = '') {
   const raw = query.startsWith('?') ? query.slice(1) : query;
   const base = new URLSearchParams(raw);
-  base.set('limit', String(STOREFRONT_PAGE_SIZE));
+  if (!base.get('limit')) base.set('limit', String(STOREFRONT_PAGE_SIZE));
 
   let page = 1;
   let allItems = [];

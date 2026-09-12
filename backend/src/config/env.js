@@ -151,7 +151,7 @@ export const env = {
   cookieSecret: process.env.COOKIE_SECRET || 'dev_cookie_secret',
   bcryptSaltRounds: Number(process.env.BCRYPT_SALT_ROUNDS || 12),
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
-  rateLimitMax: Number(process.env.RATE_LIMIT_MAX || 1200),
+  rateLimitMax: Number(process.env.RATE_LIMIT_MAX || 4000),
   authRateLimitMax: Number(process.env.AUTH_RATE_LIMIT_MAX || 20),
   uploadRateLimitMax: Number(process.env.UPLOAD_RATE_LIMIT_MAX || 40),
   maxImageMb: Number(process.env.MAX_IMAGE_MB || 25),

@@ -48,20 +48,13 @@ export function useHomeOfferMarquee() {
     }
 
     const onChanged = () => refresh(true)
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') refresh(true)
-    }
 
     refresh()
     window.addEventListener(OFFER_MARQUEE_CHANGED, onChanged)
-    window.addEventListener('focus', onChanged)
-    document.addEventListener('visibilitychange', onVisible)
 
     return () => {
       active = false
       window.removeEventListener(OFFER_MARQUEE_CHANGED, onChanged)
-      window.removeEventListener('focus', onChanged)
-      document.removeEventListener('visibilitychange', onVisible)
     }
   }, [])
 

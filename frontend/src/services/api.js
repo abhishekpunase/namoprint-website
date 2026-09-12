@@ -24,6 +24,9 @@ export async function checkApiHealth() {
 
 const API_BASE_URL = getApiBaseUrl()
 
+let storefrontProductsPromise = null
+let storefrontProductsKey = ''
+
 let refreshPromise = null
 
 const AUTH_NO_REFRESH = [
@@ -195,6 +198,11 @@ export async function apiRequest(path, options = {}, retry = true) {
   if (!response.ok) {
     const errorMessage = await readErrorMessage(response)
 
+    if (response.status === 429 && retry) {
+      await new Promise((resolve) => setTimeout(resolve, 800))
+      return apiRequest(path, options, false)
+    }
+
     if (shouldAttemptRefresh(response.status, errorMessage, path, retry)) {
       try {
         if (!refreshPromise) {
@@ -299,7 +307,20 @@ export const api = {
   accountOrders: () => apiRequest('/account/orders'),
   accountPayments: () => apiRequest('/account/payments'),
   categories: () => apiRequest('/categories'),
-  products: (query = '') => fetchAllPaginated((q) => apiRequest(`/products${q}`), query),
+  products: (query = '') => {
+    const key = String(query || '')
+    if (storefrontProductsPromise && storefrontProductsKey === key) return storefrontProductsPromise
+    storefrontProductsKey = key
+    storefrontProductsPromise = fetchAllPaginated((q) => apiRequest(`/products${q}`), query).finally(() => {
+      window.setTimeout(() => {
+        if (storefrontProductsKey === key) {
+          storefrontProductsPromise = null
+          storefrontProductsKey = ''
+        }
+      }, 1500)
+    })
+    return storefrontProductsPromise
+  },
   product: (slug) => apiRequest(`/products/${slug}`),
   uploadPhoto: async (file) => {
     const sendMultipart = async (photo) => {
