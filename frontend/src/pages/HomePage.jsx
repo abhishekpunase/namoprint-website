@@ -7,8 +7,6 @@ import HeroSection from "../components/home/HeroSection";
 import ProductHome from "../components/home/ProductHome";
 import SpecialOffers from "../components/home/SpecialOffers";
 import Testimonial from "../components/home/Testimonial";
-// NEW: God Photo Frame home teaser section (standalone)
-import GodHomeSection from "../components/home/GodHomeSection";
 // import TrustStrip from "../components/home/TrustStrip";
 // import CategorySection from "../components/home/CategorySection";
 // import FeaturedProducts from "../components/home/FeaturedProducts";
@@ -25,8 +23,6 @@ export function HomePage() {
       <CategorySection/>
       {/* <ShopByCategory/> */}
       <ProductHome />
-      {/* NEW: God Photo Frame teaser section */}
-      <GodHomeSection />
       <SpecialOffers/>
       <FeedbackReels/>
       <Testimonial />

@@ -80,7 +80,14 @@ function drawHand(ctx, cx, cy, length, angleDeg, color, width) {
   ctx.translate(cx, cy)
   ctx.rotate((angleDeg * Math.PI) / 180)
   ctx.fillStyle = color
-  ctx.fillRect(-width / 2, -length, width, length)
+  ctx.beginPath()
+  ctx.moveTo(0, -length)
+  ctx.lineTo(width / 2, -length * 0.14)
+  ctx.lineTo(width * 0.18, 0)
+  ctx.lineTo(-width * 0.18, 0)
+  ctx.lineTo(-width / 2, -length * 0.14)
+  ctx.closePath()
+  ctx.fill()
   ctx.restore()
 }
 
@@ -157,12 +164,12 @@ export function drawClockFace(ctx, box, options = {}) {
     })
   }
 
-  drawHand(ctx, cx, cy, box.height * 0.22, 30, handColor, Math.max(3, box.width * 0.004))
-  drawHand(ctx, cx, cy, box.height * 0.3, 120, handColor, Math.max(2.5, box.width * 0.003))
-  drawHand(ctx, cx, cy, box.height * 0.34, 250, '#ef4444', Math.max(2, box.width * 0.0025))
+  drawHand(ctx, cx, cy, box.height * 0.26, 30, handColor, Math.max(10, box.width * 0.036))
+  drawHand(ctx, cx, cy, box.height * 0.36, 120, handColor, Math.max(8, box.width * 0.028))
+  drawHand(ctx, cx, cy, box.height * 0.38, 250, '#ef4444', Math.max(3, box.width * 0.011))
 
   ctx.beginPath()
-  ctx.arc(cx, cy, Math.max(4, box.width * 0.012), 0, Math.PI * 2)
+  ctx.arc(cx, cy, Math.max(7, box.width * 0.017), 0, Math.PI * 2)
   ctx.fillStyle = '#374151'
   ctx.fill()
 }

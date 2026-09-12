@@ -9,7 +9,7 @@ export default function GodHomeSection() {
 
   useEffect(() => {
     godApi
-      .list('?limit=4')
+      .list('?limit=8')
       .then((payload) => setProducts(payload.items || []))
       .catch(() => setProducts([]))
   }, [])
@@ -17,35 +17,41 @@ export default function GodHomeSection() {
   if (!products.length) return null
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-white via-orange-50/40 to-white py-10 sm:py-20">
-      <div className="mx-auto max-w-7xl px-3 sm:px-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-orange-100 px-5 py-2 text-sm font-semibold text-orange-600">
-              Canvas Frame
-            </span>
-            <h2 className="mt-4 text-2xl font-bold text-slate-900 sm:text-4xl">
-              Readymade <span className="text-orange-500">Canvas Frames</span>
-            </h2>
-            <p className="mt-3 max-w-xl text-slate-500">
-              Beautifully printed, ready-to-hang devotional photo frames. Just pick your quality and size —
-              no customization needed.
-            </p>
-          </div>
-          <Link
-            to="/god-photo-frames"
-            className="flex items-center gap-2 rounded-full bg-black px-6 py-3 font-semibold text-white transition hover:bg-orange-500"
-          >
-            View All
-            <FiArrowRight />
-          </Link>
+    <section className="mx-auto max-w-7xl px-3 py-10 sm:px-5 sm:py-20">
+      <div className="mb-6 flex items-end justify-between sm:mb-12">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[3px] text-yellow-500 sm:text-base">
+            Canvas Collection
+          </p>
+          <h2 className="mt-2 text-2xl font-bold sm:text-5xl">
+            Canvas{' '}
+            <span className="italic text-yellow-500">Frames</span>
+          </h2>
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-12 sm:gap-6 lg:grid-cols-3">
-          {products.map((product) => (
-            <GodProductCard key={product._id} product={product} />
-          ))}
-        </div>
+        <Link
+          to="/god-photo-frames"
+          className="hidden items-center gap-2 rounded-full bg-[#F5B400] px-5 py-2.5 text-sm font-semibold text-black shadow-sm transition hover:bg-[#D89B00] hover:shadow-md sm:inline-flex"
+        >
+          View All
+          <FiArrowRight />
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+        {products.slice(0, 8).map((product) => (
+          <GodProductCard key={product._id} product={product} />
+        ))}
+      </div>
+
+      <div className="mt-10 flex justify-center sm:hidden">
+        <Link
+          to="/god-photo-frames"
+          className="inline-flex items-center gap-2 rounded-full bg-[#F5B400] px-5 py-2.5 text-sm font-semibold text-black shadow-sm transition hover:bg-[#D89B00]"
+        >
+          View All Canvas Frames
+          <FiArrowRight />
+        </Link>
       </div>
     </section>
   )

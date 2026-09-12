@@ -6,6 +6,7 @@ import { api } from "../../services/api";
 import { excludeWallWatchProducts } from "../../utils/wallWatchCatalog";
 
 import { useHomeOfferMarquee } from "../../hooks/useHomeOfferMarquee";
+import GodHomeSection from "./GodHomeSection";
 
 function OfferMarquee({ lines = [] }) {
   const displayLines = lines.filter(Boolean);
@@ -141,7 +142,7 @@ return (
 
         <Link
           to="/products"
-          className="hidden sm:flex items-center gap-2 text-yellow-500 font-semibold hover:gap-3 transition-all duration-300"
+          className="hidden sm:inline-flex items-center gap-2 rounded-full bg-[#F5B400] px-5 py-2.5 text-sm font-semibold text-black shadow-sm transition hover:bg-[#D89B00] hover:shadow-md"
         >
           View All
           <FiArrowRight />
@@ -190,7 +191,7 @@ return (
 
         <Link
           to="/products"
-          className="flex items-center gap-2 text-yellow-500 font-semibold"
+          className="inline-flex items-center gap-2 rounded-full bg-[#F5B400] px-5 py-2.5 text-sm font-semibold text-black shadow-sm transition hover:bg-[#D89B00]"
         >
           View All Products
           <FiArrowRight />
@@ -199,6 +200,8 @@ return (
       </div>
 
     </section>
+
+    <GodHomeSection />
 
     {/* ================= Process ================= */}
 

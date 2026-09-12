@@ -1845,40 +1845,48 @@
   left: 50%;
   bottom: 50%;
   transform-origin: bottom center;
-  border-radius: 2px;
+  clip-path: polygon(50% 0%, 100% 86%, 58% 100%, 42% 100%, 0% 86%);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
 }
 
 .clock-hand.hour-hand {
-  width: 4px;
-  height: 22%;
-  margin-left: -2px;
+  width: 3.6%;
+  height: 26%;
+  margin-left: -1.8%;
   transform: rotate(30deg);
 }
 
 .clock-hand.minute-hand {
-  width: 3px;
-  height: 30%;
-  margin-left: -1.5px;
+  width: 2.8%;
+  height: 36%;
+  margin-left: -1.4%;
   transform: rotate(120deg);
 }
 
 .clock-hand.second-hand {
-  width: 2px;
-  height: 34%;
-  margin-left: -1px;
+  width: 1.1%;
+  height: 38%;
+  margin-left: -0.55%;
   transform: rotate(250deg);
   background: #ef4444;
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
 }
 
 .clock-pin {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 8px;
-  height: 8px;
-  margin: -4px 0 0 -4px;
+  width: 3.4%;
+  height: 3.4%;
+  min-width: 12px;
+  min-height: 12px;
+  max-width: 22px;
+  max-height: 22px;
+  margin: 0;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   background: #374151;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
   z-index: 2;
 }
 
