@@ -1,36 +1,71 @@
 import {
   FiFacebook,
   FiInstagram,
-  FiLinkedin,
   FiYoutube,
   FiChevronUp,
 } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { BrandHomeLink } from "./BrandLogo";
-import { resolveCategoryLink } from "../../config/categoryRoutes";
+import { useHomeOfferMarquee } from "../../hooks/useHomeOfferMarquee";
+import { useFooter } from "../../hooks/useFooter";
 
-// export default function Footer() {
-//   const scrollToTop = () => {
-//     window.scrollTo({
-//       top: 0,
-//       behavior: "smooth",
-//     });
-//   };
-const socialLinks = [
-  {
-    icon: <FiFacebook />,
-    url: "https://www.facebook.com/share/19Acuco8uY/",
-  },
-  {
-    icon: <FiInstagram />,
-    url: "https://www.instagram.com/namoprint_official?igsh=MTNnOWxtOWljbzBnYw==",
-  },
-  {
-    icon: <FiYoutube />,
-    url: "https://youtube.com/@namoprints-j1l?si=xKzKzvh7uMov4trE",
-  },
-];
+const socialIcons = {
+  facebook: <FiFacebook />,
+  instagram: <FiInstagram />,
+  youtube: <FiYoutube />,
+};
+
+function FooterOfferMarquee() {
+  const lines = useHomeOfferMarquee().filter(Boolean);
+  if (!lines.length) return null;
+
+  const copies = Math.max(2, Math.ceil(8 / lines.length));
+  const track = Array.from({ length: copies }, () => lines).flat();
+  const items = [...track, ...track];
+
+  return (
+    <div className="relative z-20 overflow-hidden border-b border-white/10 bg-gradient-to-l from-black via-zinc-900 to-yellow-700 text-white">
+      <div className="flex animate-marquee whitespace-nowrap">
+        {items.map((text, index) => (
+          <span
+            key={`${text}-${index}`}
+            className="flex min-w-max items-center gap-3 px-8 py-2 text-xs font-medium md:px-12 md:text-sm"
+          >
+            {text}
+            <span aria-hidden="true" className="text-yellow-400">
+              •
+            </span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FooterLinkList({ links }) {
+  return (
+    <div className="flex flex-col gap-4 text-gray-300">
+      {links.map((link) => (
+        <Link key={`${link.group}-${link.path}-${link.label}`} to={link.path} className="hover:text-orange-400 transition">
+          {link.label}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export function Footer() {
+  const footer = useFooter();
+  const links = (footer.links || []).filter((link) => link.isActive !== false && link.label && link.path);
+  const categories = links.filter((link) => link.group === "categories");
+  const quick = links.filter((link) => link.group === "quick");
+  const policies = links.filter((link) => link.group === "policies");
+  const bottom = links.filter((link) => link.group === "bottom");
+  const socials = Object.entries(footer.socials || {})
+    .filter(([, url]) => String(url || "").trim())
+    .map(([network, url]) => ({ network, url, icon: socialIcons[network] }))
+    .filter((item) => item.icon);
+
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -40,6 +75,7 @@ export function Footer() {
 
   return (
     <footer className="relative overflow-hidden bg-[#363435] text-white">
+      <FooterOfferMarquee />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-[#d4af37]/35 blur-[110px]"
@@ -54,9 +90,7 @@ export function Footer() {
       />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 pt-16 pb-8">
-        {/* Top */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
-          {/* Company */}
           <div>
             <BrandHomeLink className="flex items-center gap-3 mb-8">
               <div className="w-14 h-14 rounded-full bg-gradient-to-r from-pink-500 to-orange-400 flex items-center justify-center font-bold text-2xl">
@@ -68,187 +102,48 @@ export function Footer() {
               </h2>
             </BrandHomeLink>
 
-            <p className="text-gray-300 leading-9 text-base">
-              India's trusted online printing partner for T-Shirts, Photo
-              Frames, Mugs, Stickers, Corporate Gifts, Packaging Boxes and
-              Custom Printing Solutions.
-            </p>
+            {footer.aboutText ? (
+              <p className="text-gray-300 leading-9 text-base">{footer.aboutText}</p>
+            ) : null}
 
-            <div className="flex items-center gap-4 mt-10">
-  {socialLinks.map((item, index) => (
-    <a
-      key={index}
-      href={item.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-xl hover:bg-red-500 hover:border-red-500 transition-all duration-300"
-    >
-      {item.icon}
-    </a>
-  ))}
-</div>
+            {socials.length ? (
+              <div className="flex items-center gap-4 mt-10">
+                {socials.map((item) => (
+                  <a
+                    key={item.network}
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-xl hover:bg-red-500 hover:border-red-500 transition-all duration-300"
+                    aria-label={item.network}
+                  >
+                    {item.icon}
+                  </a>
+                ))}
+              </div>
+            ) : null}
           </div>
 
-          {/* Useful Links */}
           <div>
-            <h3 className="text-2xl font-semibold mb-6">Categories</h3>
-
-            <div className="flex flex-col gap-4 text-gray-300">
-              <Link
-                to={resolveCategoryLink("acrylic-wall-photo")}
-                className="hover:text-orange-400 transition"
-              >
-                Acrylic Products
-              </Link>
-
-              <Link
-                to="/god-photo-frames"
-                className="hover:text-orange-400 transition"
-              >
-                God Photo Frames
-              </Link>
-
-              <Link
-                to="/name-plates"
-                className="hover:text-orange-400 transition"
-              >
-                Name Plates
-              </Link>
-
-              <Link
-                to="/pen-print"
-                className="hover:text-orange-400 transition"
-              >
-                Pen Print
-              </Link>
-
-              <Link
-                to={resolveCategoryLink("logo-stickers")}
-                className="hover:text-orange-400 transition"
-              >
-                QR Standees
-              </Link>
-
-              <Link
-                to="/uv-dtf-stickers"
-                className="hover:text-orange-400 transition"
-              >
-                UV DTF Stickers
-              </Link>
-
-              <Link
-                to="/product-label-stickers"
-                className="hover:text-orange-400 transition"
-              >
-                Product Labels
-              </Link>
-
-              <Link
-                to="/trophies"
-                className="hover:text-orange-400 transition"
-              >
-                Trophies &amp; Mementos
-              </Link>
-
-              <Link
-                to="/baby-birth-frames"
-                className="hover:text-orange-400 transition"
-              >
-                Baby Birth Frames
-              </Link>
-
-              <Link
-                to="/corporate-gifts"
-                className="hover:text-orange-400 transition"
-              >
-                Corporate Gifts
-              </Link>
-
-              <Link
-                to="/t-shirt-printing"
-                className="hover:text-orange-400 transition"
-              >
-                T-Shirts
-              </Link>
-
-              <Link
-                to="/custom-wall-watches"
-                className="hover:text-orange-400 transition"
-              >
-                Wall Watches
-              </Link>
-            </div>
+            <h3 className="text-2xl font-semibold mb-6">{footer.headings?.categories || "Categories"}</h3>
+            <FooterLinkList links={categories} />
           </div>
 
-          {/* Quick Links */}
           <div>
-            <h3 className="text-2xl font-semibold mb-6">Quick Links</h3>
-
-            <div className="flex flex-col gap-4 text-gray-300">
-              <Link to="/about" className="hover:text-orange-400 transition">
-                About Us
-              </Link>
-
-              <Link to="/contact" className="hover:text-orange-400 transition">
-                Contact Us
-              </Link>
-
-              <Link
-                to="/bulk-orders"
-                className="hover:text-orange-400 transition"
-              >
-                Bulk Orders
-              </Link>
-            </div>
+            <h3 className="text-2xl font-semibold mb-6">{footer.headings?.quick || "Quick Links"}</h3>
+            <FooterLinkList links={quick} />
           </div>
 
-          {/* Policies */}
           <div>
-            <h3 className="text-2xl font-semibold mb-6">Policies</h3>
-
-            <div className="flex flex-col gap-4 text-gray-300">
-              <Link
-                to="/privacy-policy"
-                className="hover:text-orange-400 transition"
-              >
-                Privacy Policy
-              </Link>
-
-              <Link
-                to="/terms-and-conditions"
-                className="hover:text-orange-400 transition"
-              >
-                Terms & Conditions
-              </Link>
-
-              <Link
-                to="/refund-policy"
-                className="hover:text-orange-400 transition"
-              >
-                Refund Policy
-              </Link>
-
-              <Link
-                to="/shipping-policy"
-                className="hover:text-orange-400 transition"
-              >
-                Shipping Policy
-              </Link>
-            </div>
+            <h3 className="text-2xl font-semibold mb-6">{footer.headings?.policies || "Policies"}</h3>
+            <FooterLinkList links={policies} />
           </div>
         </div>
 
-        {/* Divider */}
         <div className="border-t border-white/10 mt-16 pt-8 relative">
-          {/* Bottom */}
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-            <p className="text-gray-400 text-center lg:text-left">
-              © 2026{" "}
-              <span className="text-white font-semibold">Namo Print</span>. All
-              Rights Reserved.
-            </p>
+            <p className="text-gray-400 text-center lg:text-left">{footer.copyright}</p>
 
-            {/* Scroll Button */}
             <button
               onClick={scrollToTop}
               className="w-16 h-16 rounded-2xl bg-red-500 hover:bg-red-600 transition flex items-center justify-center text-3xl shadow-lg"
@@ -256,23 +151,16 @@ export function Footer() {
               <FiChevronUp />
             </button>
 
-            {/* Bottom Links */}
             <div className="flex flex-wrap justify-center gap-6 text-gray-400">
-              <Link className="hover:text-white transition" to="/faq">
-                FAQs
-              </Link>
-
-              <Link className="hover:text-white transition" to="/terms-and-conditions">
-                Terms
-              </Link>
-
-              <Link className="hover:text-white transition" to="/privacy-policy">
-                Privacy
-              </Link>
-
-              <Link className="hover:text-white transition" to="/contact">
-                Contact
-              </Link>
+              {bottom.map((link) => (
+                <Link
+                  key={`${link.path}-${link.label}`}
+                  className="hover:text-white transition"
+                  to={link.path}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
           </div>
         </div>

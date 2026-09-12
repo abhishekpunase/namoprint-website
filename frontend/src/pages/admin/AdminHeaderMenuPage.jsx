@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { FiEdit2, FiPlus, FiTrash2 } from 'react-icons/fi'
 import { api } from '../../services/api'
 import { DEFAULT_HEADER_MENU, HEADER_MENU_PATH_PRESETS } from '../../data/defaultHeaderMenu'
+import { notifyHeaderMenuChanged } from '../../hooks/useHeaderMenu'
 import { AdminToggle } from '../../components/admin/ui/AdminToggle'
 
 const emptyForm = {
@@ -70,6 +71,7 @@ export function AdminHeaderMenuPage() {
         await api.adminCreateHeaderMenuItem(body)
         setMessage('Menu item added.')
       }
+      notifyHeaderMenuChanged()
       resetForm()
       loadItems()
     } catch (err) {
@@ -84,6 +86,7 @@ export function AdminHeaderMenuPage() {
     try {
       await api.adminDeleteHeaderMenuItem(item._id)
       if (editingId === item._id) resetForm()
+      notifyHeaderMenuChanged()
       loadItems()
       setMessage('Menu item hidden from the storefront header.')
     } catch (err) {
@@ -109,6 +112,7 @@ export function AdminHeaderMenuPage() {
         order += 1
       }
       setMessage('Default header links added.')
+      notifyHeaderMenuChanged()
       loadItems()
     } catch (err) {
       setError(err.message)

@@ -77,6 +77,16 @@ export function OrderDetailView({ orderId }) {
           <button type="button" className="ord-btn ord-btn--primary" onClick={() => setStatusModal(true)}>
             <Tag size={16} /> Update Status
           </button>
+          {order.status !== 'Cancelled' ? (
+            <button
+              type="button"
+              className="ord-btn ord-btn--primary"
+              onClick={detail.pushToShiprocket}
+              disabled={detail.updating}
+            >
+              <Truck size={16} /> {detail.updating ? 'Sending…' : 'Send to Shiprocket'}
+            </button>
+          ) : null}
           <button type="button" className="ord-btn ord-btn--ghost" onClick={() => window.print()}>
             <Printer size={16} /> Print
           </button>
@@ -125,7 +135,7 @@ export function OrderDetailView({ orderId }) {
 
       <div className="ord-detail__grid">
         <OrderPaymentCard order={order} />
-        <OrderShippingCard order={order} />
+        <OrderShippingCard order={order} onShip={detail.pushToShiprocket} shipping={detail.updating} />
       </div>
 
       <div className="ord-detail__grid">

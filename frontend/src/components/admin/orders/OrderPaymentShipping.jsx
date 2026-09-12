@@ -22,22 +22,34 @@ export function OrderPaymentCard({ order }) {
   )
 }
 
-export function OrderShippingCard({ order }) {
+export function OrderShippingCard({ order, onShip, shipping = false }) {
   const shipment = order.shipment || {}
+  const sent = Boolean(shipment.shipmentId || shipment.shiprocketOrderId || shipment.awbCode)
 
   return (
     <section className="ord-panel">
       <h2>Shipping Details</h2>
       <dl className="ord-summary-grid">
-        <div><dt>Courier</dt><dd>{shipment.courierName || shipment.provider || '—'}</dd></div>
-        <div><dt>Tracking Number</dt><dd>{shipment.awbCode || shipment.shipmentId || '—'}</dd></div>
+        <div><dt>Courier</dt><dd>{shipment.courierName || (sent ? 'Shiprocket' : shipment.provider) || '—'}</dd></div>
+        <div><dt>Shiprocket ID</dt><dd>{shipment.shiprocketOrderId || shipment.shipmentId || '—'}</dd></div>
+        <div><dt>Tracking Number</dt><dd>{shipment.awbCode || '—'}</dd></div>
         <div><dt>Tracking Link</dt><dd>{shipment.trackingUrl ? <a href={shipment.trackingUrl} target="_blank" rel="noreferrer">Track shipment</a> : '—'}</dd></div>
         <div><dt>Shipping Cost</dt><dd>{formatCurrency(order.totals?.shipping || 0)}</dd></div>
-        <div><dt>Estimated Delivery</dt><dd><span className="ord-todo">TODO ETA API</span></dd></div>
         <div><dt>Shipped</dt><dd>{formatDate(shipment.shippedAt)}</dd></div>
         <div><dt>Delivered</dt><dd>{formatDate(shipment.deliveredAt)}</dd></div>
       </dl>
-      <p className="ord-todo">Generate label: auto-created when status set to Shipped via existing API.</p>
+      {shipment.note ? <p className="mt-3 text-sm text-slate-600">{shipment.note}</p> : null}
+      {shipment.lastError ? <p className="mt-2 text-sm text-red-600">{shipment.lastError}</p> : null}
+      {order.status !== 'Cancelled' ? (
+        <button
+          type="button"
+          className="ord-btn ord-btn--primary mt-4"
+          onClick={onShip}
+          disabled={shipping}
+        >
+          {shipping ? 'Sending…' : sent ? 'Retry / refresh Shiprocket' : 'Send to Shiprocket'}
+        </button>
+      ) : null}
     </section>
   )
 }

@@ -2,7 +2,25 @@ import { HomeOfferMarqueeItem } from '../models/HomeOfferMarqueeItem.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const listPublicHomeOfferMarquee = asyncHandler(async (_req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   const items = await HomeOfferMarqueeItem.find({ isActive: true }).sort('sortOrder -createdAt').lean();
+  res.json({ success: true, items });
+});
+
+export const replaceHomeOfferMarquee = asyncHandler(async (req, res) => {
+  const lines = (req.body.lines || [])
+    .map((line, index) => {
+      const text = String(typeof line === 'string' ? line : line?.text || '').trim();
+      return {
+        text,
+        sortOrder: index,
+        isActive: typeof line === 'object' && line?.isActive === false ? false : true,
+      };
+    })
+    .filter((line) => line.text);
+
+  await HomeOfferMarqueeItem.deleteMany({});
+  const items = lines.length ? await HomeOfferMarqueeItem.insertMany(lines) : [];
   res.json({ success: true, items });
 });
 

@@ -28,6 +28,8 @@ import { homeOfferMarqueeRoutes } from './homeOfferMarquee.routes.js';
 import { contactRoutes } from './contact.routes.js';
 import { bulkOrderRoutes } from './bulkOrder.routes.js';
 import { productOfTheMonthRoutes } from './productOfTheMonth.routes.js';
+import { headerMenuRoutes } from './headerMenu.routes.js';
+import { footerRoutes } from './footer.routes.js';
 
 const routes = Router();
 
@@ -60,5 +62,7 @@ routes.use('/home-offer-marquee', homeOfferMarqueeRoutes);
 routes.use('/contact', contactRoutes);
 routes.use('/bulk-orders', bulkOrderRoutes);
 routes.use('/product-of-the-month', productOfTheMonthRoutes);
+routes.use('/header-menu', headerMenuRoutes);
+routes.use('/footer', footerRoutes);
 
 export default routes;

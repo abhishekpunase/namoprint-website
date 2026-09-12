@@ -28,6 +28,21 @@ export function useOrderDetail(orderId) {
     }
   }, [orderId])
 
+  const pushToShiprocket = async () => {
+    setUpdating(true)
+    setMessage('')
+    setError('')
+    try {
+      const payload = await api.adminPushOrderShiprocket(orderId)
+      setOrder(payload.order)
+      setMessage(payload.order?.shipment?.note || 'Order sent to Shiprocket')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setUpdating(false)
+    }
+  }
+
   const updateStatus = async (status, note) => {
     setUpdating(true)
     setMessage('')
@@ -52,6 +67,7 @@ export function useOrderDetail(orderId) {
     updating,
     load,
     updateStatus,
+    pushToShiprocket,
     orderStatuses: ORDER_STATUSES,
   }
 }

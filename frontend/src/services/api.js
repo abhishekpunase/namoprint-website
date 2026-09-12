@@ -364,6 +364,7 @@ export const api = {
   adminOrders: () => apiRequest('/admin/orders'),
   adminOrder: (id) => apiRequest(`/admin/orders/${id}`),
   adminUpdateOrderStatus: (id, payload) => apiRequest(`/admin/orders/${id}/status`, { method: 'PATCH', body: payload }),
+  adminPushOrderShiprocket: (id) => apiRequest(`/admin/orders/${id}/shiprocket`, { method: 'POST', body: {} }),
   adminDownloadOrderDesign: async (orderId, itemId, orderNo = 'order', sku = 'design') => {
     const token = localStorage.getItem('omgs_access_token')
     const response = await fetch(`${API_BASE_URL}/admin/orders/${orderId}/items/${itemId}/design`, {
@@ -408,8 +409,21 @@ export const api = {
     apiRequest(`/admin/home-testimonials/${id}`, { method: 'PATCH', body: payload }),
   adminDeleteHomeTestimonial: (id) =>
     apiRequest(`/admin/home-testimonials/${id}`, { method: 'DELETE' }),
-  homeOfferMarquee: () => apiRequest('/home-offer-marquee'),
-  adminHomeOfferMarquee: () => apiRequest('/admin/home-offer-marquee'),
+  headerMenu: () => apiRequest(`/header-menu?t=${Date.now()}`, { cache: 'no-store' }),
+  adminHeaderMenu: () => apiRequest(`/admin/header-menu?t=${Date.now()}`, { cache: 'no-store' }),
+  adminCreateHeaderMenuItem: (payload) =>
+    apiRequest('/admin/header-menu', { method: 'POST', body: payload }),
+  adminUpdateHeaderMenuItem: (id, payload) =>
+    apiRequest(`/admin/header-menu/${id}`, { method: 'PATCH', body: payload }),
+  adminDeleteHeaderMenuItem: (id) =>
+    apiRequest(`/admin/header-menu/${id}`, { method: 'DELETE' }),
+  footer: () => apiRequest(`/footer?t=${Date.now()}`, { cache: 'no-store' }),
+  adminFooter: () => apiRequest(`/admin/footer?t=${Date.now()}`, { cache: 'no-store' }),
+  adminUpdateFooter: (payload) => apiRequest('/admin/footer', { method: 'PUT', body: payload }),
+  homeOfferMarquee: () => apiRequest(`/home-offer-marquee?t=${Date.now()}`, { cache: 'no-store' }),
+  adminHomeOfferMarquee: () => apiRequest(`/admin/home-offer-marquee?t=${Date.now()}`, { cache: 'no-store' }),
+  adminReplaceHomeOfferMarquee: (payload) =>
+    apiRequest('/admin/home-offer-marquee', { method: 'PUT', body: payload }),
   adminCreateHomeOfferMarqueeItem: (payload) =>
     apiRequest('/admin/home-offer-marquee', { method: 'POST', body: payload }),
   adminUpdateHomeOfferMarqueeItem: (id, payload) =>

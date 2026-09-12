@@ -92,9 +92,12 @@ const orderSchema = new mongoose.Schema(
     shipment: {
       provider: String,
       shipmentId: String,
+      shiprocketOrderId: String,
       awbCode: String,
       courierName: String,
       trackingUrl: String,
+      note: String,
+      lastError: String,
       shippedAt: Date,
       deliveredAt: Date
     },

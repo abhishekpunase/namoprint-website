@@ -15,7 +15,7 @@ import { Product } from '../models/Product.js';
 import { User } from '../models/User.js';
 import { calculateOrderTotals, validateCouponForUser } from '../services/coupon.service.js';
 import { exportOrderItemDesignJpeg, loadImageBuffer, resolveTShirtAssetUrl } from '../services/orderDesign.service.js';
-import { createShipmentDraft } from '../services/shipping.service.js';
+import { applyShiprocketToOrder } from '../services/shipping.service.js';
 import { ApiError } from '../utils/apiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { resolveProductVariantFromCartItem } from '../utils/resolveProductVariant.js';
@@ -412,16 +412,30 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   order.status = req.body.status;
   order.statusHistory.push({ status: req.body.status, note: req.body.note, changedBy: req.user._id });
 
-  if (req.body.status === 'Shipped') {
-    if (!order.shipment?.shipmentId) {
-      const shipment = await createShipmentDraft({ order });
-      order.shipment = {
-        ...(order.shipment || {}),
-        ...shipment,
-      };
-    }
+  if (['Paid', 'Processing', 'Shipped'].includes(req.body.status)) {
+    await applyShiprocketToOrder(order, { strict: false });
   }
 
+  await order.save();
+  res.json({ success: true, order });
+});
+
+export const pushOrderToShiprocket = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) throw new ApiError(404, 'Order not found');
+  if (order.status === 'Cancelled') {
+    throw new ApiError(400, 'Cannot ship a cancelled order.');
+  }
+
+  const result = await applyShiprocketToOrder(order, { strict: true });
+  if (result.ok && !result.skipped && order.status === 'Paid') {
+    order.status = 'Processing';
+    order.statusHistory.push({
+      status: 'Processing',
+      note: 'Sent to Shiprocket for shipping.',
+      changedBy: req.user._id,
+    });
+  }
   await order.save();
   res.json({ success: true, order });
 });

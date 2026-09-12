@@ -6,9 +6,8 @@ import {
 } from '../data/defaultHomeOfferMarquee'
 
 const defaultLines = DEFAULT_HOME_OFFER_MARQUEE.map((item) => item.text)
+export const OFFER_MARQUEE_CHANGED = 'namo:offer-marquee-changed'
 
-// The header bar and the homepage section both show these lines, so share one
-// in-flight request instead of hitting the API twice on every page load.
 let pending = null
 
 function loadLines() {
@@ -20,23 +19,49 @@ function loadLines() {
       )
       .catch(() => {
         pending = null
-        return []
+        return null
       })
   }
   return pending
 }
 
-/** Admin-managed offer lines, with the built-in defaults as a fallback. */
+export function notifyOfferMarqueeChanged() {
+  pending = null
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(OFFER_MARQUEE_CHANGED))
+  }
+}
+
+/** Admin-managed offer lines shared by header, homepage, and footer. */
 export function useHomeOfferMarquee() {
   const [lines, setLines] = useState(defaultLines)
 
   useEffect(() => {
     let active = true
-    loadLines().then((result) => {
-      if (active && result.length > 0) setLines(result)
-    })
+
+    const refresh = (force = false) => {
+      if (force) pending = null
+      loadLines().then((result) => {
+        if (!active || result == null) return
+        setLines(result)
+      })
+    }
+
+    const onChanged = () => refresh(true)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh(true)
+    }
+
+    refresh()
+    window.addEventListener(OFFER_MARQUEE_CHANGED, onChanged)
+    window.addEventListener('focus', onChanged)
+    document.addEventListener('visibilitychange', onVisible)
+
     return () => {
       active = false
+      window.removeEventListener(OFFER_MARQUEE_CHANGED, onChanged)
+      window.removeEventListener('focus', onChanged)
+      document.removeEventListener('visibilitychange', onVisible)
     }
   }, [])
 

@@ -6,7 +6,9 @@ import {
   ImageIcon,
   LayoutTemplate,
   Megaphone,
+  Menu,
   MessageSquareQuote,
+  PanelBottom,
   LayoutDashboard,
   LogOut,
   Package,
@@ -105,6 +107,18 @@ export const adminNavigation = [
     label: 'Offer Marquee',
     to: '/admin/home-offer-marquee',
     icon: Megaphone,
+  },
+  {
+    id: 'header-menu',
+    label: 'Header Menu',
+    to: '/admin/header-menu',
+    icon: Menu,
+  },
+  {
+    id: 'footer',
+    label: 'Footer',
+    to: '/admin/footer',
+    icon: PanelBottom,
   },
   {
     id: 'product-of-the-month',
@@ -248,7 +262,13 @@ export function getAdminPageMeta(pathname) {
     return { title: 'Home Testimonials', description: 'Manage homepage customer testimonials section' }
   }
   if (pathname.startsWith('/admin/home-offer-marquee')) {
-    return { title: 'Offer Marquee', description: 'Manage the yellow scrolling offer bar on homepage' }
+    return { title: 'Offer Marquee', description: 'Edit the scrolling offer lines on header, homepage, and footer' }
+  }
+  if (pathname.startsWith('/admin/header-menu')) {
+    return { title: 'Header Menu', description: 'Manage website header links' }
+  }
+  if (pathname.startsWith('/admin/footer')) {
+    return { title: 'Footer', description: 'Manage website footer text, socials, and links' }
   }
   if (pathname.startsWith('/admin/product-of-the-month')) {
     return { title: 'Product of the Month', description: 'Homepage popup product and Shop Now link' }

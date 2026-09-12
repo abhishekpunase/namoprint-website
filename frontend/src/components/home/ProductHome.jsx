@@ -5,12 +5,11 @@ import { ProductCard } from "../product/ProductCard";
 import { api } from "../../services/api";
 import { excludeWallWatchProducts } from "../../utils/wallWatchCatalog";
 
-import { DEFAULT_HOME_OFFER_MARQUEE } from "../../data/defaultHomeOfferMarquee";
 import { useHomeOfferMarquee } from "../../hooks/useHomeOfferMarquee";
 
-function OfferMarquee({ lines = DEFAULT_HOME_OFFER_MARQUEE.map((item) => item.text) }) {
-  const activeLines = lines.filter(Boolean);
-  const displayLines = activeLines.length > 0 ? activeLines : DEFAULT_HOME_OFFER_MARQUEE.map((item) => item.text);
+function OfferMarquee({ lines = [] }) {
+  const displayLines = lines.filter(Boolean);
+  if (!displayLines.length) return null;
 
   const items = displayLines.flatMap((text, index) =>
     Array.from({ length: 4 }, (_, repeat) => (

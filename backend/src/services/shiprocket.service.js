@@ -194,11 +194,33 @@ function buildAdhocPayload(order, pickupLocation) {
   };
 }
 
+export function hasShiprocketShipment(order) {
+  return Boolean(
+    order?.shipment?.shipmentId ||
+      order?.shipment?.shiprocketOrderId ||
+      order?.shipment?.awbCode,
+  );
+}
+
+export async function assignShiprocketAwb(shipmentId) {
+  if (!shipmentId) return {};
+  const data = await shiprocketRequest('/courier/assign/awb', {
+    method: 'POST',
+    body: { shipment_id: Number(shipmentId) },
+  });
+  const inner = data?.response?.data || data?.data || data || {};
+  const awbCode = inner.awb_code || data.awb_code ? String(inner.awb_code || data.awb_code) : undefined;
+  const courierName = inner.courier_name || data.courier_name || undefined;
+  const trackingUrl = awbCode ? `https://shiprocket.co/tracking/${awbCode}` : undefined;
+  return { awbCode, courierName, trackingUrl };
+}
+
 export async function createShiprocketOrder(order) {
-  if (order.shipment?.shipmentId) {
+  if (hasShiprocketShipment(order)) {
     return {
       provider: 'shiprocket',
       shipmentId: order.shipment.shipmentId,
+      shiprocketOrderId: order.shipment.shiprocketOrderId,
       awbCode: order.shipment.awbCode,
       courierName: order.shipment.courierName,
       trackingUrl: order.shipment.trackingUrl,
@@ -211,22 +233,32 @@ export async function createShiprocketOrder(order) {
   const data = await shiprocketRequest('/orders/create/adhoc', { method: 'POST', body: payload });
 
   const shipmentId = data.shipment_id ? String(data.shipment_id) : undefined;
-  const awbCode = data.awb_code ? String(data.awb_code) : undefined;
-  const courierName = data.courier_name || undefined;
-  const trackingUrl = awbCode ? `https://shiprocket.co/tracking/${awbCode}` : undefined;
+  let awbCode = data.awb_code ? String(data.awb_code) : undefined;
+  let courierName = data.courier_name || undefined;
+  let trackingUrl = awbCode ? `https://shiprocket.co/tracking/${awbCode}` : undefined;
+  let note = `Shiprocket order created (SR order ${data.order_id || 'n/a'}).`;
+
+  if (shipmentId && !awbCode) {
+    try {
+      const assigned = await assignShiprocketAwb(shipmentId);
+      awbCode = assigned.awbCode || awbCode;
+      courierName = assigned.courierName || courierName;
+      trackingUrl = assigned.trackingUrl || trackingUrl;
+      if (awbCode) note = `${note} AWB ${awbCode} assigned.`;
+    } catch (error) {
+      note = `${note} Courier/AWB will be assigned in Shiprocket.`;
+    }
+  }
 
   return {
     provider: 'shiprocket',
     shipmentId,
+    shiprocketOrderId: data.order_id ? String(data.order_id) : undefined,
     awbCode,
     courierName,
     trackingUrl,
-    shippedAt: new Date(),
-    note: `Shiprocket order created (SR order ${data.order_id || 'n/a'}).`,
-    raw: {
-      shiprocketOrderId: data.order_id,
-      status: data.status,
-    },
+    shippedAt: awbCode ? new Date() : undefined,
+    note,
   };
 }
 

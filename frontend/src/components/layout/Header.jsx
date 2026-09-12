@@ -15,28 +15,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 import { useWishlist } from "../../hooks/useWishlist";
-import { DEFAULT_HOME_OFFER_MARQUEE } from "../../data/defaultHomeOfferMarquee";
 import { useHomeOfferMarquee } from "../../hooks/useHomeOfferMarquee";
-
-const primaryNavItems = [
-  { to: "/", label: "Home" },
-  { to: "/products", label: "Shop" },
-  { to: "/god-photo-frames", label: "God Frame" },
-  { to: "/name-plates", label: "Name Plate" },
-  { to: "/baby-birth-frames", label: "Baby Frames" },
-  { to: "/t-shirt-printing", label: "T-Shirt Print" },
-  { to: "/custom-wall-watches", label: "Wall Watches" },
-];
-
-const moreNavItems = [
-  { to: "/pen-print", label: "Pen Print" },
-  { to: "/uv-dtf-stickers", label: "UV DTF Stickers" },
-  { to: "/product-label-stickers", label: "Product Labels" },
-  { to: "/corporate-gifts", label: "Corporate Gifts" },
-  { to: "/trophies", label: "Trophies" },
-];
-
-const navItems = [...primaryNavItems, ...moreNavItems];
+import { useHeaderMenu } from "../../hooks/useHeaderMenu";
 
 const navLinkClass = ({ isActive }) =>
   `relative shrink-0 whitespace-nowrap px-1 pb-1.5 text-xs font-medium transition duration-300 xl:text-[13px] ${
@@ -45,11 +25,10 @@ const navLinkClass = ({ isActive }) =>
 
 const offerIcons = [<FiTruck />, <FiPercent />, <FiGift />];
 
-const defaultOfferLines = DEFAULT_HOME_OFFER_MARQUEE.map((item) => item.text);
-
 /** Repeat the admin lines so a short list still fills the bar before the loop resets. */
 function buildMarqueeItems(lines) {
-  const base = lines.length ? lines : defaultOfferLines;
+  const base = lines.filter(Boolean);
+  if (!base.length) return [];
   const copies = Math.max(2, Math.ceil(9 / base.length));
   const track = Array.from({ length: copies }, () => base).flat();
   return [...track, ...track];
@@ -59,6 +38,7 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const offerLines = useHomeOfferMarquee();
+  const { primary: primaryNavItems, more: moreNavItems, all: navItems } = useHeaderMenu();
   const moreRef = useRef(null);
 
   const { isAuthenticated, logout } = useAuth();
@@ -88,8 +68,8 @@ export function Header() {
 
   return (
     <>
-      {/* Top Announcement Bar */}
-
+      {/* Top Announcement Bar — admin Offer Marquee */}
+      {marqueeItems.length ? (
   <div className="overflow-hidden bg-gradient-to-l from-black via-zinc-900 to-yellow-700  text-white" >
         <div className="flex animate-marquee whitespace-nowrap">
           {marqueeItems.map((text, index) => (
@@ -103,6 +83,7 @@ export function Header() {
           ))}
         </div>
       </div>
+      ) : null}
 
       {/* Main Header */}
 

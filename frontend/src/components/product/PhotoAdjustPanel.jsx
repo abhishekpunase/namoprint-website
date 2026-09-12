@@ -63,7 +63,7 @@ export function PhotoAdjustPanel({
 
       {textFields.length > 0 && !showPhotoControls && (
         <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Custom text
+          Custom text (optional)
         </p>
       )}
 
@@ -74,7 +74,7 @@ export function PhotoAdjustPanel({
         >
           <span className="flex items-center gap-1.5">
             <FiEdit3 className="h-3.5 w-3.5 text-indigo-500" />
-            {field.replace(/([A-Z])/g, ' $1')}
+            {field.replace(/([A-Z])/g, ' $1')} <span className="font-normal text-slate-400">(optional)</span>
           </span>
           <input
             value={text[field] || ''}

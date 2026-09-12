@@ -31,9 +31,6 @@ import { formatCurrency } from '../utils/format'
 import { getDedicatedListingPath } from '../config/categoryRoutes'
 import { isWallWatchProduct, filterWallWatchProducts } from '../utils/wallWatchCatalog'
 
-const formatFieldLabel = (field) =>
-  field.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase()).trim()
-
 const DEFAULT_CROP = { x: 0, y: 0, scale: 1, rotate: 0 }
 
 export function ProductDesignerPage({
@@ -232,16 +229,6 @@ export function ProductDesignerPage({
       return
     }
 
-    const requiredTextFields = (product.personalization?.allowText
-      ? product.personalization.textFields || ['caption']
-      : []
-    ).filter((field) => !String(design.text?.[field] || '').trim())
-
-    if (requiredTextFields.length) {
-      setMessage(`Please fill in: ${requiredTextFields.map(formatFieldLabel).join(', ')}`)
-      return
-    }
-
     const needsPhotos = product.personalization?.allowPhotoUpload !== false && requiredSlots > 0
     const uploadedCount = slotPhotos.filter((photo) => photo?.assetId || photo?.url).length
     const hasSinglePhoto = Boolean(design.asset || design.photoUrl)
@@ -336,12 +323,11 @@ export function ProductDesignerPage({
     : []
   const allowPhotoUpload = product.personalization?.allowPhotoUpload !== false
 
-  const missingTextFields = textFields.filter((field) => !String(design.text?.[field] || '').trim())
   const hasRequiredPhotos = !allowPhotoUpload || requiredSlots <= 0 || Boolean(
     slotPhotos.filter((photo) => photo?.assetId || photo?.url).length >= requiredSlots ||
       (requiredSlots === 1 && (design.asset || design.photoUrl)),
   )
-  const canAddToCart = missingTextFields.length === 0 && hasRequiredPhotos && Boolean(variant?._id)
+  const canAddToCart = hasRequiredPhotos && Boolean(variant?._id)
 
   return (
     <>
@@ -477,9 +463,7 @@ export function ProductDesignerPage({
 
           {!canAddToCart && isAuthenticated && (
             <p className="rounded-xl bg-amber-50 px-3.5 py-2.5 text-sm font-medium text-amber-800">
-              {missingTextFields.length > 0
-                ? `Fill in custom text: ${missingTextFields.map(formatFieldLabel).join(', ')}`
-                : `Upload ${requiredSlots} photo${requiredSlots > 1 ? 's' : ''} to continue`}
+              {`Upload ${requiredSlots} photo${requiredSlots > 1 ? 's' : ''} to continue`}
             </p>
           )}
 

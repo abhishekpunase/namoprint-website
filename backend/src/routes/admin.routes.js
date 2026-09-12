@@ -12,7 +12,7 @@ import {
   deleteCategory,
   updateCategory
 } from '../controllers/category.controller.js';
-import { getOrder, listAdminOrders, updateOrderStatus, downloadOrderItemDesign, downloadOrderItemAsset } from '../controllers/order.controller.js';
+import { getOrder, listAdminOrders, updateOrderStatus, pushOrderToShiprocket, downloadOrderItemDesign, downloadOrderItemAsset } from '../controllers/order.controller.js';
 import {
   createProduct,
   deleteProduct,
@@ -32,6 +32,7 @@ import {
   homeTestimonialSectionSchema,
 } from '../validators/homeTestimonial.validator.js';
 import {
+  homeOfferMarqueeReplaceSchema,
   homeOfferMarqueeSchema,
   homeOfferMarqueeUpdateSchema,
 } from '../validators/homeOfferMarquee.validator.js';
@@ -70,6 +71,7 @@ import {
   createHomeOfferMarqueeItem,
   deleteHomeOfferMarqueeItem,
   listAdminHomeOfferMarquee,
+  replaceHomeOfferMarquee,
   updateHomeOfferMarqueeItem,
 } from '../controllers/homeOfferMarquee.controller.js';
 import {
@@ -109,6 +111,15 @@ import {
   updateAdminCoupon,
 } from '../controllers/adminCoupon.controller.js';
 import { adminCouponCreateSchema, adminCouponUpdateSchema } from '../validators/adminCoupon.validator.js';
+import {
+  createHeaderMenuItem,
+  deleteHeaderMenuItem,
+  listAdminHeaderMenu,
+  updateHeaderMenuItem,
+} from '../controllers/headerMenu.controller.js';
+import { headerMenuSchema, headerMenuUpdateSchema } from '../validators/headerMenu.validator.js';
+import { getAdminFooter, updateAdminFooter } from '../controllers/footer.controller.js';
+import { footerUpdateSchema } from '../validators/footer.validator.js';
 
 export const adminRoutes = Router();
 
@@ -120,6 +131,7 @@ adminRoutes.get('/orders/:id', getOrder);
 adminRoutes.get('/orders/:id/items/:itemId/design', downloadOrderItemDesign);
 adminRoutes.get('/orders/:id/items/:itemId/asset/:assetType', downloadOrderItemAsset);
 adminRoutes.patch('/orders/:id/status', validate(orderStatusSchema), updateOrderStatus);
+adminRoutes.post('/orders/:id/shiprocket', pushOrderToShiprocket);
 
 adminRoutes.get('/users', validate(adminListSchema), listAdminUsers);
 adminRoutes.get('/users/:id', getAdminUser);
@@ -151,7 +163,16 @@ adminRoutes.post('/home-testimonials', validate(homeTestimonialSchema), createHo
 adminRoutes.patch('/home-testimonials/:id', validate(homeTestimonialUpdateSchema), updateHomeTestimonial);
 adminRoutes.delete('/home-testimonials/:id', deleteHomeTestimonial);
 
+adminRoutes.get('/header-menu', listAdminHeaderMenu);
+adminRoutes.post('/header-menu', validate(headerMenuSchema), createHeaderMenuItem);
+adminRoutes.patch('/header-menu/:id', validate(headerMenuUpdateSchema), updateHeaderMenuItem);
+adminRoutes.delete('/header-menu/:id', deleteHeaderMenuItem);
+
+adminRoutes.get('/footer', getAdminFooter);
+adminRoutes.put('/footer', validate(footerUpdateSchema), updateAdminFooter);
+
 adminRoutes.get('/home-offer-marquee', listAdminHomeOfferMarquee);
+adminRoutes.put('/home-offer-marquee', validate(homeOfferMarqueeReplaceSchema), replaceHomeOfferMarquee);
 adminRoutes.post('/home-offer-marquee', validate(homeOfferMarqueeSchema), createHomeOfferMarqueeItem);
 adminRoutes.patch('/home-offer-marquee/:id', validate(homeOfferMarqueeUpdateSchema), updateHomeOfferMarqueeItem);
 adminRoutes.delete('/home-offer-marquee/:id', deleteHomeOfferMarqueeItem);

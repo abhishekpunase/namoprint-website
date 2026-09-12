@@ -3,6 +3,7 @@ import { Product } from '../models/Product.js';
 import { Cart } from '../models/Cart.js';
 import { createRazorpayOrder, getPublicRazorpayKeyId, verifyRazorpaySignature } from '../services/payment.service.js';
 import { markCouponUsed } from '../services/coupon.service.js';
+import { applyShiprocketToOrder } from '../services/shipping.service.js';
 import { ApiError } from '../utils/apiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
@@ -71,5 +72,9 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     customerName: order.customer?.name,
     customerEmail: order.customer?.email,
   });
+
+  await applyShiprocketToOrder(order, { strict: false });
+  await order.save();
+
   res.json({ success: true, order });
 });
