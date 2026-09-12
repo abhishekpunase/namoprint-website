@@ -405,19 +405,28 @@ export function ProductDesignerPage({
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-slate-700">Select variant</label>
-            <select
-              value={variantId}
-              onChange={(event) => setVariantId(event.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 shadow-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100"
-            >
-              {product.variants?.map((item) => (
-                <option key={item._id} value={item._id}>
-                  {item.size} - {item.material}
-                  {item.frameType ? ` - ${item.frameType}` : ''} - {formatCurrency(item.price)}
-                </option>
-              ))}
-            </select>
+            <p className="text-sm font-semibold text-slate-700">Select variant</p>
+            <div className="flex flex-wrap gap-2">
+              {product.variants?.map((item) => {
+                const id = item._id || item.sku
+                const selected = String(variantId) === String(id)
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setVariantId(id)}
+                    className={`max-w-full rounded-2xl border px-3 py-2 text-left text-[11px] leading-snug shadow-sm transition sm:text-xs ${
+                      selected
+                        ? 'border-orange-500 bg-orange-50 text-orange-900 ring-2 ring-orange-100'
+                        : 'border-slate-200 bg-white text-slate-700 hover:border-orange-300'
+                    }`}
+                  >
+                    {item.size} - {item.material}
+                    {item.frameType ? ` - ${item.frameType}` : ''} - {formatCurrency(item.price)}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
 
@@ -499,6 +508,8 @@ export function ProductDesignerPage({
       {/* Description + Reviews */}
       <ProductDetailsTabs
         product={{
+          _id: product._id,
+          slug: product.slug,
           title: product.title,
           description: product.description,
           heroImageUrl: design.photoUrl || getProductImage(product),
@@ -506,6 +517,7 @@ export function ProductDesignerPage({
           brand: product.brand || 'NAMO PRINT',
           badges: product.badges,
           longDescription: product.longDescription,
+          descriptionMedia: product.descriptionMedia,
         }}
         reviews={reviews}
       />

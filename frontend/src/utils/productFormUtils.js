@@ -48,6 +48,7 @@ export const emptyForm = {
   brand: '',
   tags: '',
   barcode: '',
+  descriptionMedia: [],
   isFeatured: false,
   isActive: true,
 }
@@ -72,6 +73,7 @@ export function productToForm(product) {
     subCategory: product.subCategory?._id || product.subCategory || '',
     description: product.description || '',
     highlights: (product.highlights || []).join(', '),
+    descriptionMedia: Array.isArray(product.descriptionMedia) ? product.descriptionMedia : [],
     images: product.images || [],
     thumbnail: product.thumbnail || '',
     variants: product.variants?.length
@@ -149,6 +151,14 @@ export function buildProductPayload(form, categories) {
     category: form.category,
     subCategory: category?.parent ? form.category : form.subCategory || undefined,
     description: form.description,
+    descriptionMedia: (form.descriptionMedia || [])
+      .filter((item) => item?.url)
+      .map((item) => ({
+        type: item.type === 'reel' || item.type === 'video' ? 'reel' : 'image',
+        url: item.url,
+        posterUrl: item.posterUrl || '',
+        caption: item.caption || '',
+      })),
     highlights: form.highlights
       .split(',')
       .map((h) => h.trim())

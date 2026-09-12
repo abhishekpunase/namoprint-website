@@ -29,6 +29,14 @@ const productBody = {
   category: Joi.string().required(),
   subCategory: Joi.string().allow(null, ''),
   description: Joi.string().allow('', null),
+  descriptionMedia: Joi.array().items(
+    Joi.object({
+      type: Joi.string().valid('image', 'reel', 'video').default('image'),
+      url: mediaUrl.required(),
+      posterUrl: mediaUrl.allow('', null),
+      caption: Joi.string().allow('', null),
+    }),
+  ).default([]),
   highlights: Joi.array().items(Joi.string()).default([]),
   images: Joi.array().items(mediaUrl).default([]),
   thumbnail: mediaUrl.allow('', null),

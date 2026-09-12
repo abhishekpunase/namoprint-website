@@ -23,6 +23,7 @@ export function useProductForm({ productId, onSaved }) {
   const [uploadingImage, setUploadingImage] = useState(false)
   const [uploadingFrame, setUploadingFrame] = useState(false)
   const [uploadingThumbnail, setUploadingThumbnail] = useState(false)
+  const [uploadingDescriptionMedia, setUploadingDescriptionMedia] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
@@ -135,6 +136,32 @@ export function useProductForm({ productId, onSaved }) {
   }
 
   const removeThumbnail = () => setForm((prev) => ({ ...prev, thumbnail: '' }))
+
+  const handleDescriptionMediaUpload = async (files, type = 'image') => {
+    if (!files?.length) return
+    setUploadingDescriptionMedia(true)
+    setError('')
+    try {
+      for (const file of Array.from(files)) {
+        const isReel = type === 'reel' || type === 'video' || String(file.type || '').startsWith('video/')
+        const payload = isReel ? await api.uploadVideo(file) : await api.uploadPhoto(file)
+        const url = payload.asset?.url
+        if (!url) continue
+        setForm((prev) => ({
+          ...prev,
+          descriptionMedia: [
+            ...(prev.descriptionMedia || []),
+            { type: isReel ? 'reel' : 'image', url, posterUrl: '', caption: '' },
+          ],
+        }))
+      }
+    } catch (err) {
+      setError(err.message)
+      throw err
+    } finally {
+      setUploadingDescriptionMedia(false)
+    }
+  }
 
   const handleFrameUpload = async (file) => {
     setUploadingFrame(true)
@@ -305,6 +332,8 @@ export function useProductForm({ productId, onSaved }) {
     uploadingImage,
     uploadingFrame,
     uploadingThumbnail,
+    uploadingDescriptionMedia,
+    handleDescriptionMediaUpload,
     updateVariant,
     addVariant,
     removeVariant,

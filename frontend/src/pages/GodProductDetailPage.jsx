@@ -70,8 +70,11 @@ export default function GodProductDetailPage() {
     const heroImage = resolveMediaUrl(product.images?.[activeImage] || product.images?.[0])
     return {
       id: product._id,
+      _id: product._id,
+      slug: product.slug,
       title: product.title,
       description: product.description,
+      descriptionMedia: product.descriptionMedia,
       heroImageUrl: heroImage,
       previewImageUrl: heroImage,
       brand: 'NAMOPRINT',

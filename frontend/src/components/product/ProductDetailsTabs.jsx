@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   FiTruck,
   FiRefreshCw,
@@ -13,6 +13,9 @@ import {
   FiCamera,
   FiThumbsUp,
 } from 'react-icons/fi'
+import { resolveMediaUrl } from '../../utils/mediaUrl'
+import { resolveProductReviews } from '../../utils/productReviews'
+import { mapReviewsForDisplay } from '../../utils/reviewDisplay'
 
 /**
  * ProductDetailsTabs
@@ -38,54 +41,6 @@ const BADGE_ICONS = {
   'fast delivery': FiZap,
   'free bg removal': FiScissors,
 }
-
-// ---- Dummy reviews (used until real data is passed in) --------------------
-const DUMMY_REVIEWS = [
-  {
-    id: 'd1',
-    name: 'Anonymous',
-    rating: 5,
-    date: '15 Apr 2026',
-    title: 'Highly recommended',
-    comment:
-      "Mast product hai bhai, full paisa wasool. Print itna sharp hai ki har koi puchta hai. Highly recommended for gifting.",
-    verified: true,
-    helpful: 23,
-  },
-  {
-    id: 'd2',
-    name: 'Anonymous',
-    rating: 5,
-    date: '8 Apr 2026',
-    title: 'Fast delivery and great packing',
-    comment:
-      'Superb experience from order to delivery. Got SMS updates regularly, packing bahut better than other sites I tried before.',
-    verified: true,
-    helpful: 3,
-  },
-  {
-    id: 'd3',
-    name: 'Anonymous',
-    rating: 4,
-    date: '6 Apr 2026',
-    title: 'Worth buying',
-    comment:
-      "Decent quality and the print looks nice. Took about 4 days to deliver. For the price, it's a fair deal. Considering ordering one more for my office desk.",
-    verified: true,
-    helpful: 5,
-  },
-  {
-    id: 'd4',
-    name: 'Anonymous',
-    rating: 5,
-    date: '2 Apr 2026',
-    title: 'Perfect gift idea',
-    comment:
-      "Gifted this to my parents on their anniversary and they loved it. Colours came out exactly like the preview. Will order again.",
-    verified: false,
-    helpful: 9,
-  },
-]
 
 function getFallbackSpecs(product) {
   return [
@@ -370,17 +325,50 @@ function ReviewsSection({ reviews, onAddReview }) {
   )
 }
 
+function DescriptionMediaGrid({ items = [] }) {
+  const media = items.filter((item) => item?.url)
+  if (!media.length) return null
+
+  return (
+    <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {media.map((item, index) => {
+        const src = resolveMediaUrl(item.url)
+        const isReel = item.type === 'reel' || item.type === 'video'
+        return (
+          <figure key={`${src}-${index}`} className="overflow-hidden rounded-2xl bg-slate-100">
+            {isReel ? (
+              <video
+                src={src}
+                poster={resolveMediaUrl(item.posterUrl) || undefined}
+                controls
+                playsInline
+                className="aspect-[16/10] w-full object-cover"
+              />
+            ) : (
+              <img src={src} alt={item.caption || 'Product detail'} className="aspect-[16/10] w-full object-cover" />
+            )}
+            {item.caption ? (
+              <figcaption className="px-3 py-2 text-xs text-slate-500 sm:text-sm">{item.caption}</figcaption>
+            ) : null}
+          </figure>
+        )
+      })}
+    </div>
+  )
+}
+
 export function ProductDetailsTabs({ product, reviews }) {
-  const [allReviews, setAllReviews] = useState(() => {
-    if (reviews !== undefined) return reviews
-    return DUMMY_REVIEWS
-  })
+  const seededReviews = useMemo(() => resolveProductReviews(product, []), [product?._id, product?.slug, product?.title])
+  const incomingReviews = useMemo(() => {
+    if (!Array.isArray(reviews) || !reviews.length) return []
+    return reviews[0]?.reviewText || reviews[0]?.customerName ? mapReviewsForDisplay(reviews) : reviews
+  }, [reviews])
+
+  const [allReviews, setAllReviews] = useState(() => incomingReviews.length ? incomingReviews : seededReviews)
 
   useEffect(() => {
-    if (reviews !== undefined) {
-      setAllReviews(reviews)
-    }
-  }, [reviews])
+    setAllReviews(incomingReviews.length ? incomingReviews : seededReviews)
+  }, [incomingReviews, seededReviews])
 
   const badges = product?.badges?.length
     ? product.badges
@@ -486,6 +474,8 @@ export function ProductDetailsTabs({ product, reviews }) {
             ))}
           </div>
         )}
+
+        <DescriptionMediaGrid items={product?.descriptionMedia} />
 
         {/* Spec sheet — quick facts about this specific product */}
         {specs.length > 0 && (

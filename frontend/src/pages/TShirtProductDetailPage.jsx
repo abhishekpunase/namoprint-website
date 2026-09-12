@@ -158,8 +158,11 @@ export default function TShirtProductDetailPage() {
 
   const detailProduct = {
     id: product._id,
+    _id: product._id,
+    slug: product.slug,
     title: product.title,
     description: product.description,
+    descriptionMedia: product.descriptionMedia,
     longDescription: product.longDescription || product.description,
     heroImageUrl: resolveMediaUrl(product.images?.[activeImage] || product.images?.[0]),
     previewImageUrl: resolveMediaUrl(product.images?.[activeImage] || product.images?.[0]),

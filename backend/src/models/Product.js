@@ -77,6 +77,17 @@ const productSchema = new mongoose.Schema(
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
     subCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
     description: String,
+    descriptionMedia: {
+      type: [
+        {
+          type: { type: String, enum: ['image', 'reel', 'video'], default: 'image' },
+          url: { type: String, required: true },
+          posterUrl: { type: String, default: '' },
+          caption: { type: String, default: '' },
+        },
+      ],
+      default: [],
+    },
     highlights: [String],
     /** Listing image for home/catalog cards — separate from mockup.frameImage */
     thumbnail: String,

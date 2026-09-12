@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box,
+  Film,
   Image as ImageIcon,
   Layers,
   Palette,
@@ -29,6 +30,7 @@ import { CanvasPreview } from './CanvasPreview'
 import { ProductSeoFields } from '../ProductSeoFields'
 import { EditorSaveBar } from './EditorSaveBar'
 import { MediaLibraryModal } from './MediaLibraryModal'
+import { DescriptionMediaSection } from './DescriptionMediaSection'
 
 export function ProductEditor({ editor, mode = 'create', productId }) {
   const [mediaOpen, setMediaOpen] = useState(false)
@@ -46,6 +48,8 @@ export function ProductEditor({ editor, mode = 'create', productId }) {
     uploadingImage,
     uploadingFrame,
     uploadingThumbnail,
+    uploadingDescriptionMedia,
+    handleDescriptionMediaUpload,
     updateVariant,
     addVariant,
     removeVariant,
@@ -205,6 +209,19 @@ export function ProductEditor({ editor, mode = 'create', productId }) {
           <label className="prod-span-2">Highlights<input value={form.highlights} onChange={(e) => setForm({ ...form, highlights: e.target.value })} placeholder="Comma separated" /></label>
           <label className="prod-span-2">Description<textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={4} /></label>
         </div>
+      ),
+    },
+    {
+      id: 'description-media',
+      label: 'Description media',
+      icon: <Film size={16} />,
+      content: (
+        <DescriptionMediaSection
+          items={form.descriptionMedia || []}
+          onChange={(descriptionMedia) => setForm({ ...form, descriptionMedia })}
+          onUpload={handleDescriptionMediaUpload}
+          uploading={uploadingDescriptionMedia}
+        />
       ),
     },
     {
