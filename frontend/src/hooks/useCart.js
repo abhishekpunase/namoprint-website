@@ -13,7 +13,7 @@ export function resolveCartProduct(item) {
   if (item?.itemType === 'god' || item?.godProduct) {
     const godProduct = typeof item.godProduct === 'object' ? item.godProduct : null
     return {
-      title: godProduct?.title || 'God Photo Frame',
+      title: godProduct?.title || 'Canvas Frame',
       images: godProduct?.images?.length
         ? godProduct.images.map((url) => resolveMediaUrl(url))
         : item.customization?.previewUrl

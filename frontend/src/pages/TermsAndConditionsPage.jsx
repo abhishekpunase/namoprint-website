@@ -39,11 +39,10 @@ export function TermsAndConditionsPage() {
       partial refund.`,
     },
     {
-      title: '6. Bulk Order Discounts',
-      content: `Discounts offered on bulk orders, including any promotional
-      offers such as 20% off, are subject to minimum quantity requirements
-      and may be modified or withdrawn at our discretion without prior
-      notice.`,
+      title: '6. Bulk Order Pricing',
+      content: `Custom pricing offered on bulk orders is subject to minimum
+      quantity requirements and may be modified or withdrawn at our
+      discretion without prior notice.`,
     },
     {
       title: '7. Intellectual Property',

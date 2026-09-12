@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Pagination } from "swiper/modules";
+import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import { api } from "../../services/api";
@@ -34,13 +35,31 @@ export default function HeroSection() {
     return DEFAULT_HOME_SLIDES.map(mapApiSlideToHero);
   }, [remoteSlides]);
 
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
+  const [swiper, setSwiper] = useState(null);
+  const showArrows = slides.length > 1;
+
+  useEffect(() => {
+    if (!swiper || !prevRef.current || !nextRef.current) return undefined;
+    swiper.params.navigation.prevEl = prevRef.current;
+    swiper.params.navigation.nextEl = nextRef.current;
+    swiper.navigation.destroy();
+    swiper.navigation.init();
+    swiper.navigation.update();
+    return undefined;
+  }, [swiper, showArrows]);
+
   return (
+    <div className="relative">
     <Swiper
-      modules={[Autoplay, Pagination]}
+      modules={[Autoplay, Pagination, Navigation]}
       autoplay={{ delay: 5000, disableOnInteraction: false }}
       pagination={{ clickable: true, el: ".hero-pagination" }}
+      navigation={{ prevEl: null, nextEl: null }}
+      onSwiper={setSwiper}
       speed={800}
-      loop={slides.length > 1}
+      loop={showArrows}
       className="hero-swiper"
     >
       <style>{`
@@ -56,6 +75,10 @@ export default function HeroSection() {
           border-radius: 9999px;
           background: #ea580c;
           opacity: 1;
+        }
+        .hero-swiper .swiper-button-prev,
+        .hero-swiper .swiper-button-next {
+          display: none;
         }
       `}</style>
       {slides.map((item, index) => (
@@ -103,5 +126,27 @@ export default function HeroSection() {
 
       <div className="hero-pagination absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 gap-2" />
     </Swiper>
+
+    {showArrows ? (
+      <>
+        <button
+          ref={prevRef}
+          type="button"
+          className="absolute left-2 top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-orange-200 bg-white text-orange-600 shadow-md transition hover:border-orange-400 hover:bg-orange-50 sm:left-4 sm:h-12 sm:w-12"
+          aria-label="Previous slide"
+        >
+          <FiChevronLeft className="h-6 w-6" />
+        </button>
+        <button
+          ref={nextRef}
+          type="button"
+          className="absolute right-2 top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-orange-200 bg-white text-orange-600 shadow-md transition hover:border-orange-400 hover:bg-orange-50 sm:right-4 sm:h-12 sm:w-12"
+          aria-label="Next slide"
+        >
+          <FiChevronRight className="h-6 w-6" />
+        </button>
+      </>
+    ) : null}
+    </div>
   );
 }

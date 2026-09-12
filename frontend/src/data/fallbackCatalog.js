@@ -304,7 +304,7 @@ export const productTypes = [
   { label: 'Photo Clock', value: 'photo-clock' },
   { label: 'Personalized Wall Art', value: 'personalized-wall-art' },
   { label: 'Temple Photo Frame', value: 'temple-photo-frame' },
-  { label: 'God Photo Frame', value: 'god-photo-frame' },
+  { label: 'Canvas Frame', value: 'god-photo-frame' },
   { label: 'Pen Print', value: 'pen-print' },
   { label: 'Trophy', value: 'trophy' },
 ]
@@ -457,7 +457,7 @@ export const homeCategories = [
     poster: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=400&auto=format&fit=crop',
   },
   {
-    label: 'God Photo Frame',
+    label: 'Canvas Frame',
     value: 'god-photo-frame',
     video: CATEGORY_VIDEOS.godFrame,
     poster: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?q=80&w=400&auto=format&fit=crop',

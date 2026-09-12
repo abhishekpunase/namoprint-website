@@ -82,7 +82,7 @@ export default function GodProductDetailPage() {
       longDescription: product.description,
       gallery: (product.images || []).map(resolveMediaUrl).filter(Boolean),
       specs: [
-        { label: 'Deity', value: product.deity || 'God Photo Frame' },
+        { label: 'Deity', value: product.deity || 'Canvas Frame' },
         {
           label: 'Available sizes',
           value: (product.qualityOptions || []).map((option) => option.label).join(' · ') || '—',
@@ -138,14 +138,14 @@ export default function GodProductDetailPage() {
       <ProductPageSeo
         product={product}
         pathPrefix="/god-photo-frames"
-        listLabel="God Photo Frames"
+        listLabel="Canvas Frames"
         listPath="/god-photo-frames"
         price={selectedOption?.price}
       />
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <ProductBreadcrumb
           categoryPath="/god-photo-frames"
-          categoryLabel="God Photo Frames"
+          categoryLabel="Canvas Frames"
           productTitle={product.title}
         />
         <div className="grid gap-12 lg:grid-cols-2">
@@ -163,7 +163,7 @@ export default function GodProductDetailPage() {
 
           <div>
             <ProductCategoryBadge>
-              {product.deity || 'God Photo Frame'} · Readymade
+              {product.deity || 'Canvas Frame'} · Readymade
             </ProductCategoryBadge>
             <h1 className="mt-4 text-3xl font-bold text-slate-900">{product.title}</h1>
             <ProductDescriptionExpandable

@@ -22,9 +22,9 @@ export default function GodPhotosPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-400" />
         <div className="relative mx-auto max-w-7xl px-6 py-16 text-center text-white lg:px-8">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-5 py-2 text-sm font-semibold backdrop-blur">
-            God Frame
+            Canvas Frame
           </span>
-          <h1 className="mt-5 text-4xl font-bold lg:text-5xl">Readymade God Photo Frames</h1>
+          <h1 className="mt-5 text-4xl font-bold lg:text-5xl">Readymade Canvas Frames</h1>
           <p className="mx-auto mt-4 max-w-2xl text-white/90">
             Beautifully printed, ready-to-ship devotional photo frames. No customization — simply choose
             your quality and size, and place your order.

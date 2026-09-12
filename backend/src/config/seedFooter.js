@@ -16,7 +16,7 @@ export const DEFAULT_FOOTER = {
   },
   links: [
     { label: 'Acrylic Products', path: '/products?type=acrylic-wall-photo', group: 'categories', sortOrder: 0 },
-    { label: 'God Photo Frames', path: '/god-photo-frames', group: 'categories', sortOrder: 1 },
+    { label: 'Canvas Frames', path: '/god-photo-frames', group: 'categories', sortOrder: 1 },
     { label: 'Name Plates', path: '/name-plates', group: 'categories', sortOrder: 2 },
     { label: 'Pen Print', path: '/pen-print', group: 'categories', sortOrder: 3 },
     { label: 'QR Standees', path: '/products?type=logo-stickers', group: 'categories', sortOrder: 4 },
@@ -43,6 +43,16 @@ export const DEFAULT_FOOTER = {
 
 export async function ensureFooter() {
   const existing = await FooterSettings.findOne({ key: 'default' });
-  if (existing) return existing;
+  if (existing) {
+    let changed = false;
+    existing.links?.forEach((link) => {
+      if (link.path === '/god-photo-frames' && /god/i.test(link.label || '')) {
+        link.label = 'Canvas Frames';
+        changed = true;
+      }
+    });
+    if (changed) await existing.save();
+    return existing;
+  }
   return FooterSettings.create({ key: 'default', ...DEFAULT_FOOTER });
 }

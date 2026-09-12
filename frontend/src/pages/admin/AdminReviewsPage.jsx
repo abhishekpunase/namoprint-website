@@ -6,7 +6,7 @@ import { AdminToggle } from '../../components/admin/ui/AdminToggle'
 const PRODUCT_TYPES = [
   { value: 'general', label: 'General / Store' },
   { value: 'product', label: 'All Products' },
-  { value: 'god-product', label: 'God Photo Frame' },
+  { value: 'god-product', label: 'Canvas Frame' },
   { value: 'nameplate', label: 'Name Plate' },
   { value: 'tshirt', label: 'T-Shirt Print' },
   { value: 'wall-watch', label: 'Wall Watch' },

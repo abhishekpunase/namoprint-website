@@ -118,7 +118,7 @@ const DEFAULT_CATEGORY_CAROUSEL = [
     sortOrder: 13,
   },
   {
-    label: 'God Photo Frame',
+    label: 'Canvas Frame',
     productType: 'god-photo-frame',
     videoUrl: 'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766941654703-romtz.mp4',
     posterUrl:
@@ -149,6 +149,11 @@ export async function ensureCategoryCarousel() {
     console.log(`Shop category carousel seeded (${DEFAULT_CATEGORY_CAROUSEL.length} items).`);
     return;
   }
+
+  await CategoryCarouselItem.updateMany(
+    { productType: 'god-photo-frame', label: { $in: ['God Photo Frame', 'God Frame', 'God Photo Frames'] } },
+    { $set: { label: 'Canvas Frame' } },
+  );
 
   for (const item of DEFAULT_CATEGORY_CAROUSEL) {
     await CategoryCarouselItem.updateMany(

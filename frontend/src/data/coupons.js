@@ -15,7 +15,7 @@ export const HOME_OFFERS = [
   {
     id: 2,
     title: 'Bulk Orders',
-    subtitle: 'Extra 15% OFF',
+    subtitle: 'Custom Pricing',
     description: 'Planning a hotel, office or cafe setup? Get exclusive pricing on bulk orders.',
     action: 'bulk',
     cta: 'Bulk Order',

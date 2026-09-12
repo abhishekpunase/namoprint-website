@@ -2,7 +2,7 @@ import { FiChevronRight } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 
 const CATALOG_CRUMBS = {
-  '/god-photo-frames': 'God Frames',
+  '/god-photo-frames': 'Canvas Frames',
   '/name-plates': 'Name Plates',
   '/pen-print': 'Pen Print',
   '/uv-dtf-stickers': 'UV DTF Stickers',

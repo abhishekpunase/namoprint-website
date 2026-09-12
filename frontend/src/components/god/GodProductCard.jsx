@@ -47,7 +47,7 @@ export function GodProductCard({ product }) {
       <div className="hidden flex-1 flex-col gap-3 p-4 sm:flex">
         <div className="flex items-center justify-between gap-2">
           <span className="truncate rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
-            {product.deity || 'God Photo Frame'}
+            {product.deity || 'Canvas Frame'}
           </span>
           <div className="flex shrink-0 items-center gap-1 rounded-full bg-orange-50 px-2 py-0.5">
             <FiStar className="h-3.5 w-3.5 fill-orange-400 text-orange-500" />

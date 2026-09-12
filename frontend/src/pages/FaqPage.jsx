@@ -20,9 +20,9 @@ export function FaqPage() {
     },
     {
       question: 'Do you offer bulk order discounts?',
-      answer: `Yes! We offer a flat 20% discount on bulk orders above the
-      minimum quantity. Visit our Bulk Orders page or contact us on
-      WhatsApp to get a custom quote.`,
+      answer: `Yes. Bulk orders get custom pricing based on quantity and
+      product. Visit our Bulk Orders page or contact us on WhatsApp to
+      get a quote.`,
     },
     {
       question: 'How long does production and delivery take?',

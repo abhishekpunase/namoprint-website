@@ -318,10 +318,12 @@ function PhotoSlot({
 }) {
   const containerRef = useRef(null)
   const dragRef = useRef(null)
+  const [dragging, setDragging] = useState(false)
   const effCrop = crop || { x: 0, y: 0, scale: 1, rotate: 0 }
   const hexSlot = isHexClipPath(clipPath)
   const shapedSlot = Boolean(clipPath)
-  const imgScale = (effCrop.scale || 1) * (hexSlot ? HEX_PHOTO_FILL_SCALE : 1)
+  const imgScale = Math.max((effCrop.scale || 1) * (hexSlot ? HEX_PHOTO_FILL_SCALE : 1), 1.2)
+  const panLimit = 70
 
   const emitCrop = (patch) => onCropChange?.({ ...effCrop, ...patch })
 
@@ -332,16 +334,15 @@ function PhotoSlot({
     const dx = e.clientX - ds.startX
     const dy = e.clientY - ds.startY
     if (!ds.moved) {
-      if (Math.hypot(dx, dy) < 6) return
+      if (Math.hypot(dx, dy) < 3) return
       ds.moved = true
+      setDragging(true)
     }
 
     e.preventDefault()
-    const dxPct = dx / ds.rectW
-    const dyPct = dy / ds.rectH
     emitCrop({
-      x: clampCrop(ds.origX + dxPct * 5, -2.5, 2.5),
-      y: clampCrop(ds.origY + dyPct * 5, -2.5, 2.5),
+      x: clampCrop(ds.origX + (dx / ds.rectW) * 100, -panLimit, panLimit),
+      y: clampCrop(ds.origY + (dy / ds.rectH) * 100, -panLimit, panLimit),
     })
   }
 
@@ -349,6 +350,7 @@ function PhotoSlot({
     const ds = dragRef.current
     if (!ds || e.pointerId !== ds.pointerId) return
     dragRef.current = null
+    setDragging(false)
     try {
       containerRef.current?.releasePointerCapture(e.pointerId)
     } catch {
@@ -357,6 +359,7 @@ function PhotoSlot({
   }
 
   const handlePointerDown = (e) => {
+    if (e.target?.closest?.('button')) return
     if (e.pointerType === 'mouse' && e.button !== 0) return
     onActivate?.()
     if (!draggable || !src) return
@@ -374,8 +377,8 @@ function PhotoSlot({
       moved: false,
       origX: effCrop.x || 0,
       origY: effCrop.y || 0,
-      rectW: rect.width,
-      rectH: rect.height,
+      rectW: Math.max(rect.width, 1),
+      rectH: Math.max(rect.height, 1),
     }
 
     try {
@@ -398,7 +401,7 @@ function PhotoSlot({
   return (
     <div
       ref={containerRef}
-      className={`preview-slot preview-slot--clip group relative ${shapedSlot ? 'preview-slot--shaped' : ''} ${isActive ? 'preview-slot--active' : ''}`}
+      className={`preview-slot preview-slot--clip group relative ${shapedSlot ? 'preview-slot--shaped' : ''} ${isActive ? 'preview-slot--active' : ''} ${dragging ? 'preview-slot--dragging' : ''}`}
       onClick={!draggable ? onClick : undefined}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -406,11 +409,12 @@ function PhotoSlot({
       onPointerCancel={handlePointerUp}
       onWheel={handleWheel}
       style={{
-        cursor: draggable && src ? 'grab' : onClick ? 'pointer' : 'default',
+        cursor: draggable && src ? (dragging ? 'grabbing' : 'grab') : onClick ? 'pointer' : 'default',
         width: '100%',
         height: '100%',
         overflow: 'hidden',
         touchAction: draggable && src ? 'none' : 'auto',
+        userSelect: 'none',
         ...(clipPath ? { clipPath, WebkitClipPath: clipPath } : {}),
       }}
     >
@@ -421,21 +425,29 @@ function PhotoSlot({
               src={resolveMediaUrl(src)}
               alt={label}
               draggable={false}
-              className="preview-slot__img h-full w-full min-h-full min-w-full select-none object-cover"
+              className="preview-slot__img select-none object-cover"
               style={{
-                transform: `scale(${imgScale}) rotate(${effCrop.rotate || 0}deg)`,
-                objectPosition: `${50 - (effCrop.x || 0) * 20}% ${50 - (effCrop.y || 0) * 20}%`,
+                position: 'absolute',
+                left: '50%',
+                top: '50%',
+                width: '100%',
+                height: '100%',
+                maxWidth: 'none',
+                transform: `translate(-50%, -50%) translate(${effCrop.x || 0}%, ${effCrop.y || 0}%) scale(${imgScale}) rotate(${effCrop.rotate || 0}deg)`,
                 transformOrigin: 'center center',
+                transition: dragging ? 'none' : undefined,
               }}
             />
           </div>
           {draggable && (
             <>
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
-                <div className="flex items-center gap-1 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white">
-                  <FiMove size={12} /> Drag to reposition
+              {!dragging ? (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
+                  <div className="flex items-center gap-1 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white">
+                    <FiMove size={12} /> Drag to reposition
+                  </div>
                 </div>
-              </div>
+              ) : null}
 
               <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
                 <button
@@ -748,8 +760,7 @@ function View3DModal({
             alt="preview"
             className="h-full w-full object-cover"
             style={{
-              transform: `scale(${photoCrop?.scale || 1}) rotate(${photoCrop?.rotate || 0}deg)`,
-              objectPosition: `${50 - (photoCrop?.x || 0) * 20}% ${50 - (photoCrop?.y || 0) * 20}%`,
+              transform: `translate(${photoCrop?.x || 0}%, ${photoCrop?.y || 0}%) scale(${Math.max(photoCrop?.scale || 1, 1.2)}) rotate(${photoCrop?.rotate || 0}deg)`,
             }}
           />
         ) : (

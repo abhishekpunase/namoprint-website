@@ -43,7 +43,7 @@ export const adminNavigation = [
     icon: Package,
     children: [
       { id: 'products-all', label: 'All Products', to: '/admin/products' },
-      { id: 'products-god', label: 'God Photo Frames', to: '/admin/god-photo-frames' },
+      { id: 'products-god', label: 'Canvas Frames', to: '/admin/god-photo-frames' },
       { id: 'products-nameplate', label: 'Name Plates', to: '/admin/name-plates' },
       { id: 'products-penprint', label: 'Pen Print', to: '/admin/pen-print' },
       { id: 'products-uvdtf', label: 'UV DTF Stickers', to: '/admin/uv-dtf-stickers' },
@@ -254,7 +254,7 @@ export function getAdminPageMeta(pathname) {
     return { title: 'Trophies', description: 'Manage trophy and memento products' }
   }
   if (pathname.startsWith('/admin/god-photo-frames')) {
-    return { title: 'God Photo Frames', description: 'Manage god frame products' }
+    return { title: 'Canvas Frames', description: 'Manage canvas frame products' }
   }
   if (pathname.startsWith('/admin/wall-watches')) {
     return { title: 'Wall Watches', description: 'Manage custom wall clock products' }

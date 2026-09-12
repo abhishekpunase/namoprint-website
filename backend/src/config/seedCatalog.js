@@ -21,7 +21,7 @@ const DEV_HOMEPAGE_CATEGORIES = [
   { name: 'Photo Collage', productType: 'photo-collage', sortOrder: 13 },
   { name: 'Photo Clock', productType: 'photo-clock', sortOrder: 17 },
   { name: 'Canvas Print', productType: 'canvas-print', sortOrder: 14 },
-  { name: 'God Photo Frame', productType: 'god-photo-frame', sortOrder: 15 },
+  { name: 'Canvas Frame', productType: 'god-photo-frame', sortOrder: 15 },
   { name: 'T-Shirt Printing', productType: 't-shirt-printing', sortOrder: 16 },
 ];
 
@@ -228,6 +228,11 @@ async function findCategoryForProductType(productType) {
 /** Ensures all storefront homepage categories exist in MongoDB (runs every dev boot). */
 export async function ensureDevCategories() {
   if (!canInsertDevCatalog()) return;
+
+  await Category.updateMany(
+    { productType: 'god-photo-frame', name: { $in: ['God Photo Frame', 'God Frame', 'God Photo Frames'] } },
+    { $set: { name: 'Canvas Frame' } },
+  );
 
   let created = 0;
   for (const entry of DEV_HOMEPAGE_CATEGORIES) {

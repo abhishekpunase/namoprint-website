@@ -2,9 +2,9 @@
 export const SITE_NAME = 'Namo Print'
 export const SITE_TAGLINE = 'Custom Photo Frames, Name Plates & T-Shirt Printing'
 export const SITE_DESCRIPTION =
-  'Namo Print — order custom photo frames, acrylic name plates, god photo frames, and printed t-shirts online. Upload your design, choose size, and get fast delivery across India.'
+  'Namo Print — order custom photo frames, acrylic name plates, canvas frames, and printed t-shirts online. Upload your design, choose size, and get fast delivery across India.'
 export const SITE_KEYWORDS =
-  'custom photo frames, name plate, house name plate, god photo frame, t-shirt printing, custom t-shirt, photo printing, personalized gifts, Namo Print, India'
+  'custom photo frames, name plate, house name plate, canvas frame, t-shirt printing, custom t-shirt, photo printing, personalized gifts, Namo Print, India'
 export const SITE_LOCALE = 'en_IN'
 export const TWITTER_HANDLE = '@namoprint'
 
@@ -55,14 +55,14 @@ export const ROUTE_SEO = {
   '/products': {
     title: 'Shop All Products',
     description:
-      'Browse custom photo frames, wall clocks, albums, name plates, god frames, and t-shirt printing. Design online and order with easy checkout.',
+      'Browse custom photo frames, wall clocks, albums, name plates, canvas frames, and t-shirt printing. Design online and order with easy checkout.',
     keywords: 'shop photo frames, custom prints, personalized products, Namo Print catalog',
   },
   '/god-photo-frames': {
-    title: 'God Photo Frames',
+    title: 'Canvas Frames',
     description:
-      'Premium god photo frames with custom sizing. Choose quality, upload your photo, and order online with secure checkout.',
-    keywords: 'god photo frame, religious frame, custom god frame, temple frame',
+      'Premium canvas frames with custom sizing. Choose quality, upload your photo, and order online with secure checkout.',
+    keywords: 'canvas frame, canvas photo frame, custom canvas frame, printed canvas frame',
   },
   '/name-plates': {
     title: 'Custom Name Plates',

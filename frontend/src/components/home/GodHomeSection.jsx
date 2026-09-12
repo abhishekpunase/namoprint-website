@@ -22,10 +22,10 @@ export default function GodHomeSection() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-orange-100 px-5 py-2 text-sm font-semibold text-orange-600">
-              God Frame
+              Canvas Frame
             </span>
             <h2 className="mt-4 text-2xl font-bold text-slate-900 sm:text-4xl">
-              Readymade <span className="text-orange-500">God Photo Frames</span>
+              Readymade <span className="text-orange-500">Canvas Frames</span>
             </h2>
             <p className="mt-3 max-w-xl text-slate-500">
               Beautifully printed, ready-to-hang devotional photo frames. Just pick your quality and size —

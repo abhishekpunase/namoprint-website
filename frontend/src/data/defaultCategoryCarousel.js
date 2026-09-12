@@ -120,7 +120,7 @@ const RAW_CATEGORY_CAROUSEL = [
     linkUrl: '/products?type=canvas-print',
   },
   {
-    label: 'God Photo Frame',
+    label: 'Canvas Frame',
     productType: 'god-photo-frame',
     videoUrl: 'https://rqnknqgpqttjqqhaejmt.supabase.co/storage/v1/object/public/reel-videos/videos/1766941654703-romtz.mp4',
     posterUrl:
@@ -156,7 +156,7 @@ export const CATEGORY_PRODUCT_TYPES = [
   { value: 'led-photo-frame', label: 'LED Photo Frame' },
   { value: 'photo-collage', label: 'Photo Collage' },
   { value: 'canvas-print', label: 'Canvas Print' },
-  { value: 'god-photo-frame', label: 'God Photo Frame' },
+  { value: 'god-photo-frame', label: 'Canvas Frame' },
   { value: 't-shirt-printing', label: 'T-Shirt Printing' },
   { value: 'personalised-keychain', label: 'Keychain' },
   { value: 'photo-album', label: 'Photo Album' },
@@ -169,7 +169,7 @@ export function mapApiCategoryCarouselItem(item) {
   const rawVideo = item.videoUrl || item.video || ''
   return {
     _id: item._id,
-    label: item.label || '',
+    label: productType === 'god-photo-frame' ? 'Canvas Frame' : item.label || '',
     value: productType,
     productType,
     video: sanitizeCarouselVideoUrl(rawVideo, productType || item.label || ''),

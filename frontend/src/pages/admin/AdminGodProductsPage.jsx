@@ -148,10 +148,10 @@ export function AdminGodProductsPage() {
 
       if (editingId) {
         await godApi.adminUpdate(editingId, payload)
-        setMessage('God photo frame updated')
+        setMessage('Canvas frame updated')
       } else {
         await godApi.adminCreate(payload)
-        setMessage('God photo frame created')
+        setMessage('Canvas frame created')
       }
       resetForm()
       loadProducts()
@@ -186,7 +186,7 @@ export function AdminGodProductsPage() {
   }
 
   const remove = async (id) => {
-    if (!window.confirm('Deactivate this god photo frame?')) return
+    if (!window.confirm('Deactivate this canvas frame?')) return
     try {
       await godApi.adminDelete(id)
       loadProducts()
@@ -211,7 +211,7 @@ export function AdminGodProductsPage() {
       <div className="admin-page-head">
         <div>
           <p className="eyebrow">Devotional Catalog</p>
-          <h1>God Photo Frames</h1>
+          <h1>Canvas Frames</h1>
         </div>
         <div className="admin-tabs">
           <button type="button" className={tab === 'products' ? 'is-active' : ''} onClick={() => setTab('products')}>
@@ -229,7 +229,7 @@ export function AdminGodProductsPage() {
       {tab === 'products' && (
         <div className="admin-split admin-split-form">
           <section className="admin-panel">
-            <h2>{editingId ? 'Edit god photo frame' : 'Add god photo frame'}</h2>
+            <h2>{editingId ? 'Edit canvas frame' : 'Add canvas frame'}</h2>
             <form className="admin-form" onSubmit={submit}>
               <label>
                 Title
@@ -371,7 +371,7 @@ export function AdminGodProductsPage() {
           </section>
 
           <section className="admin-panel admin-panel-wide">
-            <h2>All god photo frames ({products.length})</h2>
+            <h2>All canvas frames ({products.length})</h2>
             <div className="admin-table-wrap">
               <table className="admin-table">
                 <thead>
@@ -419,7 +419,7 @@ export function AdminGodProductsPage() {
                   })}
                   {!products.length && (
                     <tr>
-                      <td colSpan={5}>No god photo frames yet. Add one from the form.</td>
+                      <td colSpan={5}>No canvas frames yet. Add one from the form.</td>
                     </tr>
                   )}
                 </tbody>

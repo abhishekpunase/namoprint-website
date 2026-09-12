@@ -5,13 +5,13 @@ export function BulkOrdersPage() {
   const phoneNumber = '+918349313800' // apna call number yaha daalein
 
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-    'Hi Namo Print, I am interested in a bulk order. Can you share details on pricing and discounts?'
+    'Hi Namo Print, I am interested in a bulk order. Can you share details on pricing?'
   )}`
 
   const perks = [
     {
-      title: 'Flat 20% OFF',
-      desc: 'On all bulk orders above minimum quantity — no hidden conditions.',
+      title: 'Exclusive Bulk Pricing',
+      desc: 'Get custom pricing on bulk orders above minimum quantity — no hidden conditions.',
     },
     {
       title: 'Dedicated Account Manager',
@@ -29,7 +29,7 @@ export function BulkOrdersPage() {
 
   const steps = [
     ['1', 'Share Your Requirement', 'Tell us the product, quantity, and design details.'],
-    ['2', 'Get a Custom Quote', 'We calculate your bulk pricing with the 20% discount applied.'],
+    ['2', 'Get a Custom Quote', 'We calculate your bulk pricing based on quantity and product.'],
     ['3', 'Approve & Confirm', 'Approve the design proof and confirm your order.'],
     ['4', 'Fast Production & Delivery', 'We print, pack, and deliver right to your doorstep.'],
   ]
@@ -43,8 +43,7 @@ export function BulkOrdersPage() {
             Bulk Orders
           </span>
           <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4">
-            Get <span className="text-yellow-500">20% OFF</span> on Bulk
-            Orders
+            Custom Pricing on <span className="text-yellow-500">Bulk Orders</span>
           </h1>
           <p className="max-w-2xl mx-auto text-white/70 text-lg leading-relaxed mb-8">
             Printing in bulk for your business, event, or brand? Namo Print
@@ -79,7 +78,7 @@ export function BulkOrdersPage() {
         <div className="bg-yellow-500 rounded-2xl shadow-xl px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-center md:text-left">
             <p className="text-black font-extrabold text-2xl">
-              Order in Bulk. Save 20% Instantly.
+              Order in Bulk. Get Custom Pricing.
             </p>
             <p className="text-black/70 text-sm">
               Applicable on minimum order quantities across all product
@@ -93,7 +92,7 @@ export function BulkOrdersPage() {
   rel="noopener noreferrer"
   className="bg-black text-yellow-500 font-semibold px-6 py-3 rounded-full hover:bg-gray-900 transition whitespace-nowrap"
 >
-  Claim Your Discount
+  Request a Quote
 </a>
         </div>
       </section>
@@ -171,7 +170,7 @@ export function BulkOrdersPage() {
           Planning a large order? Let's talk.
         </h2>
         <p className="text-gray-600 mb-6">
-          Reach out now and lock in your 20% bulk discount.
+          Reach out now and get a custom quote for your bulk order.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <a

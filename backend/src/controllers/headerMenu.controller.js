@@ -4,7 +4,13 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 
 async function ensureDefaultMenu() {
   const count = await HeaderMenuItem.countDocuments();
-  if (count > 0) return;
+  if (count > 0) {
+    await HeaderMenuItem.updateMany(
+      { path: '/god-photo-frames', label: { $in: ['God Frame', 'God Photo Frames', 'God Photo Frame', 'God Frames'] } },
+      { $set: { label: 'Canvas Frame' } },
+    );
+    return;
+  }
   await HeaderMenuItem.insertMany(DEFAULT_HEADER_MENU);
 }
 

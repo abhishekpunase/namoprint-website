@@ -152,7 +152,7 @@ const PRESETS_BY_TYPE = {
     { id: 'modern', label: 'Modern', shape: 'square', photoIndex: 2, options: { frameStyle: 'Modern', finish: 'Silver Finish' } },
   ],
   'god-photo-frame': [
-    { id: 'god-1', label: 'God Frame', shape: 'portrait', photoIndex: 0, options: { frameStyle: 'Classic', finish: 'Glossy Varnish' } },
+    { id: 'god-1', label: 'Canvas Frame', shape: 'portrait', photoIndex: 0, options: { frameStyle: 'Classic', finish: 'Glossy Varnish' } },
   ],
   'photo-clock': [
     { id: 'clock-1', label: 'Round Clock', shape: 'round', photoIndex: 0, options: { shape: 'Square Round', frameStyle: 'Round', layout: 'Single' } },

@@ -20,7 +20,7 @@ const PRODUCT_OPTIONS = [
   'T-Shirt Printing',
   'Wall Watches',
   'Corporate Gifts',
-  'God Photo Frames',
+  'Canvas Frames',
   'Trophies',
   'Stickers / Labels',
   'Mixed / Other',

@@ -1,7 +1,7 @@
 export const DEFAULT_HEADER_MENU = [
   { label: 'Home', path: '/', group: 'primary', sortOrder: 0 },
   { label: 'Shop', path: '/products', group: 'primary', sortOrder: 1 },
-  { label: 'God Frame', path: '/god-photo-frames', group: 'primary', sortOrder: 2 },
+  { label: 'Canvas Frame', path: '/god-photo-frames', group: 'primary', sortOrder: 2 },
   { label: 'Name Plate', path: '/name-plates', group: 'primary', sortOrder: 3 },
   { label: 'Baby Frames', path: '/baby-birth-frames', group: 'primary', sortOrder: 4 },
   { label: 'T-Shirt Print', path: '/t-shirt-printing', group: 'primary', sortOrder: 5 },
@@ -16,7 +16,7 @@ export const DEFAULT_HEADER_MENU = [
 export const HEADER_MENU_PATH_PRESETS = [
   { label: 'Home', path: '/' },
   { label: 'Shop / All products', path: '/products' },
-  { label: 'God Photo Frames', path: '/god-photo-frames' },
+  { label: 'Canvas Frame', path: '/god-photo-frames' },
   { label: 'Name Plates', path: '/name-plates' },
   { label: 'Baby Birth Frames', path: '/baby-birth-frames' },
   { label: 'T-Shirt Printing', path: '/t-shirt-printing' },
@@ -35,11 +35,16 @@ export const HEADER_MENU_PATH_PRESETS = [
   { label: 'Track Ticket', path: '/support/track' },
 ]
 
+function displayHeaderLabel(label, path) {
+  if (String(path || '').startsWith('/god-photo-frames')) return 'Canvas Frame'
+  return String(label || '').trim()
+}
+
 export function mapApiHeaderMenuItem(item) {
   const path = String(item.path || item.to || '').trim()
   return {
     id: item._id || item.id,
-    label: String(item.label || '').trim(),
+    label: displayHeaderLabel(item.label, path),
     path,
     to: path,
     group: item.group === 'more' ? 'more' : 'primary',

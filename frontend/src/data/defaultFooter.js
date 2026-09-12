@@ -14,7 +14,7 @@ export const DEFAULT_FOOTER = {
   },
   links: [
     { label: 'Acrylic Products', path: '/products?type=acrylic-wall-photo', group: 'categories', sortOrder: 0 },
-    { label: 'God Photo Frames', path: '/god-photo-frames', group: 'categories', sortOrder: 1 },
+    { label: 'Canvas Frames', path: '/god-photo-frames', group: 'categories', sortOrder: 1 },
     { label: 'Name Plates', path: '/name-plates', group: 'categories', sortOrder: 2 },
     { label: 'Pen Print', path: '/pen-print', group: 'categories', sortOrder: 3 },
     { label: 'QR Standees', path: '/products?type=logo-stickers', group: 'categories', sortOrder: 4 },
@@ -58,7 +58,7 @@ export function mapApiFooter(item) {
     },
     links: (item.links || []).map((link, index) => ({
       _id: link._id,
-      label: link.label || '',
+      label: String(link.path || '').startsWith('/god-photo-frames') ? 'Canvas Frames' : link.label || '',
       path: link.path || '/',
       group: link.group || 'categories',
       sortOrder: link.sortOrder ?? index,

@@ -386,6 +386,8 @@
     object-fit: cover;
     object-position: center;
     will-change: transform;
+    transition: none;
+    pointer-events: none;
   }
 
   .preview-slot--hex .preview-slot__clip,
@@ -431,7 +433,7 @@
   }
 
   .preview-photo-box img {
-    @apply h-full w-full object-cover transition-transform duration-200;
+    @apply h-full w-full object-cover;
   }
 
   .preview-empty {
