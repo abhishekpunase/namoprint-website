@@ -65,7 +65,9 @@ export function AdminInventoryDetailPage() {
           <h1>{detail.product?.title}</h1>
           <p>Per-variant stock management · {detail.inventoryRows.length} variants</p>
         </div>
-        <Link to={`/admin/products/${productId}/edit`} className="inv-btn inv-btn--ghost">Edit in Product Editor</Link>
+        <div className="inv-page-header__actions">
+          <Link to={`/admin/products/${productId}/edit`} className="inv-btn inv-btn--ghost">Edit in Product Editor</Link>
+        </div>
       </header>
 
       {detail.message ? <p className="inv-message">{detail.message}</p> : null}
@@ -80,7 +82,7 @@ export function AdminInventoryDetailPage() {
 
       <section className="inv-panel">
         <h2>Variant Inventory</h2>
-        <div className="inv-table-wrap">
+        <div className="inv-table-wrap inv-table-wrap--desktop">
           <table className="inv-table">
             <thead>
               <tr>
@@ -133,6 +135,50 @@ export function AdminInventoryDetailPage() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="inv-cards--mobile">
+          {detail.inventoryRows.map((row) => (
+            <article key={row.id} className="inv-card">
+              <div className="inv-card__head inv-card__head--simple">
+                <div className="inv-card__title">
+                  <strong>{row.sku}</strong>
+                  <small>{[row.size, row.material, row.frameType].filter(Boolean).join(' · ') || 'Variant'}</small>
+                </div>
+                <StockStatusBadge status={row.status} />
+              </div>
+              <div className="inv-card__meta">
+                <span>Stock {row.currentStock}</span>
+                <span>Reserved {row.reservedStock}</span>
+                <span>Avail {row.availableStock}</span>
+              </div>
+              <div className="inv-card__fields">
+                <label>
+                  Min
+                  <input
+                    type="number"
+                    className="inv-inline-input"
+                    defaultValue={row.minStock}
+                    onBlur={(e) => detail.updateMeta(row.variantId, { minStock: Number(e.target.value) })}
+                  />
+                </label>
+                <label>
+                  Max
+                  <input
+                    type="number"
+                    className="inv-inline-input"
+                    defaultValue={row.maxStock}
+                    onBlur={(e) => detail.updateMeta(row.variantId, { maxStock: Number(e.target.value) })}
+                  />
+                </label>
+              </div>
+              <div className="inv-card__actions">
+                <button type="button" className="inv-btn inv-btn--primary" onClick={() => openAdjust(row)} disabled={detail.saving}>
+                  Adjust stock
+                </button>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
 

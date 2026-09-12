@@ -65,6 +65,11 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 
   await order.save();
   await Cart.findOneAndUpdate({ user: order.user }, { $set: { items: [] } });
-  await markCouponUsed(order.user, order.couponCode);
+  await markCouponUsed(order.user, order.couponCode, {
+    orderId: order._id,
+    discountAmount: order.totals?.couponDiscount || order.totals?.discount || 0,
+    customerName: order.customer?.name,
+    customerEmail: order.customer?.email,
+  });
   res.json({ success: true, order });
 });

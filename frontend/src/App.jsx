@@ -63,6 +63,7 @@ const WallWatchDesignerPage = lazy(() => import('./pages/WallWatchDesignerPage')
 const AdminLoginPage = named(() => import('./pages/admin/AdminLoginPage'), 'AdminLoginPage')
 const AdminDashboardPage = named(() => import('./pages/admin/AdminDashboardPage'), 'AdminDashboardPage')
 const AdminOrdersPage = named(() => import('./pages/admin/AdminOrdersPage'), 'AdminOrdersPage')
+const AdminBulkOrdersPage = named(() => import('./pages/admin/AdminBulkOrdersPage'), 'AdminBulkOrdersPage')
 const AdminOrderDetailPage = named(() => import('./pages/admin/AdminOrderDetailPage'), 'AdminOrderDetailPage')
 const AdminProductsPage = named(() => import('./pages/admin/AdminProductsPage'), 'AdminProductsPage')
 const AdminProductCreatePage = named(() => import('./pages/admin/AdminProductFormPage'), 'AdminProductCreatePage')
@@ -91,7 +92,7 @@ const AdminCustomersPage = named(() => import('./pages/admin/AdminCustomersPage'
 const AdminCustomerDetailPage = named(() => import('./pages/admin/AdminCustomerDetailPage'), 'AdminCustomerDetailPage')
 const AdminInventoryPage = named(() => import('./pages/admin/AdminInventoryPage'), 'AdminInventoryPage')
 const AdminInventoryDetailPage = named(() => import('./pages/admin/AdminInventoryDetailPage'), 'AdminInventoryDetailPage')
-const AdminCouponsPage = named(() => import('./pages/admin/AdminCouponsPage'), 'AdminCouponsPage')
+const AdminCouponsPage = named(() => import('./pages/admin/AdminPrivateCouponsPage'), 'AdminPrivateCouponsPage')
 const AdminCouponCreatePage = named(() => import('./pages/admin/AdminCouponCreatePage'), 'AdminCouponCreatePage')
 const AdminCouponDetailPage = named(() => import('./pages/admin/AdminCouponDetailPage'), 'AdminCouponDetailPage')
 const AdminCouponEditPage = named(() => import('./pages/admin/AdminCouponCreatePage'), 'AdminCouponEditPage')
@@ -99,6 +100,7 @@ const AdminMediaPage = named(() => import('./pages/admin/AdminMediaPage'), 'Admi
 const AdminHomeSlidesPage = named(() => import('./pages/admin/AdminHomeSlidesPage'), 'AdminHomeSlidesPage')
 const AdminHomeTestimonialsPage = named(() => import('./pages/admin/AdminHomeTestimonialsPage'), 'AdminHomeTestimonialsPage')
 const AdminHomeOfferMarqueePage = named(() => import('./pages/admin/AdminHomeOfferMarqueePage'), 'AdminHomeOfferMarqueePage')
+const AdminProductOfTheMonthPage = named(() => import('./pages/admin/AdminProductOfTheMonthPage'), 'AdminProductOfTheMonthPage')
 const AdminCategoryCarouselPage = named(() => import('./pages/admin/AdminCategoryCarouselPage'), 'AdminCategoryCarouselPage')
 const AdminProductReelsPage = named(() => import('./pages/admin/AdminProductReelsPage'), 'AdminProductReelsPage')
 const AdminIntegrationsPage = named(() => import('./pages/admin/AdminIntegrationsPage'), 'AdminIntegrationsPage')
@@ -141,6 +143,7 @@ function App() {
                 <Route index element={<AdminDashboardPage />} />
                 <Route path="orders" element={<AdminOrdersPage />} />
                 <Route path="orders/:id" element={<AdminOrderDetailPage />} />
+                <Route path="bulk-orders" element={<AdminBulkOrdersPage />} />
                 <Route path="products" element={<AdminProductsPage />} />
                 <Route path="products/new" element={<AdminProductCreatePage />} />
                 <Route path="products/:id" element={<AdminProductDetailPage />} />
@@ -173,6 +176,7 @@ function App() {
                 <Route path="home-slides" element={<AdminHomeSlidesPage />} />
                 <Route path="home-testimonials" element={<AdminHomeTestimonialsPage />} />
                 <Route path="home-offer-marquee" element={<AdminHomeOfferMarqueePage />} />
+                <Route path="product-of-the-month" element={<AdminProductOfTheMonthPage />} />
                 <Route path="category-carousel" element={<AdminCategoryCarouselPage />} />
                 <Route path="product-reels" element={<AdminProductReelsPage />} />
                 <Route path="integrations" element={<AdminIntegrationsPage />} />

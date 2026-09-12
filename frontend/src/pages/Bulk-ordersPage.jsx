@@ -1,3 +1,5 @@
+import { BulkOrderInquiryForm } from '../components/home/BulkOrderInquiryForm'
+
 export function BulkOrdersPage() {
   const whatsappNumber = '+919098570277' // apna number yaha daalein (country code ke saath, no +/spaces)
   const phoneNumber = '+918349313800' // apna call number yaha daalein
@@ -141,6 +143,24 @@ export function BulkOrdersPage() {
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Inquiry form */}
+      <section id="bulk-order-form" className="max-w-6xl mx-auto px-4 py-16">
+        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] items-start">
+          <div>
+            <h2 className="text-3xl font-bold text-black">
+              Request a <span className="text-yellow-600">Bulk Order</span>
+            </h2>
+            <p className="mt-3 text-gray-600 leading-relaxed">
+              Fill in your details and quantity. Our team will share custom pricing.
+              You can also reach us on WhatsApp if you prefer a quick chat.
+            </p>
+          </div>
+          <div className="rounded-3xl border border-yellow-600/20 bg-white p-6 shadow-sm">
+            <BulkOrderInquiryForm />
           </div>
         </div>
       </section>

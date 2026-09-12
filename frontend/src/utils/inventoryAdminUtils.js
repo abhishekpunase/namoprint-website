@@ -17,17 +17,10 @@ export const DEFAULT_COLUMNS = [
   'image',
   'name',
   'sku',
-  'barcode',
   'category',
-  'warehouse',
   'current',
-  'reserved',
   'available',
-  'incoming',
-  'min',
-  'max',
   'status',
-  'updated',
   'actions',
 ]
 

@@ -96,7 +96,7 @@ export function CouponBox({ subtotal, itemCount, onApplied, className = '', loca
         <h3 className="font-semibold">Have a coupon?</h3>
       </div>
       <p className="mt-1 text-sm text-indigo-700">
-        Optional — skip if you don&apos;t have a code. Try WELCOME10, BULK15 (5+ items), or FREESHIP (orders above ₹999).
+        Optional — skip if you don&apos;t have a code. Enter a private code if one was shared with you.
       </p>
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row">

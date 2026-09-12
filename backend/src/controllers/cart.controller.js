@@ -474,10 +474,17 @@ export const removeCartItem = asyncHandler(async (req, res) => {
 
 export const syncCart = asyncHandler(async (req, res) => {
   const cart = await findCart(req);
+  const incomingItems = Array.isArray(req.body.items) ? req.body.items : [];
   const validatedItems = [];
 
-  for (const incoming of req.body.items) {
-    validatedItems.push(await buildCartItem(incoming));
+  for (const incoming of incomingItems) {
+    try {
+      validatedItems.push(await buildCartItem(incoming));
+    } catch (error) {
+      const status = error?.statusCode;
+      if (status === 400 || status === 404 || status === 409) continue;
+      throw error;
+    }
   }
 
   cart.items = validatedItems;

@@ -26,6 +26,8 @@ import { productLabelStickerProductRoutes } from './productLabelStickerProduct.r
 import { homeTestimonialRoutes } from './homeTestimonial.routes.js';
 import { homeOfferMarqueeRoutes } from './homeOfferMarquee.routes.js';
 import { contactRoutes } from './contact.routes.js';
+import { bulkOrderRoutes } from './bulkOrder.routes.js';
+import { productOfTheMonthRoutes } from './productOfTheMonth.routes.js';
 
 const routes = Router();
 
@@ -56,5 +58,7 @@ routes.use('/product-label-stickers', productLabelStickerProductRoutes);
 routes.use('/home-testimonials', homeTestimonialRoutes);
 routes.use('/home-offer-marquee', homeOfferMarqueeRoutes);
 routes.use('/contact', contactRoutes);
+routes.use('/bulk-orders', bulkOrderRoutes);
+routes.use('/product-of-the-month', productOfTheMonthRoutes);
 
 export default routes;

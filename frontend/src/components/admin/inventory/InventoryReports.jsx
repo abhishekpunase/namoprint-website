@@ -63,8 +63,10 @@ export function InventoryImportModal({ open, onClose }) {
           <button type="button" className="inv-icon-btn" onClick={onClose}><X size={18} /></button>
         </header>
         <p className="inv-todo-panel">Bulk import requires a backend endpoint. Stock updates use existing product PATCH per variant.</p>
-        <button type="button" className="inv-btn inv-btn--ghost" onClick={downloadTemplate}>Download Template</button>
-        <button type="button" className="inv-btn inv-btn--primary" disabled>Import CSV (TODO)</button>
+        <div className="inv-modal__actions">
+          <button type="button" className="inv-btn inv-btn--ghost" onClick={downloadTemplate}>Download Template</button>
+          <button type="button" className="inv-btn inv-btn--primary" disabled>Import CSV (TODO)</button>
+        </div>
       </div>
     </div>
   )

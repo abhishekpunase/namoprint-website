@@ -1,5 +1,6 @@
 import {
   Activity,
+  Award,
   BarChart3,
   Bell,
   ImageIcon,
@@ -9,6 +10,7 @@ import {
   LayoutDashboard,
   LogOut,
   Package,
+  ClipboardList,
   CircleDot,
   Clapperboard,
   Plug,
@@ -63,6 +65,12 @@ export const adminNavigation = [
     icon: ShoppingBag,
   },
   {
+    id: 'bulk-orders',
+    label: 'Bulk Orders',
+    to: '/admin/bulk-orders',
+    icon: ClipboardList,
+  },
+  {
     id: 'customers',
     label: 'Customers',
     to: '/admin/customers',
@@ -76,7 +84,7 @@ export const adminNavigation = [
   },
   {
     id: 'coupons',
-    label: 'Coupons',
+    label: 'Private Coupons',
     to: '/admin/coupons',
     icon: Ticket,
   },
@@ -97,6 +105,12 @@ export const adminNavigation = [
     label: 'Offer Marquee',
     to: '/admin/home-offer-marquee',
     icon: Megaphone,
+  },
+  {
+    id: 'product-of-the-month',
+    label: 'Product of the Month',
+    to: '/admin/product-of-the-month',
+    icon: Award,
   },
   {
     id: 'category-carousel',
@@ -236,6 +250,9 @@ export function getAdminPageMeta(pathname) {
   if (pathname.startsWith('/admin/home-offer-marquee')) {
     return { title: 'Offer Marquee', description: 'Manage the yellow scrolling offer bar on homepage' }
   }
+  if (pathname.startsWith('/admin/product-of-the-month')) {
+    return { title: 'Product of the Month', description: 'Homepage popup product and Shop Now link' }
+  }
   if (pathname.startsWith('/admin/category-carousel')) {
     return { title: 'Shop Categories', description: 'Manage homepage category videos and posters' }
   }
@@ -250,6 +267,9 @@ export function getAdminPageMeta(pathname) {
   }
   if (pathname.startsWith('/admin/orders')) {
     return { title: 'Orders', description: 'Manage fulfillment and payments' }
+  }
+  if (pathname.startsWith('/admin/bulk-orders')) {
+    return { title: 'Bulk Orders', description: 'Customer bulk order inquiries' }
   }
 
   if (pathname.startsWith('/admin/inventory')) {

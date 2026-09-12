@@ -157,7 +157,7 @@ export function CategoryTable({
               <div className="cat-thumb">
                 {cat.imageUrl ? <img src={cat.imageUrl} alt="" /> : <span>{cat.name?.slice(0, 2)}</span>}
               </div>
-              <div>
+              <div className="cat-card__title">
                 <strong>{cat.name}</strong>
                 <small>{cat.slug}</small>
               </div>
@@ -167,9 +167,9 @@ export function CategoryTable({
               <span>{countProducts(cat._id)} products</span>
               <span>{getCategoryParentName(cat, allCategories)}</span>
             </div>
-            <div className="cat-row-actions">
-              <Link to={`/admin/categories/${cat._id}/edit`} className="cat-btn cat-btn--ghost">Edit</Link>
+            <div className="cat-card__actions">
               <Link to={`/admin/categories/${cat._id}`} className="cat-btn cat-btn--ghost">View</Link>
+              <Link to={`/admin/categories/${cat._id}/edit`} className="cat-btn cat-btn--ghost">Edit</Link>
             </div>
           </article>
         ))}

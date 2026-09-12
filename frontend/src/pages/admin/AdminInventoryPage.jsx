@@ -90,7 +90,9 @@ export function AdminInventoryPage() {
           <h1>Inventory & Stock Management</h1>
           <p>Track variant stock from existing products. Updates use <code>PATCH /admin/products/:id</code>.</p>
         </div>
-        <InventorySearchBar value={list.search} onChange={list.setSearch} onSubmit={list.refresh} />
+        <div className="inv-page-header__actions">
+          <InventorySearchBar value={list.search} onChange={list.setSearch} onSubmit={list.refresh} />
+        </div>
       </header>
 
       {list.error ? <p className="inv-message inv-message--err">{list.error}</p> : null}

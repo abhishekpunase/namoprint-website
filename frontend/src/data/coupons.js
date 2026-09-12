@@ -14,10 +14,11 @@ export const HOME_OFFERS = [
   },
   {
     id: 2,
-    title: 'Bulk Savings',
+    title: 'Bulk Orders',
     subtitle: 'Extra 15% OFF',
     description: 'Planning a hotel, office or cafe setup? Get exclusive pricing on bulk orders.',
-    code: 'BULK15',
+    action: 'bulk',
+    cta: 'Bulk Order',
     icon: 'gift',
     gradient: 'from-slate-900 via-slate-800 to-gray-700',
   },

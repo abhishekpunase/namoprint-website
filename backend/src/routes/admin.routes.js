@@ -90,6 +90,25 @@ import {
 } from '../validators/integrations.validator.js';
 import { orderStatusSchema } from '../validators/order.validator.js';
 import { productSchema, productUpdateSchema } from '../validators/product.validator.js';
+import {
+  deleteAdminBulkOrder,
+  listAdminBulkOrders,
+  updateAdminBulkOrder,
+} from '../controllers/bulkOrder.controller.js';
+import { bulkOrderInquiryUpdateSchema } from '../validators/bulkOrder.validator.js';
+import {
+  getAdminProductOfTheMonth,
+  listProductOfTheMonthCatalog,
+  updateAdminProductOfTheMonth,
+} from '../controllers/productOfTheMonth.controller.js';
+import { productOfTheMonthUpdateSchema } from '../validators/productOfTheMonth.validator.js';
+import {
+  createAdminCoupon,
+  deleteAdminCoupon,
+  listAdminCoupons,
+  updateAdminCoupon,
+} from '../controllers/adminCoupon.controller.js';
+import { adminCouponCreateSchema, adminCouponUpdateSchema } from '../validators/adminCoupon.validator.js';
 
 export const adminRoutes = Router();
 
@@ -151,3 +170,16 @@ adminRoutes.get('/reviews', listAdminReviews);
 adminRoutes.post('/reviews', validate(productReviewSchema), createReview);
 adminRoutes.patch('/reviews/:id', validate(productReviewUpdateSchema), updateReview);
 adminRoutes.delete('/reviews/:id', deleteReview);
+
+adminRoutes.get('/bulk-orders', listAdminBulkOrders);
+adminRoutes.patch('/bulk-orders/:id', validate(bulkOrderInquiryUpdateSchema), updateAdminBulkOrder);
+adminRoutes.delete('/bulk-orders/:id', deleteAdminBulkOrder);
+
+adminRoutes.get('/product-of-the-month', getAdminProductOfTheMonth);
+adminRoutes.get('/product-of-the-month/catalog', listProductOfTheMonthCatalog);
+adminRoutes.patch('/product-of-the-month', validate(productOfTheMonthUpdateSchema), updateAdminProductOfTheMonth);
+
+adminRoutes.get('/managed-coupons', listAdminCoupons);
+adminRoutes.post('/managed-coupons', validate(adminCouponCreateSchema), createAdminCoupon);
+adminRoutes.patch('/managed-coupons/:id', validate(adminCouponUpdateSchema), updateAdminCoupon);
+adminRoutes.delete('/managed-coupons/:id', deleteAdminCoupon);

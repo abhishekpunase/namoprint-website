@@ -99,9 +99,9 @@ return (
           </p>
 
           <h2 className="text-2xl font-bold mt-2 sm:text-5xl">
-            Featured{" "}
+            Best{" "}
             <span className="italic text-yellow-500">
-              Products
+              Seller
             </span>
           </h2>
 

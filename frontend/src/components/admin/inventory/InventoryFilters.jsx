@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { ChevronDown, Search, SlidersHorizontal } from 'lucide-react'
 import { STOCK_STATUSES } from '../../../utils/inventoryAdminUtils'
 
 export function InventorySearchBar({ value, onChange, onSubmit }) {
@@ -9,62 +11,73 @@ export function InventorySearchBar({ value, onChange, onSubmit }) {
         onSubmit?.()
       }}
     >
+      <Search size={16} aria-hidden="true" />
       <input
-        placeholder="Search product, SKU, barcode, category, warehouse…"
+        placeholder="Search product, SKU, category…"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        aria-label="Search inventory"
       />
     </form>
   )
 }
 
 export function InventoryFilters({ filters, onChange, options, onClear }) {
+  const [open, setOpen] = useState(false)
+
   return (
-    <div className="inv-filters">
-      <label>
-        Stock Status
-        <select value={filters.stockStatus} onChange={(e) => onChange({ ...filters, stockStatus: e.target.value })}>
-          {STOCK_STATUSES.map((s) => (
-            <option key={s.value || 'all'} value={s.value}>{s.label}</option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Warehouse
-        <select value={filters.warehouse} onChange={(e) => onChange({ ...filters, warehouse: e.target.value })}>
-          <option value="">All warehouses</option>
-          {options.warehouses.map((w) => (
-            <option key={w.id} value={w.id}>{w.name}</option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Category
-        <select value={filters.category} onChange={(e) => onChange({ ...filters, category: e.target.value })}>
-          <option value="">All categories</option>
-          {options.categories.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Brand
-        <select value={filters.brand} onChange={(e) => onChange({ ...filters, brand: e.target.value })}>
-          <option value="">All brands</option>
-          {options.brands.map((b) => (
-            <option key={b} value={b}>{b}</option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Reserved
-        <select value={filters.reserved} onChange={(e) => onChange({ ...filters, reserved: e.target.value })}>
-          <option value="">Any</option>
-          <option value="yes">Has reserved</option>
-          <option value="no">No reserved</option>
-        </select>
-      </label>
-      <button type="button" className="inv-btn inv-btn--ghost" onClick={onClear}>Clear filters</button>
+    <div className={`inv-filters ${open ? 'is-open' : ''}`}>
+      <button type="button" className="inv-filters__toggle" onClick={() => setOpen((v) => !v)}>
+        <SlidersHorizontal size={16} />
+        <strong>Filters</strong>
+        <ChevronDown size={16} className="inv-filters__chevron" aria-hidden="true" />
+      </button>
+      <div className="inv-filters__body">
+        <label>
+          Stock Status
+          <select value={filters.stockStatus} onChange={(e) => onChange({ ...filters, stockStatus: e.target.value })}>
+            {STOCK_STATUSES.map((s) => (
+              <option key={s.value || 'all'} value={s.value}>{s.label}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Warehouse
+          <select value={filters.warehouse} onChange={(e) => onChange({ ...filters, warehouse: e.target.value })}>
+            <option value="">All warehouses</option>
+            {options.warehouses.map((w) => (
+              <option key={w.id} value={w.id}>{w.name}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Category
+          <select value={filters.category} onChange={(e) => onChange({ ...filters, category: e.target.value })}>
+            <option value="">All categories</option>
+            {options.categories.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Brand
+          <select value={filters.brand} onChange={(e) => onChange({ ...filters, brand: e.target.value })}>
+            <option value="">All brands</option>
+            {options.brands.map((b) => (
+              <option key={b} value={b}>{b}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Reserved
+          <select value={filters.reserved} onChange={(e) => onChange({ ...filters, reserved: e.target.value })}>
+            <option value="">Any</option>
+            <option value="yes">Has reserved</option>
+            <option value="no">No reserved</option>
+          </select>
+        </label>
+        <button type="button" className="inv-btn inv-btn--ghost" onClick={onClear}>Clear filters</button>
+      </div>
     </div>
   )
 }

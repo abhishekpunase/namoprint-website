@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Gift, Percent, Truck, ArrowRight, Sparkles } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { HOME_OFFERS, storeCoupon } from "../../data/coupons";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -17,6 +17,10 @@ export default function SpecialOffers() {
   const { user } = useAuth();
 
   const claimOffer = (offer) => {
+    if (offer.action === "bulk") {
+      navigate("/bulk-orders");
+      return;
+    }
     if (offer.code) storeCoupon(offer.code);
     if (!user) {
       navigate("/login", { state: { from: "/checkout", coupon: offer.code } });
@@ -88,7 +92,7 @@ export default function SpecialOffers() {
                   <p className="mt-5 leading-7 text-white/85">{offer.description}</p>
                 </div>
 
-                {offer.code && (
+                {offer.code ? (
                   <motion.div
                     whileHover={{ scale: 1.05 }}
                     className="mt-8 inline-flex items-center rounded-xl border border-dashed border-white/50 bg-white/15 px-5 py-3 backdrop-blur-xl"
@@ -96,23 +100,34 @@ export default function SpecialOffers() {
                     <span className="text-sm">Coupon</span>
                     <span className="ml-3 text-lg font-bold tracking-widest">{offer.code}</span>
                   </motion.div>
-                )}
+                ) : null}
 
-                <motion.button
-                  type="button"
-                  onClick={() => claimOffer(offer)}
-                  whileTap={{ scale: 0.95 }}
-                  whileHover={{ x: 5 }}
-                  className="mt-10 flex items-center gap-3 rounded-xl bg-white px-6 py-3 font-semibold text-orange-600 transition-all group-hover:shadow-xl"
-                >
-                  Claim Offer
-                  <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-                </motion.button>
+                {offer.action === "bulk" ? (
+                  <Link
+                    to="/bulk-orders"
+                    className="relative z-10 mt-10 inline-flex items-center gap-3 rounded-xl bg-white px-6 py-3 font-semibold text-orange-600 transition-all group-hover:shadow-xl"
+                  >
+                    {offer.cta || "Bulk Order"}
+                    <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                  </Link>
+                ) : (
+                  <motion.button
+                    type="button"
+                    onClick={() => claimOffer(offer)}
+                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ x: 5 }}
+                    className="mt-10 flex items-center gap-3 rounded-xl bg-white px-6 py-3 font-semibold text-orange-600 transition-all group-hover:shadow-xl"
+                  >
+                    {offer.cta || "Claim Offer"}
+                    <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                  </motion.button>
+                )}
               </motion.div>
             );
           })}
         </div>
       </div>
+
     </section>
   );
 }

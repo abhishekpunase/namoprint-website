@@ -39,8 +39,21 @@ export function Footer() {
   };
 
   return (
-    <footer className="relative bg-gradient-to-r from-[#0A1023] via-[#24104A] to-[#0A1023] text-white">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-16 pb-8">
+    <footer className="relative overflow-hidden bg-[#363435] text-white">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-20 -top-24 h-72 w-72 rounded-full bg-[#d4af37]/35 blur-[110px]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-16 top-10 h-80 w-80 rounded-full bg-[#f5d76e]/25 blur-[130px]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-[#c9a227]/20 blur-[100px]"
+      />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 pt-16 pb-8">
         {/* Top */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Company */}

@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom'
+import { ProductOfTheMonthPopup } from '../home/ProductOfTheMonthPopup'
 import { RouteSeo } from '../seo/RouteSeo'
 import { Footer } from './Footer'
 import { Header } from './Header'
@@ -14,6 +15,7 @@ export function AppLayout() {
         <Outlet />
       </main>
       <Footer />
+      <ProductOfTheMonthPopup />
     </>
   )
 }

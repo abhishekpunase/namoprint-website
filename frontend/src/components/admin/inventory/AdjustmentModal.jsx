@@ -106,7 +106,9 @@ export function TransferModal({ open, onClose }) {
           <button type="button" className="inv-icon-btn" onClick={onClose}><X size={18} /></button>
         </header>
         <p className="inv-todo-panel">Warehouse transfers require multi-warehouse backend support. TODO: transfer API.</p>
-        <button type="button" className="inv-btn inv-btn--ghost" onClick={onClose}>Close</button>
+        <div className="inv-modal__actions">
+          <button type="button" className="inv-btn inv-btn--ghost" onClick={onClose}>Close</button>
+        </div>
       </div>
     </div>
   )

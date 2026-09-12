@@ -8,7 +8,7 @@ export const SITE_KEYWORDS =
 export const SITE_LOCALE = 'en_IN'
 export const TWITTER_HANDLE = '@namoprint'
 
-export const DEFAULT_OG_IMAGE = '/favicon.svg'
+export const DEFAULT_OG_IMAGE = '/favicon.jpeg'
 
 export function getSiteOrigin() {
   const fromEnv = import.meta.env.VITE_SITE_URL?.replace(/\/$/, '')

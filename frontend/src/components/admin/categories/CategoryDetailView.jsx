@@ -123,9 +123,6 @@ export function CategoryDetailView() {
           <a href={`/category/${category.productType}`} target="_blank" rel="noreferrer" className="cat-btn cat-btn--ghost">
             <ExternalLink size={16} /> Preview
           </a>
-          <button type="button" className="cat-btn cat-btn--ghost" onClick={() => navigator.clipboard.writeText(`${window.location.origin}/category/${category.productType}`)}>
-            Copy Link
-          </button>
           <button type="button" className="cat-btn cat-btn--danger" onClick={archive}>
             <Trash2 size={16} /> Archive
           </button>

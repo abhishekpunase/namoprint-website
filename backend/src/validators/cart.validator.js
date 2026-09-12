@@ -106,6 +106,7 @@ const cartItemInputSchema = Joi.alternatives().try(
   uvDtfStickerCartItemSchema,
   productLabelStickerCartItemSchema,
   tShirtCartItemSchema,
+  Joi.object().unknown(true),
 );
 
 export const addCartItemSchema = Joi.object({
@@ -116,7 +117,7 @@ export const addCartItemSchema = Joi.object({
 
 export const syncCartSchema = Joi.object({
   body: Joi.object({
-    items: Joi.array().items(cartItemInputSchema).min(1).required(),
+    items: Joi.array().items(cartItemInputSchema).default([]),
   }),
   params: Joi.object(),
   query: Joi.object(),

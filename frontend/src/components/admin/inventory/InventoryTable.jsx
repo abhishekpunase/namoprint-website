@@ -34,7 +34,7 @@ export function InventoryTable({
 
   return (
     <>
-      <div className="inv-table-wrap">
+      <div className="inv-table-wrap inv-table-wrap--desktop">
         <table className={`inv-table ${density === 'compact' ? 'inv-table--compact' : ''}`}>
           <thead>
             <tr>
@@ -108,16 +108,26 @@ export function InventoryTable({
         {rows.map((row) => (
           <article key={row.id} className="inv-card">
             <div className="inv-card__head">
+              <input
+                type="checkbox"
+                checked={selected.includes(row.id)}
+                onChange={() => onToggleSelect(row.id)}
+                aria-label={`Select ${row.productName}`}
+              />
               {row.image ? <img src={row.image} alt="" className="inv-thumb" /> : <span className="inv-thumb inv-thumb--empty">—</span>}
-              <div>
+              <div className="inv-card__title">
                 <Link to={`/admin/inventory/product/${row.productId}`}><strong>{row.productName}</strong></Link>
-                <p>{row.sku}</p>
+                <small>{row.sku}</small>
               </div>
               <StockStatusBadge status={row.status} />
             </div>
             <div className="inv-card__meta">
               <span>Stock {row.currentStock}</span>
               <span>Avail {row.availableStock}</span>
+              <span>{row.category}</span>
+            </div>
+            <div className="inv-card__actions">
+              <Link to={`/admin/inventory/product/${row.productId}`} className="inv-btn inv-btn--ghost">View</Link>
               <button type="button" className="inv-btn inv-btn--ghost" onClick={() => onAdjust(row)}>Adjust</button>
             </div>
           </article>

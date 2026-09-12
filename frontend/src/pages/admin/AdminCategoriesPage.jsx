@@ -84,13 +84,14 @@ export function AdminCategoriesPage() {
           <h1>Category Management</h1>
           <p>Organize products with hierarchical categories, tree view, and storefront display order.</p>
         </div>
-        <Link to="/admin/categories/new" className="cat-btn cat-btn--primary">
-          <Plus size={16} /> Add Category
-        </Link>
+        <div className="cat-page-header__actions">
+          <Link to="/admin/categories/new" className="cat-btn cat-btn--primary">
+            <Plus size={16} /> Add Category
+          </Link>
+        </div>
       </header>
 
       <CategoryQuickActions
-        onAdd={() => navigate('/admin/categories/new')}
         onExport={() => list.exportCsv()}
         onImport={() => {}}
         onManageOrder={() => list.setViewMode('tree')}

@@ -11,14 +11,10 @@ import {
 const DEFAULT_COLUMNS = [
   'image',
   'name',
-  'slug',
   'parent',
-  'description',
   'products',
   'status',
-  'featured',
   'created',
-  'updated',
   'actions',
 ]
 

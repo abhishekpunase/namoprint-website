@@ -34,7 +34,7 @@ export function CategorySidebar({ activeFilter, onFilterChange, totalCount }) {
         </nav>
       </div>
 
-      <div className="cat-sidebar__section">
+      <div className="cat-sidebar__section cat-sidebar__section--home">
         <h3>
           Homepage Sections <span className="cat-todo">Storefront</span>
         </h3>
@@ -55,10 +55,9 @@ export function CategorySidebar({ activeFilter, onFilterChange, totalCount }) {
   )
 }
 
-export function CategoryQuickActions({ onAdd, onExport, onImport, onManageOrder }) {
+export function CategoryQuickActions({ onExport, onImport, onManageOrder }) {
   return (
     <div className="cat-quick-actions">
-      <button type="button" className="cat-btn cat-btn--primary" onClick={onAdd}>Add Category</button>
       <button type="button" className="cat-btn cat-btn--ghost" onClick={onExport}>Export</button>
       <button type="button" className="cat-btn cat-btn--ghost" onClick={onImport} disabled title="TODO: CSV import API">
         Import

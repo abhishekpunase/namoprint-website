@@ -344,6 +344,11 @@ export const api = {
   checkout: (payload) => apiRequest('/orders/checkout', { method: 'POST', body: payload }),
   validateCoupon: (payload) => apiRequest('/coupons/validate', { method: 'POST', body: payload }),
   coupons: () => apiRequest('/coupons'),
+  adminManagedCoupons: () => apiRequest('/admin/managed-coupons'),
+  adminCreateManagedCoupon: (payload) => apiRequest('/admin/managed-coupons', { method: 'POST', body: payload }),
+  adminUpdateManagedCoupon: (id, payload) =>
+    apiRequest(`/admin/managed-coupons/${id}`, { method: 'PATCH', body: payload }),
+  adminDeleteManagedCoupon: (id) => apiRequest(`/admin/managed-coupons/${id}`, { method: 'DELETE' }),
   orders: () => apiRequest('/orders/my'),
   createPayment: (payload) => apiRequest('/payments/razorpay/order', { method: 'POST', body: payload }),
   verifyPayment: (payload) => apiRequest('/payments/razorpay/verify', { method: 'POST', body: payload }),
@@ -411,6 +416,11 @@ export const api = {
     apiRequest(`/admin/home-offer-marquee/${id}`, { method: 'PATCH', body: payload }),
   adminDeleteHomeOfferMarqueeItem: (id) =>
     apiRequest(`/admin/home-offer-marquee/${id}`, { method: 'DELETE' }),
+  productOfTheMonth: () => apiRequest(`/product-of-the-month?t=${Date.now()}`, { cache: 'no-store' }),
+  adminProductOfTheMonth: () => apiRequest('/admin/product-of-the-month'),
+  adminProductOfTheMonthCatalog: () => apiRequest('/admin/product-of-the-month/catalog'),
+  adminUpdateProductOfTheMonth: (payload) =>
+    apiRequest('/admin/product-of-the-month', { method: 'PATCH', body: payload }),
   productReels: () => apiRequest('/product-reels'),
   adminProductReels: () => apiRequest('/admin/product-reels'),
   adminCreateProductReel: (payload) => apiRequest('/admin/product-reels', { method: 'POST', body: payload }),
@@ -419,6 +429,11 @@ export const api = {
   adminDeleteProductReel: (id) => apiRequest(`/admin/product-reels/${id}`, { method: 'DELETE' }),
   contactSettings: () => apiRequest('/contact/settings'),
   submitContact: (payload) => apiRequest('/contact', { method: 'POST', body: payload }),
+  submitBulkOrder: (payload) => apiRequest('/bulk-orders', { method: 'POST', body: payload }),
+  adminBulkOrders: (query = '') => apiRequest(`/admin/bulk-orders${query}`),
+  adminUpdateBulkOrder: (id, payload) =>
+    apiRequest(`/admin/bulk-orders/${id}`, { method: 'PATCH', body: payload }),
+  adminDeleteBulkOrder: (id) => apiRequest(`/admin/bulk-orders/${id}`, { method: 'DELETE' }),
   adminIntegrations: () => apiRequest('/admin/integrations'),
   adminUpdateIntegrations: (payload) => apiRequest('/admin/integrations', { method: 'PATCH', body: payload }),
   adminSendTestEmail: (to) =>

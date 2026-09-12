@@ -88,6 +88,59 @@ export const sendPasswordResetEmail = async ({ to, name, resetUrl }) => {
   });
 };
 
+export const sendBulkOrderEmail = async ({
+  name,
+  email,
+  phone,
+  company,
+  productInterest,
+  quantity,
+  message,
+}) => {
+  const config = await getMailConfig();
+  const to = config.contactToEmail || config.user;
+
+  if (!to) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[dev-mail] Bulk order from ${name} <${email}> qty=${quantity}`);
+      return { delivered: false, devOnly: true };
+    }
+    return { delivered: false };
+  }
+
+  const subject = `New bulk order inquiry from ${name}`;
+  const text = [
+    `Name: ${name}`,
+    `Email: ${email}`,
+    `Phone: ${phone}`,
+    company ? `Company: ${company}` : null,
+    productInterest ? `Product: ${productInterest}` : null,
+    quantity ? `Quantity: ${quantity}` : null,
+    '',
+    'Message:',
+    message || '(none)',
+  ]
+    .filter((line) => line !== null)
+    .join('\n');
+
+  return deliverMail({
+    to,
+    replyTo: email,
+    subject,
+    text,
+    html: `
+      <p><strong>Name:</strong> ${name}</p>
+      <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+      <p><strong>Phone:</strong> ${phone}</p>
+      ${company ? `<p><strong>Company:</strong> ${company}</p>` : ''}
+      ${productInterest ? `<p><strong>Product:</strong> ${productInterest}</p>` : ''}
+      ${quantity ? `<p><strong>Quantity:</strong> ${quantity}</p>` : ''}
+      <p><strong>Message:</strong></p>
+      <p>${String(message || '(none)').replace(/\n/g, '<br/>')}</p>
+    `,
+  });
+};
+
 export const sendContactEmail = async ({ name, email, phone, message }) => {
   const config = await getMailConfig();
   const to = config.contactToEmail || config.user;
