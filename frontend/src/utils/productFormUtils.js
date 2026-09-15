@@ -100,6 +100,15 @@ export function productToForm(product) {
     canvasHeight: String(canvas.height || 1000),
     frameImage: mockup.frameImage || '',
     slotsFromMockup: Boolean(mockup.slotsFromMockup || mockup.frameImage),
+    photoBox: {
+      ...box,
+      x: Number(box.x ?? 0),
+      y: Number(box.y ?? 0),
+      width: Number(box.width ?? canvas.width),
+      height: Number(box.height ?? canvas.height),
+      rotate: Number(box.rotate ?? 0),
+      borderRadius: Number(box.borderRadius ?? 0),
+    },
     boxX: String(box.x ?? 0),
     boxY: String(box.y ?? 0),
     boxWidth: String(box.width ?? canvas.width),
@@ -189,7 +198,14 @@ export function buildProductPayload(form, categories) {
         height: Number(form.boxHeight || 0),
         rotate: Number(form.boxRotate || 0),
         borderRadius: Number(form.boxRadius || 0),
-        ...(form.photoBoxes?.[0]?.slotShape ? { slotShape: form.photoBoxes[0].slotShape } : {}),
+        ...(form.photoBox?.clipPath ? { clipPath: form.photoBox.clipPath } : {}),
+        ...(form.photoBox?.slotShape ? { slotShape: form.photoBox.slotShape } : {}),
+        ...(form.photoBoxes?.[0]?.clipPath && !form.photoBox?.clipPath
+          ? { clipPath: form.photoBoxes[0].clipPath }
+          : {}),
+        ...(form.photoBoxes?.[0]?.slotShape && !form.photoBox?.slotShape
+          ? { slotShape: form.photoBoxes[0].slotShape }
+          : {}),
       },
         ...(form.photoBoxes?.length > 1
         ? {

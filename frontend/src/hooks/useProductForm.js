@@ -189,6 +189,8 @@ export function useProductForm({ productId, onSaved }) {
         height: Number(form.boxHeight || 0),
         rotate: Number(form.boxRotate || 0),
         borderRadius: Number(form.boxRadius || 0),
+        ...(form.photoBox?.clipPath ? { clipPath: form.photoBox.clipPath } : {}),
+        ...(form.photoBox?.slotShape ? { slotShape: form.photoBox.slotShape } : {}),
       },
       photoBoxes: form.photoBoxes,
       multiSlot: form.multiSlot,

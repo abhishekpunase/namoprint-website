@@ -322,8 +322,8 @@ function PhotoSlot({
   const effCrop = crop || { x: 0, y: 0, scale: 1, rotate: 0 }
   const hexSlot = isHexClipPath(clipPath)
   const shapedSlot = Boolean(clipPath)
-  const imgScale = Math.max((effCrop.scale || 1) * (hexSlot ? HEX_PHOTO_FILL_SCALE : 1), 1.2)
-  const panLimit = 70
+  const imgScale = Math.max((effCrop.scale || 1) * (hexSlot ? HEX_PHOTO_FILL_SCALE : 1), 1)
+  const panLimit = 48
 
   const emitCrop = (patch) => onCropChange?.({ ...effCrop, ...patch })
 
@@ -433,6 +433,8 @@ function PhotoSlot({
                 width: '100%',
                 height: '100%',
                 maxWidth: 'none',
+                objectFit: 'cover',
+                overflow: 'hidden',
                 transform: `translate(-50%, -50%) translate(${effCrop.x || 0}%, ${effCrop.y || 0}%) scale(${imgScale}) rotate(${effCrop.rotate || 0}deg)`,
                 transformOrigin: 'center center',
                 transition: dragging ? 'none' : undefined,
@@ -1000,7 +1002,7 @@ export function PreviewFrame({
     const mockupCanvas = product?.mockup?.canvas || { width: 1000, height: 1000 }
     return fitPhotoBoxesToMockupOpening(boxes, mockupCanvas, {
       circular: false,
-      expandRatio: 0.01,
+      expandRatio: 0,
     })
   }, [product, variant, options])
   const canvasW = Number(collageMockup?.canvas?.width || product?.mockup?.canvas?.width) || 1000
@@ -1266,6 +1268,7 @@ if (boxes.every((entry) => entry.clipPath)) {
         : 'min(100%, min(420px, 92vw))'
 
   const photoBoxStyle = photoBoxToStyle(effectiveLayoutBox, layoutCanvas, boxStyleOptions)
+  const singleSlotClip = resolveSlotClipPath(effectiveLayoutBox, product, options)
 
   const dialLayerStyle =
     useCollageSlots && showClockDial
@@ -1559,7 +1562,7 @@ if (boxes.every((entry) => entry.clipPath)) {
             position: 'relative',
             boxShadow: useFrameOverlay ? stageShadow : stageShadow || '0 4px 12px rgba(0,0,0,0.08)',
             borderRadius: useFrameOverlay ? 0 : showClockDial ? 16 : box.borderRadius ? `${Math.min(box.borderRadius, 24)}px` : 12,
-            overflow: showClockDial ? 'visible' : 'hidden',
+            overflow: useFrameOverlay || !showClockDial ? 'hidden' : 'visible',
             background: useFrameOverlay || useLiveProductImage ? 'transparent' : showClockDial ? '#f3f4f6' : undefined,
           }}
           className={showClockDial ? 'clock-preview-shell' : ''}
@@ -1607,20 +1610,30 @@ if (boxes.every((entry) => entry.clipPath)) {
             />
           )}
 
-          {/* Photo slots — aligned to frame transparent windows */}
-          {(!useLiveProductImage || allowPhotoUpload) && (useCollageSlots ? (
+          {/* Photo slots — clipped to mockup openings so uploads never spill outside the frame */}
+          {(!useLiveProductImage || allowPhotoUpload) && (
+          <div className="preview-photo-layer" style={{ zIndex: photoLayerZ }}>
+          {useCollageSlots ? (
             effectiveLayoutBoxes.map((pb, index) => {
               const pbStyle = photoBoxToStyle(pb, layoutCanvas, boxStyleOptions)
+              const slotClip = resolveSlotClipPath(pb, product, options)
               return (
                 <div
                   key={pb.id ?? index}
                   className={`preview-photo-box ${photosUnderFrame ? 'preview-photo-box--under-frame' : ''}`}
-                  style={{ ...pbStyle, zIndex: photoLayerZ }}
+                  style={{
+                    ...pbStyle,
+                    zIndex: photoLayerZ,
+                    overflow: 'hidden',
+                    contain: 'paint',
+                    isolation: 'isolate',
+                    ...(slotClip ? { clipPath: slotClip, WebkitClipPath: slotClip } : {}),
+                  }}
                 >
                   <PhotoSlot
                     src={getPhotoSrc(index)}
                     crop={getCrop(index)}
-                    clipPath={resolveSlotClipPath(pb, product, options)}
+                    clipPath={slotClip}
                     label={`Photo ${index + 1}`}
                     showLabel={!getPhotoSrc(index) && !photosUnderFrame}
                     draggable={!!getPhotoSrc(index)}
@@ -1637,13 +1650,20 @@ if (boxes.every((entry) => entry.clipPath)) {
             className={`preview-photo-box ${
               shouldUseCircularPhotoSlot(product, options, effectiveLayoutBox) ? 'clock-shape-circle' : ''
             } ${photosUnderFrame ? 'preview-photo-box--under-frame' : ''}`}
-            style={{ ...photoBoxStyle, zIndex: photoLayerZ }}
+            style={{
+              ...photoBoxStyle,
+              zIndex: photoLayerZ,
+              overflow: 'hidden',
+              contain: 'paint',
+              isolation: 'isolate',
+              ...(singleSlotClip ? { clipPath: singleSlotClip, WebkitClipPath: singleSlotClip } : {}),
+            }}
           >
             {slotLayout === 'single' ? (
               <PhotoSlot
                 src={getPhotoSrc(0)}
                 crop={getCrop(0)}
-                clipPath={resolveSlotClipPath(effectiveLayoutBox, product, options)}
+                clipPath={singleSlotClip}
                 label="Upload Photo"
                 showLabel={!useFrameOverlay && !showClockDial}
                 draggable={hasPhoto}
@@ -1686,7 +1706,9 @@ if (boxes.every((entry) => entry.clipPath)) {
               </div>
             )}
           </div>
-          ))}
+          )}
+          </div>
+          )}
 
           {/* Frame overlay (PNG/SVG) — sits on top, photo shows through transparent window */}
           {useFrameOverlay && displayFrameUrl && (

@@ -38,6 +38,7 @@ import {
 } from '../validators/homeOfferMarquee.validator.js';
 import {
   productReelSchema,
+  productReelSectionSchema,
   productReelUpdateSchema,
 } from '../validators/productReel.validator.js';
 import { categorySchema, categoryUpdateSchema } from '../validators/category.validator.js';
@@ -79,6 +80,7 @@ import {
   deleteProductReel,
   listAdminProductReels,
   updateProductReel,
+  updateProductReelSection,
 } from '../controllers/productReel.controller.js';
 import {
   getAdminIntegrations,
@@ -187,6 +189,7 @@ adminRoutes.patch('/home-offer-marquee/:id', validate(homeOfferMarqueeUpdateSche
 adminRoutes.delete('/home-offer-marquee/:id', deleteHomeOfferMarqueeItem);
 
 adminRoutes.get('/product-reels', listAdminProductReels);
+adminRoutes.patch('/product-reels/section', validate(productReelSectionSchema), updateProductReelSection);
 adminRoutes.post('/product-reels', validate(productReelSchema), createProductReel);
 adminRoutes.patch('/product-reels/:id', validate(productReelUpdateSchema), updateProductReel);
 adminRoutes.delete('/product-reels/:id', deleteProductReel);

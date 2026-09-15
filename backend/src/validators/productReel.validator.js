@@ -33,3 +33,11 @@ export const productReelUpdateSchema = Joi.object({
   params: Joi.object({ id: Joi.string().required() }),
   query: Joi.object(),
 });
+
+export const productReelSectionSchema = Joi.object({
+  body: Joi.object({
+    isEnabled: Joi.boolean().required(),
+  }),
+  params: Joi.object(),
+  query: Joi.object(),
+});

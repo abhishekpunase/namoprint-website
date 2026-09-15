@@ -459,6 +459,8 @@ export const api = {
     apiRequest('/admin/product-of-the-month', { method: 'PATCH', body: payload }),
   productReels: () => apiRequest('/product-reels'),
   adminProductReels: () => apiRequest('/admin/product-reels'),
+  adminUpdateProductReelSection: (payload) =>
+    apiRequest('/admin/product-reels/section', { method: 'PATCH', body: payload }),
   adminCreateProductReel: (payload) => apiRequest('/admin/product-reels', { method: 'POST', body: payload }),
   adminUpdateProductReel: (id, payload) =>
     apiRequest(`/admin/product-reels/${id}`, { method: 'PATCH', body: payload }),

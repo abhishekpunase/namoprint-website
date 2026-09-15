@@ -115,10 +115,9 @@ export function CanvasPreview({
       fit: layoutFit,
       transparent: true,
     })
-    // Let CSS paint the green slot chrome (same as MockupEditor); keep overflow visible for labels
     delete style.background
     delete style.contain
-    style.overflow = 'visible'
+    if (!box.clipPath) style.overflow = 'visible'
     return style
   }
 
@@ -230,15 +229,29 @@ export function CanvasPreview({
 
           {/* Same mockup + same detected slots as MockupEditor below */}
           {showPrintArea && form.frameImage &&
-            printBoxes.map((box, index) => (
-              <div
-                key={`slot-${index}`}
-                className="peditor-preview__slot"
-                style={boxStyle(box)}
-              >
-                <span className="peditor-preview__slot-label">Slot {index + 1}</span>
-              </div>
-            ))}
+            printBoxes.map((box, index) => {
+              const style = boxStyle(box)
+              const shapeClip = box.clipPath
+                ? { clipPath: box.clipPath, WebkitClipPath: box.clipPath }
+                : null
+              return (
+                <div
+                  key={`slot-${index}`}
+                  className={`peditor-preview__slot ${shapeClip ? 'is-shaped' : ''}`}
+                  style={{
+                    ...style,
+                    clipPath: undefined,
+                    WebkitClipPath: undefined,
+                    overflow: 'visible',
+                    background: 'transparent',
+                    border: shapeClip ? 'none' : undefined,
+                  }}
+                >
+                  {shapeClip ? <span className="peditor-preview__slot-shape" style={shapeClip} /> : null}
+                  <span className="peditor-preview__slot-label">Slot {index + 1}</span>
+                </div>
+              )
+            })}
 
           {heroImage && !form.frameImage && (
             <img src={heroImage} alt="" className="peditor-preview__hero" />

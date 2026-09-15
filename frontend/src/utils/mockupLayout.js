@@ -123,6 +123,19 @@ export function fitPhotoBoxesToMockupOpening(boxes = [], canvas = { width: 1000,
 
     const growX = width * grow
     const growY = height * grow
+
+    // Organic / polygon openings already match the window — expanding spills over the bezel
+    if (box.clipPath) {
+      return {
+        ...box,
+        x: Math.round(x),
+        y: Math.round(y),
+        width: Math.round(width),
+        height: Math.round(height),
+        borderRadius: 0,
+      }
+    }
+
     x = x - growX / 2
     y = y - growY / 2
     width = width + growX
@@ -225,7 +238,7 @@ export function photoBoxToStyle(box, canvas, options = {}) {
     width: `${(bw / cw) * 100}%`,
     height: `${(bh / ch) * 100}%`,
     borderRadius: radius ? `${rx}% / ${ry}%` : undefined,
-    transform: box.rotate ? `rotate(${box.rotate}deg)` : undefined,
+    transform: Number(box.rotate) ? `rotate(${Number(box.rotate)}deg)` : undefined,
     transformOrigin: 'center center',
     overflow: 'hidden',
     isolation: 'isolate',

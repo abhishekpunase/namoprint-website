@@ -1,7 +1,7 @@
 export const DEFAULT_FOOTER = {
   aboutText:
     "India's trusted online printing partner for T-Shirts, Photo Frames, Mugs, Stickers, Corporate Gifts, Packaging Boxes and Custom Printing Solutions.",
-  copyright: '© 2026 Namo Print. All Rights Reserved.',
+  copyright: '© 2026 Namo Print. All Rights Reserved. | Designed & Developed by Jainzmedia',
   headings: {
     categories: 'Categories',
     quick: 'Quick Links',

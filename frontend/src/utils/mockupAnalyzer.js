@@ -1,6 +1,5 @@
 import {
   clipPathFromPolygonPoints,
-  isHexLikeFillRatio,
   normalizeRectPhotoSlot,
 } from './mockupSlotShapes'
 import { filterSignificantPhotoBoxes } from '../data/collageFrameMockup'
@@ -148,6 +147,118 @@ function estimateRoundedRectRadius(isSlotPixel, minX, minY, maxX, maxY) {
   return mid < 6 ? 0 : mid
 }
 
+function wrapDegrees(deg) {
+  let next = Number(deg) || 0
+  next = ((next + 180) % 360 + 360) % 360 - 180
+  if (next <= -180) next += 360
+  return Math.round(next * 10) / 10
+}
+
+/** Tilted polaroid / stamp windows — PCA oriented box so CSS rotate matches the opening. */
+function fitOrientedSlot(isSlotPixel, minX, minY, maxX, maxY, pixelCount) {
+  const bboxW = maxX - minX + 1
+  const bboxH = maxY - minY + 1
+  const aabb = {
+    x: minX,
+    y: minY,
+    width: bboxW,
+    height: bboxH,
+    rotate: 0,
+    borderRadius: estimateRoundedRectRadius(isSlotPixel, minX, minY, maxX, maxY),
+    area: bboxW * bboxH,
+    pixelCount,
+    fillRatio: pixelCount / Math.max(1, bboxW * bboxH),
+  }
+
+  if (bboxW < 18 || bboxH < 18 || pixelCount < 40) return aabb
+
+  const step = Math.max(1, Math.floor(Math.max(bboxW, bboxH) / 140))
+  let sumX = 0
+  let sumY = 0
+  let count = 0
+  const xs = []
+  const ys = []
+
+  for (let y = minY; y <= maxY; y += step) {
+    for (let x = minX; x <= maxX; x += step) {
+      if (!isSlotPixel(x, y)) continue
+      xs.push(x)
+      ys.push(y)
+      sumX += x
+      sumY += y
+      count += 1
+    }
+  }
+
+  if (count < 24) return aabb
+
+  const cx = sumX / count
+  const cy = sumY / count
+  let xx = 0
+  let yy = 0
+  let xy = 0
+  for (let i = 0; i < count; i += 1) {
+    const dx = xs[i] - cx
+    const dy = ys[i] - cy
+    xx += dx * dx
+    yy += dy * dy
+    xy += dx * dy
+  }
+
+  const angle = 0.5 * Math.atan2(2 * xy, xx - yy)
+  let deg = (angle * 180) / Math.PI
+  if (!Number.isFinite(deg)) return aabb
+  if (Math.abs(deg) < 2.2) return aabb
+  if (Math.abs(Math.abs(deg) - 90) < 2.2) return aabb
+
+  const cos = Math.cos(-angle)
+  const sin = Math.sin(-angle)
+  let minRX = Infinity
+  let maxRX = -Infinity
+  let minRY = Infinity
+  let maxRY = -Infinity
+  for (let i = 0; i < count; i += 1) {
+    const dx = xs[i] - cx
+    const dy = ys[i] - cy
+    const rx = dx * cos - dy * sin
+    const ry = dx * sin + dy * cos
+    minRX = Math.min(minRX, rx)
+    maxRX = Math.max(maxRX, rx)
+    minRY = Math.min(minRY, ry)
+    maxRY = Math.max(maxRY, ry)
+  }
+
+  let obbW = maxRX - minRX
+  let obbH = maxRY - minRY
+  if (obbW < 8 || obbH < 8) return aabb
+
+  if (Math.abs(deg) > 45) {
+    const swap = obbW
+    obbW = obbH
+    obbH = swap
+    deg = deg > 0 ? deg - 90 : deg + 90
+  }
+
+  deg = wrapDegrees(deg)
+  if (Math.abs(deg) < 2.2) return aabb
+
+  const area = obbW * obbH
+  const fillRatio = pixelCount / Math.max(1, area)
+  const radiusCap = Math.round(Math.min(obbW, obbH) * 0.08)
+
+  return {
+    x: Math.round(cx - obbW / 2),
+    y: Math.round(cy - obbH / 2),
+    width: Math.round(obbW),
+    height: Math.round(obbH),
+    rotate: deg,
+    borderRadius: Math.min(aabb.borderRadius || 0, Math.max(0, radiusCap)),
+    area,
+    pixelCount,
+    fillRatio,
+  }
+}
+
 function regionIoU(a, b) {
   const x0 = Math.max(a.x, b.x)
   const y0 = Math.max(a.y, b.y)
@@ -228,21 +339,7 @@ function bboxForSegment(region, imageData, width, height, isSlotPixel, axis, seg
 
   if (!count) return null
 
-  const bboxW = maxX - minX + 1
-  const bboxH = maxY - minY + 1
-  const bboxArea = bboxW * bboxH
-
-  return {
-    x: minX,
-    y: minY,
-    width: bboxW,
-    height: bboxH,
-    rotate: 0,
-    borderRadius: estimateRoundedRectRadius(isSlotPixel, minX, minY, maxX, maxY),
-    area: bboxArea,
-    pixelCount: count,
-    fillRatio: count / bboxArea,
-  }
+  return fitOrientedSlot(isSlotPixel, minX, minY, maxX, maxY, count)
 }
 
 function splitByAxis(region, imageData, width, height, isSlotPixel, axis) {
@@ -338,10 +435,10 @@ function enhanceOrganicClipPaths(boxes, imageData, width, height) {
 
   return boxes.map((box) => {
     if (box.clipPath) return box
+    if (Math.abs(Number(box.rotate) || 0) >= 2.5) return box
     const fillRatio = Number(box.fillRatio)
-    if (!Number.isFinite(fillRatio)) return box
-    if (isHexLikeFillRatio(fillRatio)) return box
-    if (fillRatio >= 0.9) return box
+    // Nearly filled rectangle — no organic outline needed
+    if (Number.isFinite(fillRatio) && fillRatio >= 0.92) return box
 
     const clipPath = inferSlotClipPathFromPixels(imageData, width, height, box)
     return clipPath ? { ...box, borderRadius: 0, clipPath } : box
@@ -365,23 +462,28 @@ function regionToBox(region) {
 
   const width = Math.max(8, box.width - pad * 2)
   const height = Math.max(8, box.height - pad * 2)
+  const tilted = Math.abs(Number(box.rotate) || 0) >= 2.5
   const aspect = width / height
   const circularOpening =
+    !tilted &&
     Number(fillRatio) > 0.72 &&
     Number(fillRatio) < 0.84 &&
     aspect > 0.88 &&
     aspect < 1.12
+  const organicOpening = !tilted && Number.isFinite(fillRatio) && fillRatio < 0.88 && !circularOpening
 
   const borderRadius = circularOpening
     ? Math.round(Math.min(width, height) / 2)
-    : Math.round(Number(box.borderRadius) || 0)
+    : organicOpening
+      ? 0
+      : Math.round(Number(box.borderRadius) || 0)
 
   const raw = {
     x: box.x + pad,
     y: box.y + pad,
     width,
     height,
-    rotate: 0,
+    rotate: Number(box.rotate) || 0,
     borderRadius,
     fillRatio,
     slotShape: circularOpening ? 'circle' : box.slotShape || 'rect',
@@ -435,17 +537,7 @@ function findSlotRegions(imageData, width, height, isSlotPixel, maxRegions = MAX
       // Thin-border frames have a large inner window — only reject near-full-canvas noise
       if (bboxArea / canvasArea > 0.96) continue
 
-      regions.push({
-        x: minX,
-        y: minY,
-        width: bboxW,
-        height: bboxH,
-        rotate: 0,
-        borderRadius: estimateRoundedRectRadius(isSlotPixel, minX, minY, maxX, maxY),
-        area: bboxArea,
-        pixelCount: count,
-        fillRatio,
-      })
+      regions.push(fitOrientedSlot(isSlotPixel, minX, minY, maxX, maxY, count))
     }
   }
 
@@ -476,6 +568,26 @@ function findDarkSlotRegions(imageData, width, height, maxRegions = MAX_REGIONS)
   return findSlotRegions(imageData, width, height, isDarkSlot, maxRegions, 0.55)
 }
 
+function isBackgroundLikeRegion(region, width, height) {
+  if (!region) return true
+  const coverage = (region.width * region.height) / Math.max(1, width * height)
+  const padX = Math.max(2, Math.round(width * 0.012))
+  const padY = Math.max(2, Math.round(height * 0.012))
+  const edges = [
+    region.x <= padX,
+    region.y <= padY,
+    region.x + region.width >= width - padX,
+    region.y + region.height >= height - padY,
+  ].filter(Boolean).length
+  const fill = Number(region.fillRatio) || 0
+
+  if (coverage > 0.93) return true
+  // Area around a centered organic frame (touches most canvas edges, sparse fill)
+  if (edges >= 3 && coverage > 0.5 && fill < 0.58) return true
+  if (edges >= 4 && fill < 0.7) return true
+  return false
+}
+
 function pickBestSlotRegions(transparentRegions, darkRegions, lightRegions = [], imageData, width, height) {
   if (!imageData?.length) {
     const merged = mergeAllSlotRegions(transparentRegions, darkRegions, lightRegions)
@@ -486,37 +598,54 @@ function pickBestSlotRegions(transparentRegions, darkRegions, lightRegions = [],
   const isWhite = (x, y) => isWhitePlaceholderPixel(imageData, width, x, y)
   const isGreen = (x, y) => isLightGreenPlaceholderPixel(imageData, width, x, y)
   const isLight = (x, y) => isWhite(x, y) || isGreen(x, y)
+  const interiorsOf = (list) => list.filter((region) => !isBackgroundLikeRegion(region, width, height))
 
-  let primary = refineSlotRegions(findWhiteBlankRegions(imageData, width, height), imageData, width, height, isWhite)
+  let primary = interiorsOf(
+    refineSlotRegions(findWhiteBlankRegions(imageData, width, height), imageData, width, height, isWhite),
+  )
 
   if (primary.length < 2) {
-    const greenOnly = refineSlotRegions(findLightGreenBlankRegions(imageData, width, height), imageData, width, height, isGreen)
+    const greenOnly = interiorsOf(
+      refineSlotRegions(findLightGreenBlankRegions(imageData, width, height), imageData, width, height, isGreen),
+    )
     primary = mergeAllSlotRegions(primary, greenOnly)
+  }
+
+  // A single interior window is the photo slot — don't merge canvas background around the frame
+  if (primary.length === 1 && Number(primary[0].fillRatio) >= 0.32) {
+    return primary
   }
 
   if (primary.length >= 2) {
     return dedupeRegions(primary, 0.5)
   }
 
-  const refinedLight = refineSlotRegions(lightRegions, imageData, width, height, isLight)
-  const merged = mergeAllSlotRegions(primary, refinedLight, transparentRegions, darkRegions)
+  const refinedLight = interiorsOf(refineSlotRegions(lightRegions, imageData, width, height, isLight))
+  const transparentInterior = interiorsOf(transparentRegions)
+  const darkInterior = interiorsOf(darkRegions)
+  const merged = mergeAllSlotRegions(primary, refinedLight, transparentInterior, darkInterior)
   if (merged.length) return dedupeRegions(merged, 0.5)
   if (primary.length) return primary
-  if (darkRegions.length) return darkRegions
-  if (transparentRegions.length) return transparentRegions
-  return lightRegions
+  if (darkInterior.length) return darkInterior
+  if (transparentInterior.length) return transparentInterior
+  return interiorsOf(lightRegions)
 }
 
-function buildResultFromRegions(regions, canvasWidth, canvasHeight, options = {}) {
+function sanitizeDetectedBox(box) {
+  if (!box) return box
+  const { area, pixelCount, ...rest } = box
+  return rest
+}
+
+function buildResultFromBoxes(boxes, canvasWidth, canvasHeight, options = {}) {
   const forAdmin = Boolean(options.forAdmin ?? options.admin)
-  const sorted = sortRegionsSpatially(regions)
-  let boxes = sorted.map(regionToBox)
+  const sorted = sortRegionsSpatially(boxes.map(sanitizeDetectedBox).filter(Boolean))
 
-  boxes = forAdmin
-    ? filterAdminDetectedBoxes(boxes, canvasWidth, canvasHeight)
-    : filterSignificantPhotoBoxes(boxes)
+  let next = forAdmin
+    ? filterAdminDetectedBoxes(sorted, canvasWidth, canvasHeight)
+    : filterSignificantPhotoBoxes(sorted)
 
-  if (!boxes.length) {
+  if (!next.length) {
     const fallback = defaultInsetBox(canvasWidth, canvasHeight)
     return {
       canvasWidth,
@@ -528,11 +657,11 @@ function buildResultFromRegions(regions, canvasWidth, canvasHeight, options = {}
     }
   }
 
-  if (boxes.length === 1) {
+  if (next.length === 1) {
     return {
       canvasWidth,
       canvasHeight,
-      photoBox: boxes[0],
+      photoBox: next[0],
       photoBoxes: [],
       multiSlot: false,
       slotCount: 1,
@@ -542,11 +671,15 @@ function buildResultFromRegions(regions, canvasWidth, canvasHeight, options = {}
   return {
     canvasWidth,
     canvasHeight,
-    photoBox: boxes[0],
-    photoBoxes: boxes,
+    photoBox: next[0],
+    photoBoxes: next,
     multiSlot: true,
-    slotCount: boxes.length,
+    slotCount: next.length,
   }
+}
+
+function buildResultFromRegions(regions, canvasWidth, canvasHeight, options = {}) {
+  return buildResultFromBoxes(regions.map(regionToBox), canvasWidth, canvasHeight, options)
 }
 
 function drawImageToCanvas(img, options = {}) {
@@ -588,14 +721,8 @@ function drawImageToCanvas(img, options = {}) {
   let boxesAtScale = regions.map(regionToBox)
   boxesAtScale = enhanceOrganicClipPaths(boxesAtScale, data, drawW, drawH)
 
-  const scaledRegions = regions.map((region, index) => ({
-    ...region,
-    ...scaleBack(boxesAtScale[index] || region),
-    clipPath: boxesAtScale[index]?.clipPath,
-    fillRatio: boxesAtScale[index]?.fillRatio ?? region.fillRatio,
-  }))
-
-  return buildResultFromRegions(scaledRegions, canvasWidth, canvasHeight, { forAdmin })
+  const boxes = boxesAtScale.map((box) => scaleBack(box))
+  return buildResultFromBoxes(boxes, canvasWidth, canvasHeight, { forAdmin })
 }
 
 function parseSvgDimensions(svgText) {

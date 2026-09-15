@@ -44,6 +44,8 @@ function ReelPreview({ reel }) {
 
 export function AdminProductReelsPage() {
   const [reels, setReels] = useState([])
+  const [sectionEnabled, setSectionEnabled] = useState(true)
+  const [sectionSaving, setSectionSaving] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState('')
   const [error, setError] = useState('')
@@ -55,12 +57,30 @@ export function AdminProductReelsPage() {
   const loadReels = () =>
     api
       .adminProductReels()
-      .then((payload) => setReels(payload.reels || []))
+      .then((payload) => {
+        setReels(payload.reels || [])
+        setSectionEnabled(payload.sectionEnabled !== false)
+      })
       .catch((err) => setError(err.message))
 
   useEffect(() => {
     loadReels()
   }, [])
+
+  const toggleSection = async (enabled) => {
+    setSectionSaving(true)
+    setError('')
+    setMessage('')
+    try {
+      const payload = await api.adminUpdateProductReelSection({ isEnabled: enabled })
+      setSectionEnabled(payload.sectionEnabled !== false)
+      setMessage(enabled ? 'Products Reels section is now visible on the homepage.' : 'Products Reels section is hidden from the homepage.')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSectionSaving(false)
+    }
+  }
 
   const resetForm = () => {
     setForm(emptyForm)
@@ -195,7 +215,7 @@ export function AdminProductReelsPage() {
         <p className="admin-v2-page-header__eyebrow">Content</p>
         <h1 className="admin-v2-page-header__title">Product Reels</h1>
         <p className="admin-v2-page-header__description">
-          Manage homepage product reel videos — upload MP4 or paste URL, set product name, price, and likes.
+          Show or hide the homepage Products Reels section, then manage the reel videos shown there.
         </p>
       </header>
 
@@ -207,6 +227,26 @@ export function AdminProductReelsPage() {
           {message}
         </div>
       ) : null}
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Homepage section</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              {sectionEnabled
+                ? 'Products Reels is currently visible on the home page.'
+                : 'Products Reels is hidden from the home page.'}
+            </p>
+          </div>
+          <AdminToggle
+            checked={sectionEnabled}
+            disabled={sectionSaving}
+            onChange={(e) => toggleSection(e.target.checked)}
+            label={sectionEnabled ? 'Visible on homepage' : 'Hidden on homepage'}
+            description="Turn off to hide the full Watch & Shop / Products Reels block."
+          />
+        </div>
+      </section>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1.1fr]">
         <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">

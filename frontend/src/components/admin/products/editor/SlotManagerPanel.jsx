@@ -22,7 +22,10 @@ export function SlotManagerPanel({ mockupValue, onMockupChange }) {
             <label>Y<input type="number" value={box.y ?? 0} onChange={(e) => patchSlot(index, { y: Number(e.target.value) })} /></label>
             <label>W<input type="number" value={box.width ?? 0} onChange={(e) => patchSlot(index, { width: Number(e.target.value) })} /></label>
             <label>H<input type="number" value={box.height ?? 0} onChange={(e) => patchSlot(index, { height: Number(e.target.value) })} /></label>
-            <label>Rotate<input type="number" value={box.rotate ?? 0} onChange={(e) => patchSlot(index, { rotate: Number(e.target.value) })} /></label>
+            <label>
+              Rotate
+              <input type="number" value={box.rotate ?? 0} onChange={(e) => patchSlot(index, { rotate: Number(e.target.value) })} />
+            </label>
             <label>Radius<input type="number" value={box.borderRadius ?? 0} onChange={(e) => patchSlot(index, { borderRadius: Number(e.target.value) })} /></label>
           </div>
           <small>Canvas {canvasW}×{canvasH}px</small>

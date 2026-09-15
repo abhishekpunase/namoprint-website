@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { FiCrosshair, FiPlus, FiTrash2, FiUploadCloud } from 'react-icons/fi'
+import { FiCrosshair, FiPlus, FiRotateCcw, FiRotateCw, FiTrash2, FiUploadCloud } from 'react-icons/fi'
 import { AdminToggle } from './ui/AdminToggle'
 import { analyzeMockupFile, analyzeMockupFromUrl, defaultInsetBox } from '../../utils/mockupAnalyzer'
 import { getObjectContainFit, photoBoxToStyle, resolveMockupLayout } from '../../utils/mockupLayout'
@@ -8,16 +8,24 @@ const ANALYZE_OPTS = { forAdmin: true }
 const emptyBox = () => ({ x: 0, y: 0, width: 100, height: 100, rotate: 0, borderRadius: 0 })
 
 function normalizeBox(box = {}) {
+  const rotate = Number(box.rotate)
   return {
     x: Number(box.x) || 0,
     y: Number(box.y) || 0,
     width: Math.max(8, Number(box.width) || 100),
     height: Math.max(8, Number(box.height) || 100),
-    rotate: Number(box.rotate) || 0,
+    rotate: Number.isFinite(rotate) ? rotate : 0,
     borderRadius: Number(box.borderRadius ?? box.radius) || 0,
     ...(box.clipPath ? { clipPath: box.clipPath } : {}),
     ...(box.slotShape ? { slotShape: box.slotShape } : {}),
   }
+}
+
+function wrapRotate(deg) {
+  let next = Number(deg) || 0
+  next = ((next + 180) % 360 + 360) % 360 - 180
+  if (next <= -180) next += 360
+  return Math.round(next * 10) / 10
 }
 
 export function MockupEditor({ value, onChange, onUploadFrame, uploading = false }) {
@@ -51,11 +59,15 @@ export function MockupEditor({ value, onChange, onUploadFrame, uploading = false
     }
   }, [value.frameImage, mockupCanvas, boxes.length])
 
-  const boxStyle = (box) =>
-    photoBoxToStyle(box, mockupCanvas, {
+  const boxStyle = (box) => {
+    const style = photoBoxToStyle(box, mockupCanvas, {
       fit: layoutFit,
       transparent: true,
     })
+    delete style.contain
+    style.overflow = 'visible'
+    return style
+  }
 
   const patchBox = (index, patch) => {
     const nextBoxes = boxes.map((box, i) => (i === index ? normalizeBox({ ...box, ...patch }) : box))
@@ -76,6 +88,7 @@ export function MockupEditor({ value, onChange, onUploadFrame, uploading = false
       photoBoxes: (analysis.photoBoxes || []).map(normalizeBox),
       multiSlot: Boolean(analysis.multiSlot),
       slotCount: analysis.slotCount,
+      slotsFromMockup: true,
       analyzeError: '',
     })
     setActiveBoxIndex(0)
@@ -96,6 +109,7 @@ export function MockupEditor({ value, onChange, onUploadFrame, uploading = false
         photoBoxes: (analysis.photoBoxes || []).map(normalizeBox),
         multiSlot: Boolean(analysis.multiSlot),
         slotCount: analysis.slotCount,
+        slotsFromMockup: true,
         analyzeError: '',
       })
       setActiveBoxIndex(0)
@@ -181,10 +195,7 @@ export function MockupEditor({ value, onChange, onUploadFrame, uploading = false
       const cx = ds.orig.x + ds.orig.width / 2
       const cy = ds.orig.y + ds.orig.height / 2
       const angle = (Math.atan2(pointer.y - cy, pointer.x - cx) * 180) / Math.PI
-      let next = Math.round(ds.origRotate + (angle - ds.startAngle))
-      // normalize to -180..180 for nicer inputs
-      next = ((next + 180) % 360) - 180
-      if (next <= -180) next += 360
+      let next = wrapRotate(ds.origRotate + (angle - ds.startAngle))
       patchBox(ds.boxIndex, { rotate: next })
       return
     }
@@ -276,23 +287,38 @@ export function MockupEditor({ value, onChange, onUploadFrame, uploading = false
           {value.frameImage &&
             boxes.map((box, index) => {
               const active = index === activeBoxIndex
+              const style = boxStyle(box)
+              const shapeClip = box.clipPath
+                ? { clipPath: box.clipPath, WebkitClipPath: box.clipPath }
+                : null
               return (
                 <div
                   key={index}
-                  className={`admin-mockup-box ${active ? 'is-active' : ''}`}
-                  style={boxStyle(box)}
+                  className={`admin-mockup-box ${active ? 'is-active' : ''} ${shapeClip ? 'is-shaped' : ''}`}
+                  style={{
+                    ...style,
+                    clipPath: undefined,
+                    WebkitClipPath: undefined,
+                    overflow: 'visible',
+                    border: shapeClip ? 'none' : undefined,
+                    boxShadow: shapeClip ? 'none' : undefined,
+                    background: 'transparent',
+                  }}
                   onPointerDown={(e) => startDrag(e, 'move', index)}
                 >
+                  {shapeClip ? <span className="admin-mockup-box-shape" style={shapeClip} /> : null}
                   <span className="admin-mockup-box-label">Slot {index + 1}</span>
                   {active ? (
                     <>
                       <button
                         type="button"
                         className="admin-mockup-rotate-handle"
-                        title="Drag to rotate"
+                        title="Drag to rotate slot"
                         aria-label="Rotate slot"
                         onPointerDown={(e) => startDrag(e, 'rotate', index)}
-                      />
+                      >
+                        <FiRotateCw />
+                      </button>
                       <button
                         type="button"
                         className="admin-mockup-resize-handle"
@@ -308,7 +334,7 @@ export function MockupEditor({ value, onChange, onUploadFrame, uploading = false
         </div>
 
         <p className="admin-mockup-preview-tip">
-          Drag slot to move · top knob to rotate · corner handle to resize
+          Drag slot to move · blue knob to rotate · corner handle to resize
         </p>
       </div>
 
@@ -428,7 +454,7 @@ export function MockupEditor({ value, onChange, onUploadFrame, uploading = false
               type="number"
               step="1"
               value={activeBox.rotate ?? 0}
-              onChange={(e) => patchActive({ rotate: Number(e.target.value) })}
+              onChange={(e) => patchActive({ rotate: wrapRotate(e.target.value) })}
             />
           </label>
           <label>
@@ -442,8 +468,37 @@ export function MockupEditor({ value, onChange, onUploadFrame, uploading = false
           </label>
         </div>
 
+        <div className="admin-mockup-rotate-tools">
+          <span>Rotate slot</span>
+          <button type="button" onClick={() => patchActive({ rotate: wrapRotate((activeBox.rotate || 0) - 15) })}>
+            <FiRotateCcw /> 15°
+          </button>
+          <button type="button" onClick={() => patchActive({ rotate: wrapRotate((activeBox.rotate || 0) - 5) })}>
+            -5°
+          </button>
+          <input
+            type="range"
+            min="-90"
+            max="90"
+            step="1"
+            value={Math.max(-90, Math.min(90, Number(activeBox.rotate) || 0))}
+            onChange={(e) => patchActive({ rotate: wrapRotate(e.target.value) })}
+            aria-label="Rotate slot"
+          />
+          <button type="button" onClick={() => patchActive({ rotate: wrapRotate((activeBox.rotate || 0) + 5) })}>
+            +5°
+          </button>
+          <button type="button" onClick={() => patchActive({ rotate: wrapRotate((activeBox.rotate || 0) + 15) })}>
+            15° <FiRotateCw />
+          </button>
+          <button type="button" onClick={() => patchActive({ rotate: 0 })}>
+            Reset
+          </button>
+        </div>
+
         <p className="admin-mockup-hint">
-          Drag the orange slot to align with the frame opening. Use the top knob to rotate, corner to resize.
+          Drag the orange slot to align with the frame opening. Use the blue rotate knob, slider, or ±15° buttons
+          to match tilted photo windows.
           {multiSlot
             ? ` ${boxes.length} slot${boxes.length === 1 ? '' : 's'} configured. Customers upload one photo per slot.`
             : ' Single photo window.'}

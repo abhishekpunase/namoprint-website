@@ -154,8 +154,10 @@ export function ProductEditor({ editor, mode = 'create', productId }) {
     // Do NOT treat default emptyForm boxWidth (820) as "already detected".
     const hasDetectedMulti =
       Array.isArray(form.photoBoxes) && form.photoBoxes.some((b) => Number(b?.width) > 0)
+    const hasSavedSlot =
+      Boolean(form.slotsFromMockup) && Number(form.boxWidth) > 8 && Number(form.boxHeight) > 8
 
-    if (hasDetectedMulti) {
+    if (hasDetectedMulti || hasSavedSlot) {
       lastDetectedFrameRef.current = frameUrl
       return undefined
     }

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Volume2, VolumeX, Heart, MessageCircle, Share2, ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { api } from "../../services/api";
-import { DEFAULT_PRODUCT_REELS, mapApiProductReel } from "../../data/defaultProductReels";
+import { mapApiProductReel } from "../../data/defaultProductReels";
 import { resolveMediaUrl } from "../../utils/mediaUrl";
 
 function ReelCard({
@@ -132,6 +132,7 @@ function ReelCard({
 export default function FeedbackReels() {
     const scrollerRef = useRef<HTMLDivElement | null>(null);
     const [remoteReels, setRemoteReels] = useState<ReturnType<typeof mapApiProductReel>[] | null>(null);
+    const [sectionEnabled, setSectionEnabled] = useState<boolean | null>(null);
     const [fullscreenReel, setFullscreenReel] = useState<ReturnType<typeof mapApiProductReel> | null>(null);
 
     useEffect(() => {
@@ -154,10 +155,14 @@ export default function FeedbackReels() {
             .then((payload) => {
                 if (cancelled) return;
                 const items = (payload.reels || []).map(mapApiProductReel);
-                setRemoteReels(items.length ? items : []);
+                setRemoteReels(items);
+                setSectionEnabled(payload.sectionEnabled !== false);
             })
             .catch(() => {
-                if (!cancelled) setRemoteReels([]);
+                if (!cancelled) {
+                    setRemoteReels([]);
+                    setSectionEnabled(false);
+                }
             });
         return () => {
             cancelled = true;
@@ -165,16 +170,20 @@ export default function FeedbackReels() {
     }, []);
 
     const reels = useMemo(() => {
-        if (remoteReels === null) return DEFAULT_PRODUCT_REELS.map(mapApiProductReel);
-        if (remoteReels.length) return remoteReels;
-        return DEFAULT_PRODUCT_REELS.map(mapApiProductReel);
-    }, [remoteReels]);
+        if (sectionEnabled === false) return [];
+        if (remoteReels === null) return [];
+        return remoteReels;
+    }, [remoteReels, sectionEnabled]);
 
     const scrollByCard = (direction: -1 | 1) => {
         const scroller = scrollerRef.current;
         if (!scroller) return;
         scroller.scrollBy({ left: direction * scroller.clientWidth, behavior: "smooth" });
     };
+
+    if (sectionEnabled === false || reels.length === 0) {
+        return null;
+    }
 
     return (
         <section className="bg-[#f8f6f3] py-16 sm:py-24">

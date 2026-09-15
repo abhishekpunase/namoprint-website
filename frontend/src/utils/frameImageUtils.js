@@ -1,9 +1,9 @@
 import { resolveMediaUrl } from './mediaUrl'
 
 const ALPHA_WINDOW = 128
-const CLIP_MIN_FILL = 0.28
-const CLIP_MAX_FILL = 0.92
-const CLIP_RAY_STEPS = 72
+const CLIP_MIN_FILL = 0.22
+const CLIP_MAX_FILL = 0.94
+const CLIP_RAY_STEPS = 120
 const clipPathCache = new Map()
 
 function loadImage(url) {
@@ -94,14 +94,14 @@ function isLightBlankWindow(data, canvasW, x, y) {
   if (a < ALPHA_WINDOW) return false
 
   const lum = 0.299 * r + 0.587 * g + 0.114 * b
-  if (lum < 165) return false
+  if (lum < 155) return false
 
   const maxC = Math.max(r, g, b)
   const minC = Math.min(r, g, b)
   const sat = maxC - minC
 
-  if (lum >= 228 && sat < 48) return true
-  if (lum >= 170 && sat < 110 && g >= r - 10 && g >= b - 10) return true
+  if (lum >= 220 && sat < 55) return true
+  if (lum >= 165 && sat < 120 && g >= r - 12 && g >= b - 12) return true
   return lum >= 248 && sat < 28
 }
 
@@ -159,6 +159,25 @@ function maskPixel(mask, bw, x, y, x0, y0, x1, y1) {
   return mask[(y - y0) * bw + (x - x0)] === 1
 }
 
+function findWindowSeed(data, canvasW, x0, y0, x1, y1, preferred) {
+  const candidates = []
+  if (preferred) candidates.push([Math.round(preferred.x), Math.round(preferred.y)])
+  candidates.push([Math.round((x0 + x1) / 2), Math.round((y0 + y1) / 2)])
+
+  for (const [sx, sy] of candidates) {
+    if (sx >= x0 && sy >= y0 && sx < x1 && sy < y1 && isPhotoWindowPixel(data, canvasW, sx, sy)) {
+      return { x: sx, y: sy }
+    }
+  }
+
+  for (let y = y0; y < y1; y += 2) {
+    for (let x = x0; x < x1; x += 2) {
+      if (isPhotoWindowPixel(data, canvasW, x, y)) return { x, y }
+    }
+  }
+  return null
+}
+
 /** Trace the photo window outline when the slot bbox is non-rectangular (pebble, heart, etc.). */
 export function inferSlotClipPathFromPixels(data, canvasW, canvasH, box) {
   if (box?.clipPath) return box.clipPath
@@ -171,12 +190,12 @@ export function inferSlotClipPathFromPixels(data, canvasW, canvasH, box) {
   const bh = y1 - y0
   if (bw < 12 || bh < 12) return null
 
-  const centroid =
-    findWindowCentroid(data, canvasW, x0, y0, x1, y1) ||
-    { x: x0 + bw / 2, y: y0 + bh / 2 }
+  const centroid = findWindowCentroid(data, canvasW, x0, y0, x1, y1)
+  const seed = findWindowSeed(data, canvasW, x0, y0, x1, y1, centroid)
+  if (!seed) return null
 
-  const seedX = Math.round(centroid.x)
-  const seedY = Math.round(centroid.y)
+  const seedX = seed.x
+  const seedY = seed.y
   const windowMask = buildConnectedWindowMask(data, canvasW, x0, y0, x1, y1, seedX, seedY)
 
   let windowCount = 0
@@ -188,7 +207,7 @@ export function inferSlotClipPathFromPixels(data, canvasW, canvasH, box) {
   if (fillRatio >= CLIP_MAX_FILL || fillRatio < CLIP_MIN_FILL) return null
 
   const points = []
-  const maxR = Math.max(bw, bh) * 0.75
+  const maxR = Math.ceil(Math.hypot(bw, bh) / 2) + 4
 
   for (let i = 0; i < CLIP_RAY_STEPS; i += 1) {
     const angle = (i / CLIP_RAY_STEPS) * Math.PI * 2
@@ -215,7 +234,7 @@ export function inferSlotClipPathFromPixels(data, canvasW, canvasH, box) {
 
   if (points.length < 8) return null
 
-  const inset = 1.5
+  const inset = 0.8
   const pct = points
     .map(([px, py]) => {
       const ix = Math.min(100, Math.max(0, px))
