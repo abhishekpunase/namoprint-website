@@ -4,7 +4,7 @@ import { getProductFrameImage, getProductBaseImage, usesLiveProductImage } from 
 import { getFinishStyle, getFrameStyleHint, hexToRgba, parseMaterialThickness } from '../../data/frameVisuals'
 import { resolveCollageMockup, resolvePreviewPhotoBoxes, resolveUploadedFrameImage } from '../../data/collageFrameMockup'
 import { resolveMediaUrl } from '../../utils/mediaUrl'
-import { punchFrameHoles, shouldPunchFrameHoles, inferSlotClipPathsFromFrame, createFrameSilhouetteMask } from '../../utils/frameImageUtils'
+import { punchFrameHoles, shouldPunchFrameHoles, inferSlotClipPathsFromFrame, createFrameOpeningMask, framePhotoMaskStyle } from '../../utils/frameImageUtils'
 import { photoBoxToStyle, resolveMockupLayout, fitPhotoBoxesToMockupOpening } from '../../utils/mockupLayout'
 import { HEX_PHOTO_FILL_SCALE, isHexClipPath, isHexFrameProduct, forceCircularPhotoSlot, isExplicitCircleShape, shouldUseCircularPhotoSlot } from '../../utils/mockupSlotShapes'
 import { wallWatchShouldUseSvgFrame } from '../../utils/wallWatchFrameUtils'
@@ -420,7 +420,10 @@ function PhotoSlot({
     >
       {src ? (
         <>
-          <div className="preview-slot__clip">
+          <div
+            className="preview-slot__clip"
+            style={clipPath ? { clipPath, WebkitClipPath: clipPath, overflow: 'hidden' } : undefined}
+          >
             <img
               src={resolveMediaUrl(src)}
               alt={label}
@@ -575,6 +578,7 @@ function View3DModal({
   useCollageSlots = false,
   getPhotoSrc,
   getCropForSlot,
+  frameMaskUrl = '',
 }) {
   const [rotation, setRotation] = useState(18)
   const [autoRotate, setAutoRotate] = useState(true)
@@ -690,6 +694,7 @@ function View3DModal({
 
       return (
         <>
+          <div className="absolute inset-0" style={framePhotoMaskStyle(frameMaskUrl)}>
           {collageSlots
             ? collageSlots.map((pb, index) =>
                 renderPhotoInBox(
@@ -700,6 +705,7 @@ function View3DModal({
                 ),
               )
             : renderPhotoInBox(photoUrl, photoCrop, photoAreaStyle, 'main-photo')}
+          </div>
 
           {displayFrameUrl ? (
             <img
@@ -1136,7 +1142,7 @@ export function PreviewFrame({
       return undefined
     }
     let cancelled = false
-    createFrameSilhouetteMask(frameImage)
+    createFrameOpeningMask(frameImage)
       .then((url) => {
         if (!cancelled) setFrameMaskUrl(url || '')
       })
@@ -1284,6 +1290,9 @@ export function PreviewFrame({
 
   const photoBoxStyle = photoBoxToStyle(effectiveLayoutBox, layoutCanvas, boxStyleOptions)
   const singleSlotClip = resolveSlotClipPath(effectiveLayoutBox, product, options)
+  if (singleSlotClip || frameMaskUrl) {
+    photoBoxStyle.borderRadius = 0
+  }
 
   const dialLayerStyle =
     useCollageSlots && showClockDial
@@ -1631,20 +1640,7 @@ export function PreviewFrame({
             className="preview-photo-layer"
             style={{
               zIndex: photoLayerZ,
-              ...(frameMaskUrl
-                ? {
-                    WebkitMaskImage: `url("${frameMaskUrl}")`,
-                    maskImage: `url("${frameMaskUrl}")`,
-                    WebkitMaskSize: 'contain',
-                    maskSize: 'contain',
-                    WebkitMaskPosition: 'center',
-                    maskPosition: 'center',
-                    WebkitMaskRepeat: 'no-repeat',
-                    maskRepeat: 'no-repeat',
-                    WebkitMaskMode: 'alpha',
-                    maskMode: 'alpha',
-                  }
-                : {}),
+              ...framePhotoMaskStyle(frameMaskUrl),
             }}
           >
           {useCollageSlots ? (
@@ -1659,8 +1655,8 @@ export function PreviewFrame({
                     ...pbStyle,
                     zIndex: photoLayerZ,
                     overflow: 'hidden',
-                    contain: 'paint',
                     isolation: 'isolate',
+                    ...(slotClip || frameMaskUrl ? { borderRadius: 0 } : {}),
                     ...(slotClip ? { clipPath: slotClip, WebkitClipPath: slotClip } : {}),
                   }}
                 >
@@ -1688,8 +1684,8 @@ export function PreviewFrame({
               ...photoBoxStyle,
               zIndex: photoLayerZ,
               overflow: 'hidden',
-              contain: 'paint',
               isolation: 'isolate',
+              ...(singleSlotClip || frameMaskUrl ? { borderRadius: 0 } : {}),
               ...(singleSlotClip ? { clipPath: singleSlotClip, WebkitClipPath: singleSlotClip } : {}),
             }}
           >
@@ -1927,6 +1923,7 @@ export function PreviewFrame({
         useCollageSlots={useCollageSlots}
         getPhotoSrc={getPhotoSrc}
         getCropForSlot={getCrop}
+        frameMaskUrl={frameMaskUrl}
       />
       <NumberStyleModal
         open={showNumberStyleModal}

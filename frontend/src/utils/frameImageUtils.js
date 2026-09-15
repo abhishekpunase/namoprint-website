@@ -1,11 +1,12 @@
 import { resolveMediaUrl } from './mediaUrl'
 
 const ALPHA_WINDOW = 128
-const CLIP_MIN_FILL = 0.22
-const CLIP_MAX_FILL = 0.94
-const CLIP_RAY_STEPS = 120
+const CLIP_MIN_FILL = 0.12
+const CLIP_MAX_FILL = 0.995
+const CLIP_RAY_STEPS = 180
 const clipPathCache = new Map()
 const silhouetteMaskCache = new Map()
+const openingMaskCache = new Map()
 
 function loadImage(url) {
   return new Promise((resolve, reject) => {
@@ -90,7 +91,161 @@ function isCanvasBackgroundPixel(data, w, x, y) {
   const b = data[i + 2]
   const lum = 0.299 * r + 0.587 * g + 0.114 * b
   const sat = Math.max(r, g, b) - Math.min(r, g, b)
-  return lum >= 250 && sat < 14
+  // Page / export canvas behind the mockup (not the inner white bezel, which is enclosed)
+  return lum >= 236 && sat < 30
+}
+
+function floodFillExterior(data, w, h) {
+  const exterior = new Uint8Array(w * h)
+  const stack = []
+
+  for (let x = 0; x < w; x += 1) {
+    if (isCanvasBackgroundPixel(data, w, x, 0)) stack.push(x, 0)
+    if (isCanvasBackgroundPixel(data, w, x, h - 1)) stack.push(x, h - 1)
+  }
+  for (let y = 0; y < h; y += 1) {
+    if (isCanvasBackgroundPixel(data, w, 0, y)) stack.push(0, y)
+    if (isCanvasBackgroundPixel(data, w, w - 1, y)) stack.push(w - 1, y)
+  }
+
+  while (stack.length) {
+    const y = stack.pop()
+    const x = stack.pop()
+    if (x < 0 || y < 0 || x >= w || y >= h) continue
+    const idx = y * w + x
+    if (exterior[idx]) continue
+    if (!isCanvasBackgroundPixel(data, w, x, y)) continue
+    exterior[idx] = 1
+    stack.push(x + 1, y, x - 1, y, x, y + 1, x, y - 1)
+  }
+
+  return exterior
+}
+
+function dilateMask(mask, w, h, passes, allowed) {
+  const cur = new Uint8Array(mask)
+  for (let pass = 0; pass < passes; pass += 1) {
+    const next = new Uint8Array(cur)
+    for (let y = 1; y < h - 1; y += 1) {
+      for (let x = 1; x < w - 1; x += 1) {
+        const idx = y * w + x
+        if (cur[idx]) continue
+        if (allowed && !allowed[idx]) continue
+        if (cur[idx - 1] || cur[idx + 1] || cur[idx - w] || cur[idx + w]) {
+          next[idx] = 1
+        }
+      }
+    }
+    cur.set(next)
+  }
+  return cur
+}
+
+function maskToDataUrl(mask, w, h) {
+  const el = document.createElement('canvas')
+  el.width = w
+  el.height = h
+  const ctx = el.getContext('2d')
+  const image = ctx.createImageData(w, h)
+  const out = image.data
+  for (let i = 0; i < mask.length; i += 1) {
+    const p = i * 4
+    const on = mask[i]
+    out[p] = 255
+    out[p + 1] = 255
+    out[p + 2] = 255
+    out[p + 3] = on ? 255 : 0
+  }
+  ctx.putImageData(image, 0, 0)
+  return el.toDataURL('image/png')
+}
+
+/** CSS mask aligned with object-contain frame overlays. */
+export function framePhotoMaskStyle(maskUrl) {
+  if (!maskUrl) return {}
+  return {
+    WebkitMaskImage: `url("${maskUrl}")`,
+    maskImage: `url("${maskUrl}")`,
+    WebkitMaskSize: 'contain',
+    maskSize: 'contain',
+    WebkitMaskPosition: 'center',
+    maskPosition: 'center',
+    WebkitMaskRepeat: 'no-repeat',
+    maskRepeat: 'no-repeat',
+    WebkitMaskMode: 'alpha',
+    maskMode: 'alpha',
+  }
+}
+
+async function readFrameImageData(frameUrl) {
+  const resolved = resolveMediaUrl(frameUrl)
+  if (!resolved) return null
+  const img = await loadImage(resolved)
+  const w = img.naturalWidth || img.width
+  const h = img.naturalHeight || img.height
+  if (!w || !h) return null
+  const el = document.createElement('canvas')
+  el.width = w
+  el.height = h
+  const ctx = el.getContext('2d', { willReadFrequently: true })
+  ctx.drawImage(img, 0, 0, w, h)
+  const imageData = ctx.getImageData(0, 0, w, h)
+  return { data: imageData.data, width: imageData.width, height: imageData.height }
+}
+
+function buildSilhouetteMask(data, w, h) {
+  const exterior = floodFillExterior(data, w, h)
+  let exteriorCount = 0
+  for (let i = 0; i < exterior.length; i += 1) {
+    if (exterior[i]) exteriorCount += 1
+  }
+  if (exteriorCount < w * h * 0.008) return null
+
+  const inside = new Uint8Array(w * h)
+  for (let i = 0; i < inside.length; i += 1) {
+    inside[i] = exterior[i] ? 0 : 1
+  }
+  // Pull the silhouette 1px off the outer edge so photo cannot paint past the bezel.
+  const allowed = inside
+  const erodedExterior = dilateMask(exterior, w, h, 1, allowed)
+  const clipped = new Uint8Array(w * h)
+  for (let i = 0; i < clipped.length; i += 1) {
+    clipped[i] = erodedExterior[i] ? 0 : 1
+  }
+  return maskToDataUrl(clipped, w, h)
+}
+
+function buildOpeningMask(data, w, h) {
+  const exterior = floodFillExterior(data, w, h)
+  const allowed = new Uint8Array(w * h)
+  const opening = new Uint8Array(w * h)
+  let openingCount = 0
+  let interiorCount = 0
+
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      const idx = y * w + x
+      if (exterior[idx]) continue
+      allowed[idx] = 1
+      interiorCount += 1
+      if (isPhotoWindowPixel(data, w, x, y)) {
+        opening[idx] = 1
+        openingCount += 1
+      }
+    }
+  }
+
+  if (interiorCount < w * h * 0.008) return null
+
+  // Enclosed hole in the PNG — this is the exact custom frame shape.
+  // If the mockup has no hole (solid JPG), fall back to the full silhouette.
+  const source = openingCount >= interiorCount * 0.04 && openingCount >= w * h * 0.01
+    ? opening
+    : allowed
+
+  // Tuck 2px under the bezel, never into the canvas around the frame.
+  const dilated = dilateMask(source, w, h, 2, allowed)
+  return maskToDataUrl(dilated, w, h)
 }
 
 /**
@@ -104,84 +259,9 @@ export async function createFrameSilhouetteMask(frameUrl) {
   if (silhouetteMaskCache.has(resolved)) return silhouetteMaskCache.get(resolved)
 
   const pending = (async () => {
-    const img = await loadImage(resolved)
-    const w = img.naturalWidth || img.width
-    const h = img.naturalHeight || img.height
-    if (!w || !h) return ''
-
-    const el = document.createElement('canvas')
-    el.width = w
-    el.height = h
-    const ctx = el.getContext('2d', { willReadFrequently: true })
-    ctx.drawImage(img, 0, 0, w, h)
-    const { data } = ctx.getImageData(0, 0, w, h)
-
-    const exterior = new Uint8Array(w * h)
-    const stack = []
-
-    for (let x = 0; x < w; x += 1) {
-      if (isCanvasBackgroundPixel(data, w, x, 0)) stack.push(x, 0)
-      if (isCanvasBackgroundPixel(data, w, x, h - 1)) stack.push(x, h - 1)
-    }
-    for (let y = 0; y < h; y += 1) {
-      if (isCanvasBackgroundPixel(data, w, 0, y)) stack.push(0, y)
-      if (isCanvasBackgroundPixel(data, w, w - 1, y)) stack.push(w - 1, y)
-    }
-
-    while (stack.length) {
-      const y = stack.pop()
-      const x = stack.pop()
-      if (x < 0 || y < 0 || x >= w || y >= h) continue
-      const idx = y * w + x
-      if (exterior[idx]) continue
-      if (!isCanvasBackgroundPixel(data, w, x, y)) continue
-      exterior[idx] = 1
-      stack.push(x + 1, y, x - 1, y, x, y + 1, x, y - 1)
-    }
-
-    let exteriorCount = 0
-    for (let i = 0; i < exterior.length; i += 1) {
-      if (exterior[i]) exteriorCount += 1
-    }
-    if (exteriorCount < w * h * 0.015) return ''
-
-    const mask = ctx.createImageData(w, h)
-    const out = mask.data
-    const eroded = new Uint8Array(exterior)
-
-    for (let pass = 0; pass < 2; pass += 1) {
-      const next = new Uint8Array(eroded)
-      for (let y = 1; y < h - 1; y += 1) {
-        for (let x = 1; x < w - 1; x += 1) {
-          const idx = y * w + x
-          if (eroded[idx]) continue
-          if (
-            eroded[idx - 1] ||
-            eroded[idx + 1] ||
-            eroded[idx - w] ||
-            eroded[idx + w]
-          ) {
-            next[idx] = 1
-          }
-        }
-      }
-      eroded.set(next)
-    }
-
-    for (let y = 0; y < h; y += 1) {
-      for (let x = 0; x < w; x += 1) {
-        const idx = y * w + x
-        const i = idx * 4
-        const inside = eroded[idx] === 0
-        out[i] = 255
-        out[i + 1] = 255
-        out[i + 2] = 255
-        out[i + 3] = inside ? 255 : 0
-      }
-    }
-
-    ctx.putImageData(mask, 0, 0)
-    return el.toDataURL('image/png')
+    const frame = await readFrameImageData(resolved)
+    if (!frame) return ''
+    return buildSilhouetteMask(frame.data, frame.width, frame.height) || ''
   })()
 
   silhouetteMaskCache.set(resolved, pending)
@@ -191,6 +271,37 @@ export async function createFrameSilhouetteMask(frameUrl) {
     return url
   } catch {
     silhouetteMaskCache.delete(resolved)
+    return ''
+  }
+}
+
+/**
+ * Pixel-perfect photo window: only pixels inside the irregular opening.
+ * Exterior canvas around a blob/heart/pebble stays fully hidden.
+ */
+export async function createFrameOpeningMask(frameUrl) {
+  const resolved = resolveMediaUrl(frameUrl)
+  if (!resolved) return ''
+
+  if (openingMaskCache.has(resolved)) return openingMaskCache.get(resolved)
+
+  const pending = (async () => {
+    const frame = await readFrameImageData(resolved)
+    if (!frame) return ''
+    return (
+      buildOpeningMask(frame.data, frame.width, frame.height) ||
+      buildSilhouetteMask(frame.data, frame.width, frame.height) ||
+      ''
+    )
+  })()
+
+  openingMaskCache.set(resolved, pending)
+  try {
+    const url = await pending
+    openingMaskCache.set(resolved, url)
+    return url
+  } catch {
+    openingMaskCache.delete(resolved)
     return ''
   }
 }
@@ -347,7 +458,7 @@ export function inferSlotClipPathFromPixels(data, canvasW, canvasH, box) {
 
   if (points.length < 8) return null
 
-  const inset = 2.4
+  const inset = 0.8
   const pct = points
     .map(([px, py]) => {
       const ix = Math.min(100, Math.max(0, px))

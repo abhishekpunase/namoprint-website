@@ -1,7 +1,7 @@
 import { resolveCollageMockup, resolvePreviewPhotoBoxes, isBuiltInCatalogMockup } from '../data/collageFrameMockup'
 import { getProductFrameImage, usesLiveProductImage } from '../data/fallbackCatalog'
 import { getMockupFrameUrl } from './enrichProductMockup'
-import { prepareFrameOverlayForExport, shouldPunchFrameHoles, inferSlotClipPathsFromFrame, createFrameSilhouetteMask } from './frameImageUtils'
+import { prepareFrameOverlayForExport, shouldPunchFrameHoles, inferSlotClipPathsFromFrame, createFrameOpeningMask } from './frameImageUtils'
 import { applyFitToPhotoBoxes, getObjectContainFit, resolveMockupLayout } from './mockupLayout'
 import { resolveMediaUrl } from './mediaUrl'
 import { drawClockFace, drawCssClockFrame, shouldShowClockDial } from './clockCanvasExport'
@@ -275,7 +275,7 @@ export async function composeDesignPreview({
     }
 
     try {
-      const maskUrl = await createFrameSilhouetteMask(frameUrl)
+      const maskUrl = await createFrameOpeningMask(frameUrl)
       if (maskUrl) {
         const mask = await loadImage(maskUrl)
         const fw = mask.naturalWidth || mask.width || w

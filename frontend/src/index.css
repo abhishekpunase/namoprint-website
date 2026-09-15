@@ -369,10 +369,13 @@
     z-index: 2;
     overflow: hidden;
     isolation: isolate;
-    contain: paint;
     pointer-events: none;
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-position: center;
+    mask-position: center;
   }
 
   .preview-photo-layer .preview-photo-box {
@@ -393,6 +396,8 @@
     line-height: 0;
     isolation: isolate;
     contain: paint;
+    clip-path: inherit;
+    -webkit-clip-path: inherit;
   }
 
   .preview-slot__img {
