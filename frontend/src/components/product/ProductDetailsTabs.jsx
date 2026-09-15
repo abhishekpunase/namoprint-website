@@ -330,25 +330,36 @@ function DescriptionMediaGrid({ items = [] }) {
   if (!media.length) return null
 
   return (
-    <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="mt-6 grid grid-cols-1 gap-5">
       {media.map((item, index) => {
         const src = resolveMediaUrl(item.url)
         const isReel = item.type === 'reel' || item.type === 'video'
         return (
-          <figure key={`${src}-${index}`} className="overflow-hidden rounded-2xl bg-slate-100">
-            {isReel ? (
-              <video
-                src={src}
-                poster={resolveMediaUrl(item.posterUrl) || undefined}
-                controls
-                playsInline
-                className="aspect-[16/10] w-full object-cover"
-              />
-            ) : (
-              <img src={src} alt={item.caption || 'Product detail'} className="aspect-[16/10] w-full object-cover" />
-            )}
+          <figure
+            key={`${src}-${index}`}
+            className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
+          >
+            <div className="flex w-full items-center justify-center p-2 sm:p-3">
+              {isReel ? (
+                <video
+                  src={src}
+                  poster={resolveMediaUrl(item.posterUrl) || undefined}
+                  controls
+                  playsInline
+                  className="max-h-[80vh] w-full object-contain"
+                />
+              ) : (
+                <img
+                  src={src}
+                  alt={item.caption || 'Product detail'}
+                  className="max-h-[80vh] w-full object-contain"
+                />
+              )}
+            </div>
             {item.caption ? (
-              <figcaption className="px-3 py-2 text-xs text-slate-500 sm:text-sm">{item.caption}</figcaption>
+              <figcaption className="border-t border-slate-100 bg-white px-3 py-2 text-xs text-slate-500 sm:text-sm">
+                {item.caption}
+              </figcaption>
             ) : null}
           </figure>
         )

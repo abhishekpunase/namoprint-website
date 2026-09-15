@@ -82,17 +82,27 @@ export function DescriptionMediaSection({
       {!items.length ? (
         <p className="peditor-empty">No description media yet. Add images or reels for the product details section.</p>
       ) : (
-        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-4">
           {items.map((item, index) => {
             const src = resolveMediaUrl(item.url)
             const isReel = item.type === 'reel' || item.type === 'video'
             return (
               <li key={`${item.url}-${index}`} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                <div className="aspect-[16/10] bg-slate-100">
+                <div className="flex max-h-[70vh] items-center justify-center bg-slate-50 p-2">
                   {isReel ? (
-                    <video src={src} poster={resolveMediaUrl(item.posterUrl) || undefined} controls playsInline className="h-full w-full object-cover" />
+                    <video
+                      src={src}
+                      poster={resolveMediaUrl(item.posterUrl) || undefined}
+                      controls
+                      playsInline
+                      className="max-h-[66vh] w-full object-contain"
+                    />
                   ) : (
-                    <img src={src} alt={item.caption || 'Description media'} className="h-full w-full object-cover" />
+                    <img
+                      src={src}
+                      alt={item.caption || 'Description media'}
+                      className="max-h-[66vh] w-full object-contain"
+                    />
                   )}
                 </div>
                 <div className="flex flex-col gap-2 p-3">
