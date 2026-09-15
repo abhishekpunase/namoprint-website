@@ -13,6 +13,7 @@ import { RelatedProductsSection } from '../components/product/RelatedProductsSec
 import { ProductBreadcrumb } from '../components/product/ProductBreadcrumb'
 import { ProductDescriptionExpandable } from '../components/product/ProductDescriptionExpandable'
 import { ProductPageSeo } from '../components/seo/ProductPageSeo'
+import { ProductPageLoading } from '../components/product/ProductPageLoading'
 import { useAuth } from '../hooks/useAuth'
 import { useCart } from '../hooks/useCart'
 import { trophyApi } from '../services/trophyApi'
@@ -44,6 +45,7 @@ export default function TrophyProductDetailPage() {
   const { isAuthenticated } = useAuth()
   const { addTrophyItem } = useCart()
   const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [relatedProducts, setRelatedProducts] = useState([])
   const [selectedOptionId, setSelectedOptionId] = useState('')
   const [quantity, setQuantity] = useState(1)
@@ -62,13 +64,25 @@ export default function TrophyProductDetailPage() {
   const frameImage = resolveMediaUrl(product?.images?.[0])
 
   useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setProduct(null)
     trophyApi
       .get(slug)
       .then((payload) => {
+        if (cancelled) return
         setProduct(payload.product)
         setSelectedOptionId(payload.product?.qualityOptions?.[0]?._id || '')
       })
-      .catch(() => setProduct(null))
+      .catch(() => {
+        if (!cancelled) setProduct(null)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [slug])
 
   useEffect(() => {
@@ -113,8 +127,19 @@ export default function TrophyProductDetailPage() {
     [allowLogoUpload, isAuthenticated, navigate, slug],
   )
 
+  if (loading) {
+    return <ProductPageLoading />
+  }
+
   if (!product) {
-    return <div className="mx-auto max-w-3xl px-4 py-16 text-center text-slate-500">Loading product…</div>
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <h1 className="text-2xl font-bold text-slate-900">Product not found</h1>
+        <a href="/trophies" className="mt-6 inline-block text-orange-600 hover:underline">
+          Browse trophies
+        </a>
+      </div>
+    )
   }
 
   const handleAddToCart = async () => {

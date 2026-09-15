@@ -7,6 +7,7 @@ import { RelatedProductsSection } from '../components/product/RelatedProductsSec
 import { ProductBreadcrumb, ProductCategoryBadge } from '../components/product/ProductBreadcrumb'
 import { ProductDescriptionExpandable } from '../components/product/ProductDescriptionExpandable'
 import { ProductPageSeo } from '../components/seo/ProductPageSeo'
+import { ProductPageLoading } from '../components/product/ProductPageLoading'
 import { useAuth } from '../hooks/useAuth'
 import { useCart } from '../hooks/useCart'
 import { formatCurrency } from '../utils/format'
@@ -29,15 +30,25 @@ export default function NamePlateProductDetailPage() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
+    let cancelled = false
     setLoading(true)
+    setProduct(null)
     namePlateApi
       .get(slug)
       .then((payload) => {
+        if (cancelled) return
         setProduct(payload.product)
         setSelectedOptionId(payload.product?.qualityOptions?.[0]?._id || '')
       })
-      .catch(() => setProduct(null))
-      .finally(() => setLoading(false))
+      .catch(() => {
+        if (!cancelled) setProduct(null)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [slug])
 
   useEffect(() => {
@@ -51,7 +62,7 @@ export default function NamePlateProductDetailPage() {
   }, [slug])
 
   if (loading) {
-    return <div className="mx-auto max-w-3xl px-6 py-24 text-center text-slate-500">Loading product…</div>
+    return <ProductPageLoading />
   }
 
   if (!product) {

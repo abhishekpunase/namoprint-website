@@ -16,6 +16,7 @@ import { WallWatchProductCard } from '../components/wallwatch/WallWatchProductCa
 import { ProductBreadcrumb, ProductCategoryBadge } from '../components/product/ProductBreadcrumb'
 import { ProductDescriptionExpandable } from '../components/product/ProductDescriptionExpandable'
 import { ProductPageSeo } from '../components/seo/ProductPageSeo'
+import { ProductPageLoading } from '../components/product/ProductPageLoading'
 import { useAuth } from '../hooks/useAuth'
 import { useCart } from '../hooks/useCart'
 import { useDesign } from '../hooks/useDesign'
@@ -43,16 +44,14 @@ export function ProductDesignerPage({
   const { isAuthenticated } = useAuth()
   const { addItem } = useCart()
   const { design, uploadPhoto, setCrop, setText, setNotes } = useDesign()
-  const [product, setProduct] = useState(() => fallbackProducts.find((item) => item.slug === slug))
+  const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [mockupLoading, setMockupLoading] = useState(false)
-  const [variantId, setVariantId] = useState(product?.variants?.[0]?._id || '')
+  const [variantId, setVariantId] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [selectedOptions, setSelectedOptions] = useState(() => ({
-    ...getDefaultOptions(product?.productType, product),
-    ...product?.defaultOptions,
-  }))
+  const [selectedOptions, setSelectedOptions] = useState(() => getDefaultOptions())
   const [activeSlot, setActiveSlot] = useState(0)
   const [slotPhotos, setSlotPhotos] = useState([])
   const [reviews, setReviews] = useState([])
@@ -89,11 +88,17 @@ export function ProductDesignerPage({
   }, [activeSlot, slotPhotos, design.crop])
 
   useEffect(() => {
+    let cancelled = false
+    setLoading(true)
     setMockupLoading(true)
+    setProduct(null)
+    setMessage('')
+
     api
       .product(slug)
       .then(async (payload) => {
         const enriched = await enrichProductMockup(payload.product)
+        if (cancelled) return
         setProduct(enriched)
         setVariantId(enriched.variants?.[0]?._id || '')
         setSelectedOptions({ ...getDefaultOptions(enriched.productType, enriched), ...enriched.defaultOptions })
@@ -102,14 +107,23 @@ export function ProductDesignerPage({
       })
       .catch(async () => {
         const fallback = fallbackProducts.find((item) => item.slug === slug)
-        const enriched = fallback ? await enrichProductMockup(fallback) : fallback
+        const enriched = fallback ? await enrichProductMockup(fallback) : null
+        if (cancelled) return
         setProduct(enriched)
         setVariantId(enriched?.variants?.[0]?._id || '')
         setSelectedOptions({ ...getDefaultOptions(enriched?.productType, enriched), ...enriched?.defaultOptions })
         setSlotPhotos([])
         setActiveSlot(0)
       })
-      .finally(() => setMockupLoading(false))
+      .finally(() => {
+        if (cancelled) return
+        setMockupLoading(false)
+        setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [slug])
 
   useEffect(() => {
@@ -163,12 +177,19 @@ export function ProductDesignerPage({
     [product, variantId],
   )
 
+  if (loading) {
+    return <ProductPageLoading />
+  }
+
   if (!product) {
     return (
       <section className="flex min-h-[60vh] items-center justify-center px-4">
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white px-8 py-10 text-center shadow-sm">
           <FiAlertCircle className="h-10 w-10 text-rose-400" />
           <p className="text-lg font-semibold text-slate-700">Product not found.</p>
+          <Link to={catalogBase} className="mt-2 text-sm font-semibold text-orange-600 hover:underline">
+            Back to products
+          </Link>
         </div>
       </section>
     )

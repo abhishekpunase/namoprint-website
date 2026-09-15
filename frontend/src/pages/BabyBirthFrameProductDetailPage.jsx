@@ -16,6 +16,7 @@ import { RelatedProductsSection } from '../components/product/RelatedProductsSec
 import { ProductBreadcrumb } from '../components/product/ProductBreadcrumb'
 import { ProductDescriptionExpandable } from '../components/product/ProductDescriptionExpandable'
 import { ProductPageSeo } from '../components/seo/ProductPageSeo'
+import { ProductPageLoading } from '../components/product/ProductPageLoading'
 import { useAuth } from '../hooks/useAuth'
 import { useCart } from '../hooks/useCart'
 import { babyBirthFrameApi } from '../services/babyBirthFrameApi'
@@ -47,6 +48,7 @@ export default function BabyBirthFrameProductDetailPage() {
   const { isAuthenticated } = useAuth()
   const { addBabyBirthFrameItem } = useCart()
   const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [relatedProducts, setRelatedProducts] = useState([])
   const [selectedOptionId, setSelectedOptionId] = useState('')
   const [quantity, setQuantity] = useState(1)
@@ -69,14 +71,26 @@ export default function BabyBirthFrameProductDetailPage() {
   const genderOptions = product?.genderOptions?.length ? product.genderOptions : ['Boy', 'Girl']
 
   useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setProduct(null)
     babyBirthFrameApi
       .get(slug)
       .then((payload) => {
+        if (cancelled) return
         setProduct(payload.product)
         setSelectedOptionId(payload.product?.qualityOptions?.[0]?._id || '')
         setGender(payload.product?.genderOptions?.[0] || '')
       })
-      .catch(() => setProduct(null))
+      .catch(() => {
+        if (!cancelled) setProduct(null)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [slug])
 
   useEffect(() => {
@@ -140,8 +154,19 @@ export default function BabyBirthFrameProductDetailPage() {
     setPhotoUrls((prev) => prev.filter((_, i) => i !== index))
   }
 
+  if (loading) {
+    return <ProductPageLoading />
+  }
+
   if (!product) {
-    return <div className="mx-auto max-w-3xl px-4 py-16 text-center text-slate-500">Loading product…</div>
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <h1 className="text-2xl font-bold text-slate-900">Product not found</h1>
+        <a href="/baby-birth-frames" className="mt-6 inline-block text-orange-600 hover:underline">
+          Browse baby birth frames
+        </a>
+      </div>
+    )
   }
 
   const handleAddToCart = async () => {

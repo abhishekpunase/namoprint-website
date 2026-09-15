@@ -6,6 +6,7 @@ import { RelatedProductsSection } from '../components/product/RelatedProductsSec
 import { ProductBreadcrumb, ProductCategoryBadge } from '../components/product/ProductBreadcrumb'
 import { ProductDescriptionExpandable } from '../components/product/ProductDescriptionExpandable'
 import { ProductPageSeo } from '../components/seo/ProductPageSeo'
+import { ProductPageLoading } from '../components/product/ProductPageLoading'
 import { useAuth } from '../hooks/useAuth'
 import { useCart } from '../hooks/useCart'
 import { penPrintApi } from '../services/penPrintApi'
@@ -18,6 +19,7 @@ export default function PenPrintProductDetailPage() {
   const { isAuthenticated } = useAuth()
   const { addPenPrintItem } = useCart()
   const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [relatedProducts, setRelatedProducts] = useState([])
   const [activeImage, setActiveImage] = useState(0)
   const [selectedOptionId, setSelectedOptionId] = useState('')
@@ -27,13 +29,25 @@ export default function PenPrintProductDetailPage() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setProduct(null)
     penPrintApi
       .get(slug)
       .then((payload) => {
+        if (cancelled) return
         setProduct(payload.product)
         setSelectedOptionId(payload.product?.qualityOptions?.[0]?._id || '')
       })
-      .catch(() => setProduct(null))
+      .catch(() => {
+        if (!cancelled) setProduct(null)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [slug])
 
   useEffect(() => {
@@ -46,8 +60,19 @@ export default function PenPrintProductDetailPage() {
       .catch(() => setRelatedProducts([]))
   }, [slug])
 
+  if (loading) {
+    return <ProductPageLoading />
+  }
+
   if (!product) {
-    return <div className="mx-auto max-w-3xl px-6 py-24 text-center text-slate-500">Loading product…</div>
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-24 text-center">
+        <h1 className="text-2xl font-bold text-slate-900">Product not found</h1>
+        <Link to="/pen-print" className="mt-6 inline-block text-orange-600 hover:underline">
+          Browse pen print
+        </Link>
+      </div>
+    )
   }
 
   const selectedOption = product.qualityOptions.find((o) => o._id === selectedOptionId)

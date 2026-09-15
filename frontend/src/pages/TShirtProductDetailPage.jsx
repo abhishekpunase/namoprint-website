@@ -7,6 +7,7 @@ import { RelatedProductsSection } from '../components/product/RelatedProductsSec
 import { TShirtProductCard } from '../components/tshirt/TShirtProductCard'
 import { ProductBreadcrumb } from '../components/product/ProductBreadcrumb'
 import { ProductPageSeo } from '../components/seo/ProductPageSeo'
+import { ProductPageLoading } from '../components/product/ProductPageLoading'
 import { useAuth } from '../hooks/useAuth'
 import { useCart } from '../hooks/useCart'
 import { api } from '../services/api'
@@ -28,6 +29,7 @@ export default function TShirtProductDetailPage() {
   const fileRef = useRef(null)
 
   const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [relatedProducts, setRelatedProducts] = useState([])
   const [activeImage, setActiveImage] = useState(0)
@@ -40,19 +42,29 @@ export default function TShirtProductDetailPage() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
+    let cancelled = false
     setProduct(null)
     setLoadError('')
+    setLoading(true)
     tShirtApi
       .get(slug)
       .then((payload) => {
+        if (cancelled) return
         const p = payload.product
         setProduct(p)
         setSizeQuantities(emptySizeMap(p?.sizes?.length ? p.sizes : DEFAULT_SIZES))
       })
       .catch(() => {
+        if (cancelled) return
         setProduct(null)
         setLoadError('This t-shirt product could not be found.')
       })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [slug])
 
   useEffect(() => {
@@ -141,19 +153,19 @@ export default function TShirtProductDetailPage() {
     }
   }
 
-  if (loadError) {
+  if (loading) {
+    return <ProductPageLoading />
+  }
+
+  if (loadError || !product) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-24 text-center">
-        <p className="text-slate-600">{loadError}</p>
+        <p className="text-slate-600">{loadError || 'This t-shirt product could not be found.'}</p>
         <Link to="/t-shirt-printing" className="mt-4 inline-block text-orange-600 hover:underline">
           Browse t-shirt printing
         </Link>
       </div>
     )
-  }
-
-  if (!product) {
-    return <div className="mx-auto max-w-3xl px-6 py-24 text-center text-slate-500">Loading product…</div>
   }
 
   const detailProduct = {
