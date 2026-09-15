@@ -315,6 +315,7 @@ function PhotoSlot({
   draggable = false,
   onCropChange,
   clipPath,
+  slotRotate = 0,
 }) {
   const containerRef = useRef(null)
   const dragRef = useRef(null)
@@ -324,6 +325,7 @@ function PhotoSlot({
   const shapedSlot = Boolean(clipPath)
   const imgScale = Math.max((effCrop.scale || 1) * (hexSlot ? HEX_PHOTO_FILL_SCALE : 1), 1)
   const panLimit = 48
+  const photoRotate = (Number(effCrop.rotate) || 0) - (Number(slotRotate) || 0)
 
   const emitCrop = (patch) => onCropChange?.({ ...effCrop, ...patch })
 
@@ -439,7 +441,7 @@ function PhotoSlot({
                 height: '100%',
                 maxWidth: 'none',
                 objectFit: 'cover',
-                transform: `translate(-50%, -50%) translate(${effCrop.x || 0}%, ${effCrop.y || 0}%) scale(${imgScale}) rotate(${effCrop.rotate || 0}deg)`,
+                transform: `translate(-50%, -50%) translate(${effCrop.x || 0}%, ${effCrop.y || 0}%) scale(${imgScale}) rotate(${photoRotate}deg)`,
                 transformOrigin: 'center center',
                 transition: dragging ? 'none' : undefined,
               }}
@@ -647,8 +649,9 @@ function View3DModal({
     ? 'Drag to rotate — watch matches your customization'
     : 'Drag to rotate — frame matches your customization'
 
-  const renderPhotoInBox = (src, crop, boxStyle, key) => {
+  const renderPhotoInBox = (src, crop, boxStyle, key, slotRotate = 0) => {
     const shapeClip = shapeClass.includes('heart') ? 'clip-path-heart' : undefined
+    const photoRotate = (Number(crop?.rotate) || 0) - (Number(slotRotate) || 0)
     if (!src) {
       return (
         <div key={key} style={{ ...boxStyle, borderRadius: isCircular ? '50%' : boxStyle.borderRadius }} className={shapeClip}>
@@ -673,7 +676,7 @@ function View3DModal({
           alt="preview"
           className="h-full w-full object-cover"
           style={{
-            transform: `scale(${crop?.scale || 1}) rotate(${crop?.rotate || 0}deg)`,
+            transform: `scale(${crop?.scale || 1}) rotate(${photoRotate}deg)`,
             objectPosition: `${50 - (crop?.x || 0) * 20}% ${50 - (crop?.y || 0) * 20}%`,
           }}
         />
@@ -704,9 +707,10 @@ function View3DModal({
                   getCropForSlot?.(index) || photoCrop,
                   photoBoxToStyle(pb, stageCanvas, boxStyleOpts),
                   `slot-${index}`,
+                  pb.rotate,
                 ),
               )
-            : renderPhotoInBox(photoUrl, photoCrop, photoAreaStyle, 'main-photo')}
+            : renderPhotoInBox(photoUrl, photoCrop, photoAreaStyle, 'main-photo', photoBox?.rotate)}
           </div>
 
           {displayFrameUrl ? (
@@ -770,7 +774,7 @@ function View3DModal({
             alt="preview"
             className="h-full w-full object-cover"
             style={{
-              transform: `translate(${photoCrop?.x || 0}%, ${photoCrop?.y || 0}%) scale(${Math.max(photoCrop?.scale || 1, 1.2)}) rotate(${photoCrop?.rotate || 0}deg)`,
+              transform: `translate(${photoCrop?.x || 0}%, ${photoCrop?.y || 0}%) scale(${Math.max(photoCrop?.scale || 1, 1.2)}) rotate(${(photoCrop?.rotate || 0) - (Number(photoBox?.rotate) || 0)}deg)`,
             }}
           />
         ) : (
@@ -1667,6 +1671,7 @@ export function PreviewFrame({
                     src={getPhotoSrc(index)}
                     crop={getCrop(index)}
                     clipPath={slotClip}
+                    slotRotate={pb.rotate}
                     label={`Photo ${index + 1}`}
                     showLabel={!getPhotoSrc(index) && !photosUnderFrame}
                     draggable={!!getPhotoSrc(index)}
@@ -1697,6 +1702,7 @@ export function PreviewFrame({
                 src={getPhotoSrc(0)}
                 crop={getCrop(0)}
                 clipPath={singleSlotClip}
+                slotRotate={effectiveLayoutBox?.rotate}
                 label="Upload Photo"
                 showLabel={!useFrameOverlay && !showClockDial}
                 draggable={hasPhoto}

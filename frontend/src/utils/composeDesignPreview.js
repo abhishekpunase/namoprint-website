@@ -104,7 +104,7 @@ function drawPhotoInBox(ctx, img, box, crop = {}) {
   const centerY = box.y + posY * box.height
 
   ctx.translate(centerX, centerY)
-  ctx.rotate(((effCrop.rotate || 0) * Math.PI) / 180)
+  ctx.rotate((((effCrop.rotate || 0) - (Number(box.rotate) || 0)) * Math.PI) / 180)
   ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh)
   ctx.restore()
 }
