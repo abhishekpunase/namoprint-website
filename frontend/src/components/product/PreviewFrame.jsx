@@ -415,6 +415,7 @@ function PhotoSlot({
         overflow: 'hidden',
         touchAction: draggable && src ? 'none' : 'auto',
         userSelect: 'none',
+        contain: 'paint',
         ...(clipPath ? { clipPath, WebkitClipPath: clipPath } : {}),
       }}
     >
@@ -422,8 +423,9 @@ function PhotoSlot({
         <>
           <div
             className="preview-slot__clip"
-            style={clipPath ? { clipPath, WebkitClipPath: clipPath, overflow: 'hidden' } : undefined}
+            style={clipPath ? { clipPath, WebkitClipPath: clipPath, overflow: 'hidden' } : { overflow: 'hidden' }}
           >
+            <div className="preview-slot__clip-inner">
             <img
               src={resolveMediaUrl(src)}
               alt={label}
@@ -437,12 +439,12 @@ function PhotoSlot({
                 height: '100%',
                 maxWidth: 'none',
                 objectFit: 'cover',
-                overflow: 'hidden',
                 transform: `translate(-50%, -50%) translate(${effCrop.x || 0}%, ${effCrop.y || 0}%) scale(${imgScale}) rotate(${effCrop.rotate || 0}deg)`,
                 transformOrigin: 'center center',
                 transition: dragging ? 'none' : undefined,
               }}
             />
+            </div>
           </div>
           {draggable && (
             <>
@@ -1424,7 +1426,7 @@ export function PreviewFrame({
       : finishStyle.shadow
 
   return (
-    <div className="product-frame-stage w-full max-w-full">
+    <div className="product-frame-stage w-full max-w-full overflow-hidden">
       {/* ---------- Toolbar ---------- */}
       {!compact && (
         <div className="mb-4 flex flex-nowrap items-center gap-2 overflow-x-auto rounded-2xl border border-gray-200 bg-white px-3 py-2.5 shadow-sm scrollbar-hide sm:flex-wrap sm:gap-3 sm:px-4 sm:py-3">
@@ -1586,7 +1588,8 @@ export function PreviewFrame({
             position: 'relative',
             boxShadow: useFrameOverlay ? stageShadow : stageShadow || '0 4px 12px rgba(0,0,0,0.08)',
             borderRadius: useFrameOverlay ? 0 : showClockDial ? 16 : box.borderRadius ? `${Math.min(box.borderRadius, 24)}px` : 12,
-            overflow: useFrameOverlay || !showClockDial ? 'hidden' : 'visible',
+            overflow: 'hidden',
+            isolation: 'isolate',
             background: useFrameOverlay || useLiveProductImage ? 'transparent' : showClockDial ? '#f3f4f6' : undefined,
           }}
           className={showClockDial ? 'clock-preview-shell' : ''}
@@ -1637,7 +1640,7 @@ export function PreviewFrame({
           {/* Photo slots — clipped to mockup openings so uploads never spill outside the frame */}
           {(!useLiveProductImage || allowPhotoUpload) && (
           <div
-            className="preview-photo-layer"
+            className={`preview-photo-layer ${photosUnderFrame ? 'preview-photo-layer--under-frame' : ''}`}
             style={{
               zIndex: photoLayerZ,
               ...framePhotoMaskStyle(frameMaskUrl),

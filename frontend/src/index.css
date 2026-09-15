@@ -361,6 +361,8 @@
     @apply absolute z-[2] overflow-hidden bg-white shadow-[inset_0_0_0_10px_rgba(255,255,255,0.5),0_18px_34px_rgba(31,37,35,0.18)];
     isolation: isolate;
     contain: paint;
+    overflow: hidden;
+    overflow: clip;
   }
 
   .preview-photo-layer {
@@ -368,6 +370,7 @@
     inset: 0;
     z-index: 2;
     overflow: hidden;
+    overflow: clip;
     isolation: isolate;
     pointer-events: none;
     -webkit-mask-repeat: no-repeat;
@@ -382,8 +385,15 @@
     pointer-events: auto;
   }
 
+  .preview-photo-layer--under-frame {
+    overflow: hidden !important;
+    overflow: clip !important;
+    contain: paint;
+  }
+
   .preview-slot--clip {
     overflow: hidden !important;
+    overflow: clip !important;
     isolation: isolate;
     contain: paint;
   }
@@ -392,12 +402,14 @@
     position: absolute;
     inset: 0;
     overflow: hidden !important;
+    overflow: clip !important;
     border-radius: inherit;
     line-height: 0;
     isolation: isolate;
     contain: paint;
     clip-path: inherit;
     -webkit-clip-path: inherit;
+    transform: translateZ(0);
   }
 
   .preview-slot__img {
@@ -406,15 +418,16 @@
     height: 100%;
     object-fit: cover;
     object-position: center;
-    will-change: transform;
     transition: none;
     pointer-events: none;
   }
 
-  .preview-slot--hex .preview-slot__clip,
-  .preview-slot--shaped .preview-slot__clip {
+  .preview-slot__clip-inner {
     position: absolute;
     inset: 0;
+    overflow: hidden;
+    overflow: clip;
+    contain: paint;
   }
 
   .preview-slot--hex .preview-slot__img,
@@ -429,6 +442,7 @@
     z-index: 2 !important;
     pointer-events: auto;
     overflow: hidden !important;
+    overflow: clip !important;
   }
 
   .preview-photo-box--under-frame .preview-empty {
