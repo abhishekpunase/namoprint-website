@@ -428,7 +428,24 @@ export function inferSlotClipPathFromPixels(data, canvasW, canvasH, box) {
   }
 
   const fillRatio = windowCount / (bw * bh)
-  if (fillRatio >= CLIP_MAX_FILL || fillRatio < CLIP_MIN_FILL) return null
+  if (fillRatio < CLIP_MIN_FILL) return null
+
+  return clipPathFromWindowMask(windowMask, canvasW, x0, y0, x1, y1, seedX, seedY, fillRatio)
+}
+
+function isNearlyRectangularPolygon(points) {
+  if (points.length < 8) return true
+  let onEdge = 0
+  for (const [px, py] of points) {
+    if (px <= 3 || px >= 97 || py <= 3 || py >= 97) onEdge += 1
+  }
+  return onEdge / points.length >= 0.82
+}
+
+function clipPathFromWindowMask(windowMask, canvasW, x0, y0, x1, y1, seedX, seedY, fillRatio = 0) {
+  const bw = x1 - x0
+  const bh = y1 - y0
+  if (bw < 12 || bh < 12) return null
 
   const points = []
   const maxR = Math.ceil(Math.hypot(bw, bh) / 2) + 4
@@ -457,21 +474,132 @@ export function inferSlotClipPathFromPixels(data, canvasW, canvasH, box) {
   }
 
   if (points.length < 8) return null
+  if (fillRatio >= CLIP_MAX_FILL && isNearlyRectangularPolygon(points)) return null
+  if (isNearlyRectangularPolygon(points) && fillRatio >= 0.9) return null
 
-  const inset = 0.8
+  // Keep the traced opening. Dilation already tucks the photo under the bezel.
   const pct = points
     .map(([px, py]) => {
-      const ix = Math.min(100, Math.max(0, px))
-      const iy = Math.min(100, Math.max(0, py))
-      const cx = 50
-      const cy = 50
-      const nx = cx + (ix - cx) * (1 - inset / 50)
-      const ny = cy + (iy - cy) * (1 - inset / 50)
+      const nx = Math.min(100, Math.max(0, px))
+      const ny = Math.min(100, Math.max(0, py))
       return `${nx.toFixed(1)}% ${ny.toFixed(1)}%`
     })
     .join(', ')
 
   return `polygon(${pct})`
+}
+
+/**
+ * Enclosed photo windows from a mockup PNG: interior hole (and inner white
+ * bezel), never the canvas around the frame. Boxes include an organic clipPath.
+ */
+export function detectEnclosedPhotoWindows(data, w, h) {
+  if (!data?.length || !w || !h) return []
+
+  const exterior = floodFillExterior(data, w, h)
+  const opening = new Uint8Array(w * h)
+  const allowed = new Uint8Array(w * h)
+  let openingCount = 0
+
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      const idx = y * w + x
+      if (exterior[idx]) continue
+      allowed[idx] = 1
+      if (isPhotoWindowPixel(data, w, x, y)) {
+        opening[idx] = 1
+        openingCount += 1
+      }
+    }
+  }
+
+  if (openingCount < w * h * 0.008) return []
+
+  const dilatePasses = Math.max(3, Math.round(Math.min(w, h) * 0.01))
+  const dilated = dilateMask(opening, w, h, dilatePasses, allowed)
+
+  const visited = new Uint8Array(w * h)
+  const boxes = []
+  const minPixels = Math.max(280, Math.round(w * h * 0.012))
+
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      const start = y * w + x
+      if (visited[start] || !dilated[start]) continue
+
+      let minX = x
+      let maxX = x
+      let minY = y
+      let maxY = y
+      let count = 0
+      let sumX = 0
+      let sumY = 0
+      let touchesBorder = false
+      const stack = [x, y]
+
+      while (stack.length) {
+        const cy = stack.pop()
+        const cx = stack.pop()
+        if (cx < 0 || cy < 0 || cx >= w || cy >= h) continue
+        const idx = cy * w + cx
+        if (visited[idx] || !dilated[idx]) continue
+        visited[idx] = 1
+        count += 1
+        sumX += cx
+        sumY += cy
+        minX = Math.min(minX, cx)
+        maxX = Math.max(maxX, cx)
+        minY = Math.min(minY, cy)
+        maxY = Math.max(maxY, cy)
+        if (cx === 0 || cy === 0 || cx === w - 1 || cy === h - 1) touchesBorder = true
+        stack.push(cx + 1, cy, cx - 1, cy, cx, cy + 1, cx, cy - 1)
+      }
+
+      if (count < minPixels || touchesBorder) continue
+
+      const width = maxX - minX + 1
+      const height = maxY - minY + 1
+      const coverage = (width * height) / (w * h)
+      const fillRatio = count / Math.max(1, width * height)
+      if (coverage > 0.96) continue
+      if (coverage > 0.72 && fillRatio < 0.42) continue
+
+      const localMask = new Uint8Array(width * height)
+      for (let py = minY; py <= maxY; py += 1) {
+        for (let px = minX; px <= maxX; px += 1) {
+          if (dilated[py * w + px]) localMask[(py - minY) * width + (px - minX)] = 1
+        }
+      }
+
+      const seedX = Math.round(sumX / count)
+      const seedY = Math.round(sumY / count)
+      const clipPath = clipPathFromWindowMask(
+        localMask,
+        width,
+        0,
+        0,
+        width,
+        height,
+        seedX - minX,
+        seedY - minY,
+        fillRatio,
+      )
+
+      boxes.push({
+        x: minX,
+        y: minY,
+        width,
+        height,
+        rotate: 0,
+        borderRadius: 0,
+        fillRatio,
+        slotShape: clipPath ? 'organic' : 'rect',
+        ...(clipPath ? { clipPath } : {}),
+      })
+    }
+  }
+
+  return boxes.sort((a, b) => b.width * b.height - a.width * a.height)
 }
 
 async function readFramePixels(frameUrl, canvas) {

@@ -3,7 +3,7 @@ import {
   normalizeRectPhotoSlot,
 } from './mockupSlotShapes'
 import { filterSignificantPhotoBoxes } from '../data/collageFrameMockup'
-import { inferSlotClipPathFromPixels } from './frameImageUtils'
+import { inferSlotClipPathFromPixels, detectEnclosedPhotoWindows } from './frameImageUtils'
 
 const ALPHA_THRESHOLD = 128
 /** Minimum transparent pixels inside a slot (scales with image size) */
@@ -436,12 +436,9 @@ function enhanceOrganicClipPaths(boxes, imageData, width, height) {
   return boxes.map((box) => {
     if (box.clipPath) return box
     if (Math.abs(Number(box.rotate) || 0) >= 2.5) return box
-    const fillRatio = Number(box.fillRatio)
-    // Nearly filled rectangle — no organic outline needed
-    if (Number.isFinite(fillRatio) && fillRatio >= 0.92) return box
 
     const clipPath = inferSlotClipPathFromPixels(imageData, width, height, box)
-    return clipPath ? { ...box, borderRadius: 0, clipPath } : box
+    return clipPath ? { ...box, borderRadius: 0, slotShape: box.slotShape || 'organic', clipPath } : box
   })
 }
 
@@ -458,19 +455,21 @@ function regionToBox(region) {
   const { area, pixelCount, fillRatio, ...box } = region
   // Do NOT auto-apply hex from fillRatio — circles (~0.785) look hex-like by that metric.
   // Hex clips are applied later only for hex/honeycomb products via finalizePhotoSlots.
-  const pad = 1
-
-  const width = Math.max(8, box.width - pad * 2)
-  const height = Math.max(8, box.height - pad * 2)
   const tilted = Math.abs(Number(box.rotate) || 0) >= 2.5
-  const aspect = width / height
+  const aspect = Math.max(1, Number(box.width)) / Math.max(1, Number(box.height))
   const circularOpening =
     !tilted &&
     Number(fillRatio) > 0.72 &&
     Number(fillRatio) < 0.84 &&
     aspect > 0.88 &&
     aspect < 1.12
-  const organicOpening = !tilted && Number.isFinite(fillRatio) && fillRatio < 0.88 && !circularOpening
+  const organicOpening =
+    Boolean(box.clipPath) ||
+    (!tilted && Number.isFinite(fillRatio) && fillRatio < 0.88 && !circularOpening)
+
+  const pad = organicOpening ? 0 : 1
+  const width = Math.max(8, box.width - pad * 2)
+  const height = Math.max(8, box.height - pad * 2)
 
   const borderRadius = circularOpening
     ? Math.round(Math.min(width, height) / 2)
@@ -486,7 +485,7 @@ function regionToBox(region) {
     rotate: Number(box.rotate) || 0,
     borderRadius,
     fillRatio,
-    slotShape: circularOpening ? 'circle' : box.slotShape || 'rect',
+    slotShape: circularOpening ? 'circle' : organicOpening ? 'organic' : box.slotShape || 'rect',
     ...(box.clipPath ? { clipPath: box.clipPath } : {}),
   }
 
@@ -707,7 +706,11 @@ function drawImageToCanvas(img, options = {}) {
   const transparentRegions = findTransparentRegions(data, drawW, drawH)
   const darkRegions = findDarkSlotRegions(data, drawW, drawH)
   const lightRegions = findLightBlankRegions(data, drawW, drawH)
-  const regions = pickBestSlotRegions(transparentRegions, darkRegions, lightRegions, data, drawW, drawH)
+
+  const enclosed = detectEnclosedPhotoWindows(data, drawW, drawH)
+  const regions = enclosed.length
+    ? enclosed
+    : pickBestSlotRegions(transparentRegions, darkRegions, lightRegions, data, drawW, drawH)
 
   const scaleBack = (box) => ({
     ...box,
@@ -718,8 +721,10 @@ function drawImageToCanvas(img, options = {}) {
     borderRadius: Math.round((Number(box.borderRadius) || 0) / scale),
   })
 
-  let boxesAtScale = regions.map(regionToBox)
-  boxesAtScale = enhanceOrganicClipPaths(boxesAtScale, data, drawW, drawH)
+  let boxesAtScale = enclosed.length ? enclosed : regions.map(regionToBox)
+  if (!enclosed.length) {
+    boxesAtScale = enhanceOrganicClipPaths(boxesAtScale, data, drawW, drawH)
+  }
 
   const boxes = boxesAtScale.map((box) => scaleBack(box))
   return buildResultFromBoxes(boxes, canvasWidth, canvasHeight, { forAdmin })

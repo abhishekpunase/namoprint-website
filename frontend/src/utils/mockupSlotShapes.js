@@ -278,7 +278,7 @@ export function isExplicitCircleShape(shape = '') {
 /** Circle only for real round clocks / explicit circle slots — never empty shape or rounded-square mockups. */
 export function shouldUseCircularPhotoSlot(product, options = {}, box = null) {
   const slotShape = String(box?.slotShape || product?.mockup?.slotShape || '').toLowerCase()
-  if (slotShape === 'rect' || slotShape === 'square') return false
+  if (slotShape === 'organic' || slotShape === 'rect' || slotShape === 'square') return false
   if (slotShape === 'circle' || slotShape === 'round') return true
 
   // Admin auto-detect / saved slots from the mockup image — keep that geometry

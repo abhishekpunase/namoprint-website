@@ -334,7 +334,8 @@ export function MockupEditor({ value, onChange, onUploadFrame, uploading = false
         </div>
 
         <p className="admin-mockup-preview-tip">
-          Drag slot to move · blue knob to rotate · corner handle to resize
+          Drag slot to move · blue knob to rotate · corner handle to resize.
+          Auto-detect fills the frame opening; uploaded photos stay inside the outline.
         </p>
       </div>
 
