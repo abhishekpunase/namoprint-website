@@ -1,7 +1,7 @@
 import { resolveCollageMockup, resolvePreviewPhotoBoxes, isBuiltInCatalogMockup } from '../data/collageFrameMockup'
 import { getProductFrameImage, usesLiveProductImage } from '../data/fallbackCatalog'
 import { getMockupFrameUrl } from './enrichProductMockup'
-import { prepareFrameOverlayForExport, shouldPunchFrameHoles, inferSlotClipPathsFromFrame } from './frameImageUtils'
+import { prepareFrameOverlayForExport, shouldPunchFrameHoles, inferSlotClipPathsFromFrame, createFrameSilhouetteMask } from './frameImageUtils'
 import { applyFitToPhotoBoxes, getObjectContainFit, resolveMockupLayout } from './mockupLayout'
 import { resolveMediaUrl } from './mediaUrl'
 import { drawClockFace, drawCssClockFrame, shouldShowClockDial } from './clockCanvasExport'
@@ -261,12 +261,45 @@ export async function composeDesignPreview({
   const photosUnderFrame = Boolean(frameUrl)
 
   if (photosUnderFrame) {
+    const photoLayer = document.createElement('canvas')
+    photoLayer.width = el.width
+    photoLayer.height = el.height
+    const photoCtx = photoLayer.getContext('2d')
+    photoCtx.scale(printScale, printScale)
+
     for (let i = 0; i < photoBoxes.length; i += 1) {
       const img = loadedPhotos[i]
       if (!img) continue
       const crop = sources[i]?.crop || sources[0]?.crop || design.crop
-      drawPhotoInBox(ctx, img, photoBoxes[i], crop)
+      drawPhotoInBox(photoCtx, img, photoBoxes[i], crop)
     }
+
+    try {
+      const maskUrl = await createFrameSilhouetteMask(frameUrl)
+      if (maskUrl) {
+        const mask = await loadImage(maskUrl)
+        const fw = mask.naturalWidth || mask.width || w
+        const fh = mask.naturalHeight || mask.height || h
+        const fit = getObjectContainFit({ width: w, height: h }, { width: fw, height: fh })
+        photoCtx.save()
+        photoCtx.globalCompositeOperation = 'destination-in'
+        photoCtx.drawImage(
+          mask,
+          (fit.left / 100) * w,
+          (fit.top / 100) * h,
+          (fit.width / 100) * w,
+          (fit.height / 100) * h,
+        )
+        photoCtx.restore()
+      }
+    } catch {
+      /* keep unmasked photos if silhouette mask fails */
+    }
+
+    ctx.save()
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.drawImage(photoLayer, 0, 0)
+    ctx.restore()
 
     if (showClock && primaryBox) {
       drawClockFace(ctx, primaryBox, options)

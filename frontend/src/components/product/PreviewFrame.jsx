@@ -4,7 +4,7 @@ import { getProductFrameImage, getProductBaseImage, usesLiveProductImage } from 
 import { getFinishStyle, getFrameStyleHint, hexToRgba, parseMaterialThickness } from '../../data/frameVisuals'
 import { resolveCollageMockup, resolvePreviewPhotoBoxes, resolveUploadedFrameImage } from '../../data/collageFrameMockup'
 import { resolveMediaUrl } from '../../utils/mediaUrl'
-import { punchFrameHoles, shouldPunchFrameHoles, inferSlotClipPathsFromFrame } from '../../utils/frameImageUtils'
+import { punchFrameHoles, shouldPunchFrameHoles, inferSlotClipPathsFromFrame, createFrameSilhouetteMask } from '../../utils/frameImageUtils'
 import { photoBoxToStyle, resolveMockupLayout, fitPhotoBoxesToMockupOpening } from '../../utils/mockupLayout'
 import { HEX_PHOTO_FILL_SCALE, isHexClipPath, isHexFrameProduct, forceCircularPhotoSlot, isExplicitCircleShape, shouldUseCircularPhotoSlot } from '../../utils/mockupSlotShapes'
 import { wallWatchShouldUseSvgFrame } from '../../utils/wallWatchFrameUtils'
@@ -1100,6 +1100,7 @@ export function PreviewFrame({
   layoutCanvasRef.current = layoutCanvas
 
   const [clippedLayoutBoxes, setClippedLayoutBoxes] = useState(null)
+  const [frameMaskUrl, setFrameMaskUrl] = useState('')
 
   useEffect(() => {
     const boxes = layoutBoxesRef.current
@@ -1111,10 +1112,6 @@ export function PreviewFrame({
     const circularDial =
       boxes.length === 1 && shouldUseCircularPhotoSlot(product, options, boxes[0])
     if (circularDial) {
-      setClippedLayoutBoxes(null)
-      return undefined
-    }
-if (boxes.every((entry) => entry.clipPath)) {
       setClippedLayoutBoxes(null)
       return undefined
     }
@@ -1132,6 +1129,24 @@ if (boxes.every((entry) => entry.clipPath)) {
       cancelled = true
     }
   }, [frameImage, photosUnderFrame, layoutBoxesKey, options?.shape, product])
+
+  useEffect(() => {
+    if (!frameImage || !photosUnderFrame) {
+      setFrameMaskUrl('')
+      return undefined
+    }
+    let cancelled = false
+    createFrameSilhouetteMask(frameImage)
+      .then((url) => {
+        if (!cancelled) setFrameMaskUrl(url || '')
+      })
+      .catch(() => {
+        if (!cancelled) setFrameMaskUrl('')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [frameImage, photosUnderFrame])
 
   const effectiveLayoutBoxes = clippedLayoutBoxes || layoutBoxes
   const effectiveLayoutBox = effectiveLayoutBoxes[0] || layoutBox
@@ -1612,7 +1627,26 @@ if (boxes.every((entry) => entry.clipPath)) {
 
           {/* Photo slots — clipped to mockup openings so uploads never spill outside the frame */}
           {(!useLiveProductImage || allowPhotoUpload) && (
-          <div className="preview-photo-layer" style={{ zIndex: photoLayerZ }}>
+          <div
+            className="preview-photo-layer"
+            style={{
+              zIndex: photoLayerZ,
+              ...(frameMaskUrl
+                ? {
+                    WebkitMaskImage: `url("${frameMaskUrl}")`,
+                    maskImage: `url("${frameMaskUrl}")`,
+                    WebkitMaskSize: 'contain',
+                    maskSize: 'contain',
+                    WebkitMaskPosition: 'center',
+                    maskPosition: 'center',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskRepeat: 'no-repeat',
+                    WebkitMaskMode: 'alpha',
+                    maskMode: 'alpha',
+                  }
+                : {}),
+            }}
+          >
           {useCollageSlots ? (
             effectiveLayoutBoxes.map((pb, index) => {
               const pbStyle = photoBoxToStyle(pb, layoutCanvas, boxStyleOptions)

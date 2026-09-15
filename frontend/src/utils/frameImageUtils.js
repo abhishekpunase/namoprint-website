@@ -5,6 +5,7 @@ const CLIP_MIN_FILL = 0.22
 const CLIP_MAX_FILL = 0.94
 const CLIP_RAY_STEPS = 120
 const clipPathCache = new Map()
+const silhouetteMaskCache = new Map()
 
 function loadImage(url) {
   return new Promise((resolve, reject) => {
@@ -78,6 +79,120 @@ export async function punchFrameHoles(frameUrl, photoBoxes = [], canvas = { widt
 
   ctx.putImageData(new ImageData(data, w, h), 0, 0)
   return el.toDataURL('image/png')
+}
+
+function isCanvasBackgroundPixel(data, w, x, y) {
+  const i = (y * w + x) * 4
+  const a = data[i + 3]
+  if (a < ALPHA_WINDOW) return true
+  const r = data[i]
+  const g = data[i + 1]
+  const b = data[i + 2]
+  const lum = 0.299 * r + 0.587 * g + 0.114 * b
+  const sat = Math.max(r, g, b) - Math.min(r, g, b)
+  return lum >= 250 && sat < 14
+}
+
+/**
+ * Mask of the mockup silhouette: opaque inside the frame (opening + bezel),
+ * transparent in the canvas around it. Photos cannot paint outside the frame.
+ */
+export async function createFrameSilhouetteMask(frameUrl) {
+  const resolved = resolveMediaUrl(frameUrl)
+  if (!resolved) return ''
+
+  if (silhouetteMaskCache.has(resolved)) return silhouetteMaskCache.get(resolved)
+
+  const pending = (async () => {
+    const img = await loadImage(resolved)
+    const w = img.naturalWidth || img.width
+    const h = img.naturalHeight || img.height
+    if (!w || !h) return ''
+
+    const el = document.createElement('canvas')
+    el.width = w
+    el.height = h
+    const ctx = el.getContext('2d', { willReadFrequently: true })
+    ctx.drawImage(img, 0, 0, w, h)
+    const { data } = ctx.getImageData(0, 0, w, h)
+
+    const exterior = new Uint8Array(w * h)
+    const stack = []
+
+    for (let x = 0; x < w; x += 1) {
+      if (isCanvasBackgroundPixel(data, w, x, 0)) stack.push(x, 0)
+      if (isCanvasBackgroundPixel(data, w, x, h - 1)) stack.push(x, h - 1)
+    }
+    for (let y = 0; y < h; y += 1) {
+      if (isCanvasBackgroundPixel(data, w, 0, y)) stack.push(0, y)
+      if (isCanvasBackgroundPixel(data, w, w - 1, y)) stack.push(w - 1, y)
+    }
+
+    while (stack.length) {
+      const y = stack.pop()
+      const x = stack.pop()
+      if (x < 0 || y < 0 || x >= w || y >= h) continue
+      const idx = y * w + x
+      if (exterior[idx]) continue
+      if (!isCanvasBackgroundPixel(data, w, x, y)) continue
+      exterior[idx] = 1
+      stack.push(x + 1, y, x - 1, y, x, y + 1, x, y - 1)
+    }
+
+    let exteriorCount = 0
+    for (let i = 0; i < exterior.length; i += 1) {
+      if (exterior[i]) exteriorCount += 1
+    }
+    if (exteriorCount < w * h * 0.015) return ''
+
+    const mask = ctx.createImageData(w, h)
+    const out = mask.data
+    const eroded = new Uint8Array(exterior)
+
+    for (let pass = 0; pass < 2; pass += 1) {
+      const next = new Uint8Array(eroded)
+      for (let y = 1; y < h - 1; y += 1) {
+        for (let x = 1; x < w - 1; x += 1) {
+          const idx = y * w + x
+          if (eroded[idx]) continue
+          if (
+            eroded[idx - 1] ||
+            eroded[idx + 1] ||
+            eroded[idx - w] ||
+            eroded[idx + w]
+          ) {
+            next[idx] = 1
+          }
+        }
+      }
+      eroded.set(next)
+    }
+
+    for (let y = 0; y < h; y += 1) {
+      for (let x = 0; x < w; x += 1) {
+        const idx = y * w + x
+        const i = idx * 4
+        const inside = eroded[idx] === 0
+        out[i] = 255
+        out[i + 1] = 255
+        out[i + 2] = 255
+        out[i + 3] = inside ? 255 : 0
+      }
+    }
+
+    ctx.putImageData(mask, 0, 0)
+    return el.toDataURL('image/png')
+  })()
+
+  silhouetteMaskCache.set(resolved, pending)
+  try {
+    const url = await pending
+    silhouetteMaskCache.set(resolved, url)
+    return url
+  } catch {
+    silhouetteMaskCache.delete(resolved)
+    return ''
+  }
 }
 
 function isTransparentWindow(data, canvasW, x, y) {
@@ -180,8 +295,6 @@ function findWindowSeed(data, canvasW, x0, y0, x1, y1, preferred) {
 
 /** Trace the photo window outline when the slot bbox is non-rectangular (pebble, heart, etc.). */
 export function inferSlotClipPathFromPixels(data, canvasW, canvasH, box) {
-  if (box?.clipPath) return box.clipPath
-
   const x0 = Math.max(0, Math.floor(Number(box.x) || 0))
   const y0 = Math.max(0, Math.floor(Number(box.y) || 0))
   const x1 = Math.min(canvasW, Math.ceil((Number(box.x) || 0) + (Number(box.width) || 0)))
@@ -234,7 +347,7 @@ export function inferSlotClipPathFromPixels(data, canvasW, canvasH, box) {
 
   if (points.length < 8) return null
 
-  const inset = 0.8
+  const inset = 2.4
   const pct = points
     .map(([px, py]) => {
       const ix = Math.min(100, Math.max(0, px))
@@ -275,7 +388,6 @@ export async function inferSlotClipPathsFromFrame(frameUrl, photoBoxes = [], can
   try {
     const { data, width, height } = await readFramePixels(frameUrl, canvas)
     const enhanced = photoBoxes.map((box) => {
-      if (box.clipPath) return box
       const clipPath = inferSlotClipPathFromPixels(data, width, height, box)
       return clipPath ? { ...box, borderRadius: 0, clipPath } : box
     })
