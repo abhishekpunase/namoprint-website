@@ -15,6 +15,7 @@ export function BulkActionsBar({
   onHide,
   onArchive,
   onFeature,
+  onUnfeature,
   onExport,
   onRefresh,
   refreshing,
@@ -31,7 +32,10 @@ export function BulkActionsBar({
         <EyeOff size={16} /> Hide
       </button>
       <button type="button" className="prod-btn prod-btn--ghost" onClick={onFeature}>
-        <Star size={16} /> Feature
+        <Star size={16} /> Add Best Seller
+      </button>
+      <button type="button" className="prod-btn prod-btn--ghost" onClick={onUnfeature}>
+        <Star size={16} /> Remove Best Seller
       </button>
       <button type="button" className="prod-btn prod-btn--ghost" onClick={onArchive}>
         <Archive size={16} /> Archive
@@ -68,7 +72,7 @@ export function ProductListToolbar({
     { id: 'stock', label: 'Stock' },
     { id: 'status', label: 'Status' },
     { id: 'visibility', label: 'Visibility' },
-    { id: 'featured', label: 'Featured' },
+    { id: 'featured', label: 'Best Seller' },
     { id: 'created', label: 'Created' },
     { id: 'updated', label: 'Updated' },
     { id: 'actions', label: 'Actions' },

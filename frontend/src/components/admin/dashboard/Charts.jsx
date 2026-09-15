@@ -170,17 +170,17 @@ export function PieChartCard({ data = [], mode, onModeChange, loading = false, t
           role="img"
           aria-label="Distribution pie chart"
         >
-          {slices.map((slice) => {
+          {slices.map((slice, index) => {
             const [x1, y1] = polar(slice.start)
             const [x2, y2] = polar(slice.start + slice.angle)
             const large = slice.angle > 180 ? 1 : 0
             const d = `M 80 80 L ${x1} ${y1} A 56 56 0 ${large} 1 ${x2} ${y2} Z`
-            return <path key={slice.label} d={d} fill={slice.color} />
+            return <path key={slice.id || `${slice.label}-${index}`} d={d} fill={slice.color} />
           })}
         </motion.svg>
         <ul className="dash-pie__legend">
-          {data.map((item) => (
-            <li key={item.label}>
+          {data.map((item, index) => (
+            <li key={item.id || `${item.label}-${index}`}>
               <span style={{ background: item.color }} aria-hidden="true" />
               {item.label}
               <strong>{Math.round((item.value / total) * 100)}%</strong>
@@ -213,7 +213,7 @@ export function BarChartCard({ title, subtitle, data = [], loading = false }) {
       </div>
       <div className="dash-bar-chart">
         {data.map((item, index) => (
-          <div key={item.label} className="dash-bar-chart__item">
+          <div key={item.id || `${item.label}-${index}`} className="dash-bar-chart__item">
             <motion.div
               className="dash-bar-chart__bar"
               initial={{ height: 0 }}

@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { FiArrowRight } from "react-icons/fi";
-import { Link } from "react-router-dom";
 import { ProductCard } from "../product/ProductCard";
 import { api } from "../../services/api";
 import { excludeWallWatchProducts } from "../../utils/wallWatchCatalog";
 
 import { useHomeOfferMarquee } from "../../hooks/useHomeOfferMarquee";
 import GodHomeSection from "./GodHomeSection";
+
+const HOME_PREVIEW_COUNT = 4;
 
 function OfferMarquee({ lines = [] }) {
   const displayLines = lines.filter(Boolean);
@@ -50,10 +51,23 @@ function OfferMarquee({ lines = [] }) {
   );
 }
 
+function ViewAllButton({ expanded, onClick, label = "View All", className = "" }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-2 rounded-full bg-[#F5B400] px-5 py-2.5 text-sm font-semibold text-black shadow-sm transition hover:bg-[#D89B00] hover:shadow-md ${className}`.trim()}
+    >
+      {expanded ? "Show less" : label}
+      {!expanded ? <FiArrowRight /> : null}
+    </button>
+  );
+}
+
 export default function ProductHome() {
   const [products, setProducts] = useState([]);
-  const [allProducts, setAllProducts] = useState([]);
-  const [visibleCount, setVisibleCount] = useState(12);
+  const [showAllBestSellers, setShowAllBestSellers] = useState(false);
+  const [showAllProducts, setShowAllProducts] = useState(false);
   const marqueeLines = useHomeOfferMarquee();
 
   useEffect(() => {
@@ -62,212 +76,161 @@ export default function ProductHome() {
       .then((payload) => {
         const items = excludeWallWatchProducts(payload.items || []);
         setProducts(items);
-        setAllProducts(items);
-        setVisibleCount(items.length);
       })
       .catch(() => {
         setProducts([]);
-        setAllProducts([]);
       });
   }, []);
 
-  const featured = products
-    .filter((product) => product.isFeatured)
-    .slice(0, 6);
+  const bestSellers = products.filter((product) => product.isFeatured);
+  const displayBestSellers = bestSellers.length
+    ? bestSellers
+    : products.slice(0, HOME_PREVIEW_COUNT);
 
-  const displayFeatured = featured.length
-    ? featured
-    : products.slice(0, 6);
+  const visibleBestSellers = showAllBestSellers
+    ? displayBestSellers
+    : displayBestSellers.slice(0, HOME_PREVIEW_COUNT);
 
-return (
-  <div className="bg-[#f8f8f8]">
+  const visibleCatalog = showAllProducts
+    ? products
+    : products.slice(0, HOME_PREVIEW_COUNT);
 
-    {/* ================= Offer Marquee ================= */}
+  return (
+    <div className="bg-[#f8f8f8]">
+      <OfferMarquee lines={marqueeLines} />
 
-    <OfferMarquee lines={marqueeLines} />
+      <section className="bg-[#F5F5F5] py-8 sm:py-20">
+        <div className="max-w-7xl mx-auto px-3 sm:px-5">
+          <div className="mb-6 flex items-end justify-between sm:mb-12">
+            <div>
+              <p className="uppercase tracking-[3px] text-yellow-500 font-semibold text-xs sm:text-base">
+                Curated Collection
+              </p>
+              <h2 className="text-2xl font-bold mt-2 sm:text-5xl">
+                Best{" "}
+                <span className="italic text-yellow-500">
+                  Seller
+                </span>
+              </h2>
+            </div>
 
-    {/* ================= Featured ================= */}
-
-    <section className="bg-[#F5F5F5] py-8 sm:py-20">
-
-      <div className="max-w-7xl mx-auto px-3 sm:px-5">
-
-        <div className="mb-6 sm:mb-12">
-
-          <p className="uppercase tracking-[3px] text-yellow-500 font-semibold text-xs sm:text-base">
-            Curated Collection
-          </p>
-
-          <h2 className="text-2xl font-bold mt-2 sm:text-5xl">
-            Best{" "}
-            <span className="italic text-yellow-500">
-              Seller
-            </span>
-          </h2>
-
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-
-          {displayFeatured.map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))}
-
-        </div>
-
-      </div>
-
-    </section>
-
-    {/* ================= All Products ================= */}
-
-    <section className="max-w-7xl mx-auto px-3 py-10 sm:px-5 sm:py-20">
-
-      <div className="flex items-end justify-between mb-6 sm:mb-12">
-
-        <div>
-
-          <p className="uppercase tracking-[3px] text-yellow-500 font-semibold text-xs sm:text-base">
-            Full Catalog
-          </p>
-
-          <h2 className="text-2xl font-bold mt-2 sm:text-5xl">
-            All{" "}
-            <span className="italic text-yellow-500">
-              Products
-            </span>
-          </h2>
-
-        </div>
-
-        <Link
-          to="/products"
-          className="hidden sm:inline-flex items-center gap-2 rounded-full bg-[#F5B400] px-5 py-2.5 text-sm font-semibold text-black shadow-sm transition hover:bg-[#D89B00] hover:shadow-md"
-        >
-          View All
-          <FiArrowRight />
-        </Link>
-
-      </div>
-
-      {allProducts.length > 0 ? (
-
-        <>
+            {displayBestSellers.length > 0 && (
+              <div className="hidden sm:block">
+                <ViewAllButton
+                  expanded={showAllBestSellers}
+                  onClick={() => setShowAllBestSellers((open) => !open)}
+                />
+              </div>
+            )}
+          </div>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-
-            {allProducts.slice(0, visibleCount).map((product) => (
+            {visibleBestSellers.map((product) => (
               <ProductCard key={product._id} product={product} />
             ))}
-
           </div>
 
-          {visibleCount < allProducts.length && (
-
-            <div className="flex justify-center mt-12">
-
-              <button
-                onClick={() => setVisibleCount((count) => count + 12)}
-                className="px-8 py-3 rounded-full bg-orange-500 text-white font-semibold hover:bg-orange-600 transition duration-300 shadow-md hover:shadow-lg"
-              >
-                Show More
-              </button>
-
+          {displayBestSellers.length > 0 && (
+            <div className="mt-8 flex justify-center sm:hidden">
+              <ViewAllButton
+                expanded={showAllBestSellers}
+                onClick={() => setShowAllBestSellers((open) => !open)}
+              />
             </div>
-
           )}
+        </div>
+      </section>
 
-        </>
-
-      ) : (
-
-        <p className="text-center text-gray-500 py-10">
-          No products available right now.
-        </p>
-
-      )}
-
-      <div className="flex sm:hidden justify-center mt-10">
-
-        <Link
-          to="/products"
-          className="inline-flex items-center gap-2 rounded-full bg-[#F5B400] px-5 py-2.5 text-sm font-semibold text-black shadow-sm transition hover:bg-[#D89B00]"
-        >
-          View All Products
-          <FiArrowRight />
-        </Link>
-
-      </div>
-
-    </section>
-
-    <GodHomeSection />
-
-    {/* ================= Process ================= */}
-
-    <section className="max-w-7xl mx-auto px-5 py-24">
-
-      <div className="text-center mb-14">
-
-        <p className="uppercase tracking-[3px] text-yellow-500 font-semibold">
-          How It Works
-        </p>
-
-        <h2 className="text-4xl font-bold">
-          Order In Just 3 Easy Steps
-        </h2>
-
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-8">
-
-        {[
-          [
-            "01",
-            "Choose Product",
-            "Pick your favourite nameplate, trophy, acrylic frame, album or gift."
-          ],
-          [
-            "02",
-            "Upload Your Design",
-            "Upload your image, customize text, adjust size and preview instantly."
-          ],
-          [
-            "03",
-            "Secure Checkout",
-            "Complete payment securely and receive your personalized order at home."
-          ],
-        ].map(([number, title, copy]) => (
-
-          <div
-            key={number}
-            className="relative rounded-3xl bg-white border border-gray-200 p-10 shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
-          >
-
-            <div className="absolute -top-7 left-8 w-14 h-14 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white flex items-center justify-center text-xl font-bold shadow-lg">
-              {number}
-            </div>
-
-            <div className="mt-8">
-
-              <h3 className="text-2xl font-bold mb-4">
-                {title}
-              </h3>
-
-              <p className="text-gray-600 leading-7">
-                {copy}
-              </p>
-
-            </div>
-
+      <section className="max-w-7xl mx-auto px-3 py-10 sm:px-5 sm:py-20">
+        <div className="flex items-end justify-between mb-6 sm:mb-12">
+          <div>
+            <p className="uppercase tracking-[3px] text-yellow-500 font-semibold text-xs sm:text-base">
+              Full Catalog
+            </p>
+            <h2 className="text-2xl font-bold mt-2 sm:text-5xl">
+              All{" "}
+              <span className="italic text-yellow-500">
+                Products
+              </span>
+            </h2>
           </div>
 
-        ))}
+          {products.length > 0 && (
+            <div className="hidden sm:block">
+              <ViewAllButton
+                expanded={showAllProducts}
+                onClick={() => setShowAllProducts((open) => !open)}
+              />
+            </div>
+          )}
+        </div>
 
-      </div>
+        {products.length > 0 ? (
+          <>
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+              {visibleCatalog.map((product) => (
+                <ProductCard key={product._id} product={product} />
+              ))}
+            </div>
+            <div className="mt-8 flex justify-center sm:hidden">
+              <ViewAllButton
+                expanded={showAllProducts}
+                onClick={() => setShowAllProducts((open) => !open)}
+              />
+            </div>
+          </>
+        ) : (
+          <p className="text-center text-gray-500 py-10">
+            No products available right now.
+          </p>
+        )}
+      </section>
 
-    </section>
+      <GodHomeSection />
 
-  </div>
-);
+      <section className="max-w-7xl mx-auto px-5 py-24">
+        <div className="text-center mb-14">
+          <p className="uppercase tracking-[3px] text-yellow-500 font-semibold">
+            How It Works
+          </p>
+          <h2 className="text-4xl font-bold">
+            Order In Just 3 Easy Steps
+          </h2>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {[
+            [
+              "01",
+              "Choose Product",
+              "Pick your favourite nameplate, trophy, acrylic frame, album or gift.",
+            ],
+            [
+              "02",
+              "Upload Your Design",
+              "Upload your image, customize text, adjust size and preview instantly.",
+            ],
+            [
+              "03",
+              "Secure Checkout",
+              "Complete payment securely and receive your personalized order at home.",
+            ],
+          ].map(([number, title, copy]) => (
+            <div
+              key={number}
+              className="relative rounded-3xl bg-white border border-gray-200 p-10 shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
+            >
+              <div className="absolute -top-7 left-8 w-14 h-14 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white flex items-center justify-center text-xl font-bold shadow-lg">
+                {number}
+              </div>
+              <div className="mt-8">
+                <h3 className="text-2xl font-bold mb-4">{title}</h3>
+                <p className="text-gray-600 leading-7">{copy}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
 }

@@ -104,7 +104,11 @@ export function buildRevenueSeries(orders = [], period = 'monthly') {
     }))
   }
 
-  return entries.map(([label, value]) => ({ label, value }))
+  return entries.map(([label, value], index) => ({
+    id: `revenue-${period}-${label}-${index}`,
+    label,
+    value,
+  }))
 }
 
 export function buildDistribution(orders = [], mode = 'orders') {
@@ -136,10 +140,11 @@ export function buildDistribution(orders = [], mode = 'orders') {
   const entries = [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6)
 
   if (!entries.length) {
-    return [{ label: 'No data', value: 1, color: '#94a3b8' }]
+    return [{ id: 'dist-empty', label: 'No data', value: 1, color: '#94a3b8' }]
   }
 
   return entries.map(([label, value], index) => ({
+    id: `dist-${mode}-${label}-${index}`,
     label,
     value,
     color: palette[index % palette.length],
@@ -148,15 +153,17 @@ export function buildDistribution(orders = [], mode = 'orders') {
 
 export function buildCategoryBarData(orders = [], categories = []) {
   if (categories.length) {
-    return categories.slice(0, 6).map((category) => ({
-      label: category.name,
+    return categories.slice(0, 6).map((category, index) => ({
+      id: category._id || `category-bar-${index}`,
+      label: category.name || `Category ${index + 1}`,
       value: orders.filter((order) =>
         order.items?.some((item) => String(item.title || '').toLowerCase().includes(category.name.toLowerCase().split(' ')[0])),
       ).length,
     }))
   }
 
-  return buildRevenueSeries(orders, 'monthly').map((item) => ({
+  return buildRevenueSeries(orders, 'monthly').map((item, index) => ({
+    id: item.id || `category-fallback-${index}`,
     label: item.label,
     value: Math.round(item.value / 1000) || 0,
   }))

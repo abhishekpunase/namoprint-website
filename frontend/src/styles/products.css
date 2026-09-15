@@ -101,6 +101,9 @@
 }
 .prod-icon-btn:hover { color: var(--admin-primary-strong); border-color: rgba(79, 70, 229, 0.25); background: var(--admin-primary-soft); }
 .prod-icon-btn.is-danger:hover { color: #dc2626; border-color: rgba(220, 38, 38, 0.25); background: rgba(220, 38, 38, 0.08); }
+.prod-icon-btn.is-bestseller { color: #d97706; border-color: rgba(245, 180, 0, 0.55); background: #fff7d6; }
+.prod-icon-btn.is-bestseller:hover { color: #b45309; border-color: #f5b400; background: #fde68a; }
+.prod-btn.is-bestseller { color: #b45309; border-color: rgba(245, 180, 0, 0.55); background: #fff7d6; }
 .prod-icon-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .prod-cards--mobile { display: none; gap: 10px; }

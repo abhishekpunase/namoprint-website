@@ -109,6 +109,8 @@ const AdminHomeTestimonialsPage = named(() => import('./pages/admin/AdminHomeTes
 const AdminHomeOfferMarqueePage = named(() => import('./pages/admin/AdminHomeOfferMarqueePage'), 'AdminHomeOfferMarqueePage')
 const AdminHeaderMenuPage = named(() => import('./pages/admin/AdminHeaderMenuPage'), 'AdminHeaderMenuPage')
 const AdminFooterPage = named(() => import('./pages/admin/AdminFooterPage'), 'AdminFooterPage')
+const AdminLegalPagesPage = named(() => import('./pages/admin/AdminLegalPagesPage'), 'AdminLegalPagesPage')
+const AdminBestSellersPage = named(() => import('./pages/admin/AdminBestSellersPage'), 'AdminBestSellersPage')
 const AdminProductOfTheMonthPage = named(() => import('./pages/admin/AdminProductOfTheMonthPage'), 'AdminProductOfTheMonthPage')
 const AdminCategoryCarouselPage = named(() => import('./pages/admin/AdminCategoryCarouselPage'), 'AdminCategoryCarouselPage')
 const AdminProductReelsPage = named(() => import('./pages/admin/AdminProductReelsPage'), 'AdminProductReelsPage')
@@ -188,6 +190,8 @@ function App() {
                 <Route path="home-offer-marquee" element={<AdminHomeOfferMarqueePage />} />
                 <Route path="header-menu" element={<AdminHeaderMenuPage />} />
                 <Route path="footer" element={<AdminFooterPage />} />
+                <Route path="legal-pages" element={<AdminLegalPagesPage />} />
+                <Route path="best-sellers" element={<AdminBestSellersPage />} />
                 <Route path="product-of-the-month" element={<AdminProductOfTheMonthPage />} />
                 <Route path="category-carousel" element={<AdminCategoryCarouselPage />} />
                 <Route path="product-reels" element={<AdminProductReelsPage />} />

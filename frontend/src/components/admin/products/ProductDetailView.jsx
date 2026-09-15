@@ -150,7 +150,7 @@ export function ProductDetailView() {
             <div><dt>Type</dt><dd>{product.productType?.replaceAll('-', ' ')}</dd></div>
             <div><dt>Price from</dt><dd>{formatCurrency(getMinPrice(product))}</dd></div>
             <div><dt>Stock</dt><dd>{getTotalStock(product)}</dd></div>
-            <div><dt>Featured</dt><dd>{product.isFeatured ? 'Yes' : 'No'}</dd></div>
+            <div><dt>Best Seller</dt><dd>{product.isFeatured ? 'Yes' : 'No'}</dd></div>
             <div><dt>Created</dt><dd>{formatDate(product.createdAt)}</dd></div>
             <div><dt>Updated</dt><dd>{formatDate(product.updatedAt)}</dd></div>
           </dl>

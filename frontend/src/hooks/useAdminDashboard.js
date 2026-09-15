@@ -105,7 +105,8 @@ export function useAdminDashboard() {
   const monthlyOrdersBar = useMemo(() => buildRevenueSeries(filteredOrders, 'monthly'), [filteredOrders])
 
   const inventoryBar = useMemo(() => {
-    return data.products.slice(0, 6).map((product) => ({
+    return data.products.slice(0, 6).map((product, index) => ({
+      id: product._id || `inventory-bar-${index}`,
       label: product.title?.slice(0, 12) || 'Product',
       value: (product.variants || []).reduce((sum, v) => sum + (v.stock || 0), 0),
     }))

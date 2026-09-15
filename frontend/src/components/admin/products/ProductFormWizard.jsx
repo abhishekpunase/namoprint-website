@@ -240,9 +240,8 @@ export function ProductFormWizard({
               </label>
               <label className="prod-check prod-span-2">
                 <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} />
-                Featured on homepage
+                Best Seller — show this product in Best Seller on the home page
               </label>
-              <p className="prod-todo prod-span-2">Best seller flag: TODO when analytics API exists</p>
             </div>
           )}
 

@@ -337,7 +337,10 @@ export function ProductEditor({ editor, mode = 'create', productId }) {
       content: (
         <div className="prod-form-grid">
           <label className="prod-check prod-span-2"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} /> Published</label>
-          <label className="prod-check prod-span-2"><input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} /> Featured</label>
+          <label className="prod-check prod-span-2">
+            <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} />
+            Best Seller (home page)
+          </label>
         </div>
       ),
     },

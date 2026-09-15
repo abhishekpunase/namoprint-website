@@ -9,6 +9,7 @@ import {
   Menu,
   MessageSquareQuote,
   PanelBottom,
+  FileText,
   Headphones,
   LayoutDashboard,
   LogOut,
@@ -120,6 +121,18 @@ export const adminNavigation = [
     label: 'Footer',
     to: '/admin/footer',
     icon: PanelBottom,
+  },
+  {
+    id: 'legal-pages',
+    label: 'Legal Pages',
+    to: '/admin/legal-pages',
+    icon: FileText,
+  },
+  {
+    id: 'best-sellers',
+    label: 'Best Sellers',
+    to: '/admin/best-sellers',
+    icon: Star,
   },
   {
     id: 'product-of-the-month',
@@ -279,6 +292,15 @@ export function getAdminPageMeta(pathname) {
   }
   if (pathname.startsWith('/admin/footer')) {
     return { title: 'Footer', description: 'Manage website footer text, socials, and links' }
+  }
+  if (pathname.startsWith('/admin/legal-pages')) {
+    return {
+      title: 'Legal Pages',
+      description: 'Edit Privacy, Terms, Refund, and Shipping policy content',
+    }
+  }
+  if (pathname.startsWith('/admin/best-sellers')) {
+    return { title: 'Best Sellers', description: 'Manage which products appear in Best Seller on the home page' }
   }
   if (pathname.startsWith('/admin/product-of-the-month')) {
     return { title: 'Product of the Month', description: 'Homepage popup product and Shop Now link' }

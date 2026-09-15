@@ -130,6 +130,7 @@ export function AdminProductsPage() {
         onHide={list.bulkHide}
         onArchive={list.bulkDeactivate}
         onFeature={() => list.bulkFeature(true)}
+        onUnfeature={() => list.bulkFeature(false)}
         onExport={() => list.exportCsv(list.products.filter((p) => list.selected.includes(p._id)))}
         onRefresh={list.load}
         refreshing={list.loading}

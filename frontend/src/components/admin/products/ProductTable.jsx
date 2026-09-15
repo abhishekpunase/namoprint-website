@@ -74,7 +74,7 @@ export function ProductTable({
               {show('stock') && <th>{sortBtn('stock', 'Stock')}</th>}
               {show('status') && <th>Status</th>}
               {show('visibility') && <th>Visibility</th>}
-              {show('featured') && <th>Featured</th>}
+              {show('featured') && <th>Best Seller</th>}
               {show('created') && <th>{sortBtn('createdAt', 'Created')}</th>}
               {show('updated') && <th>{sortBtn('updatedAt', 'Updated')}</th>}
               {show('actions') && <th>Actions</th>}
@@ -121,7 +121,13 @@ export function ProductTable({
                     </td>
                   )}
                   {show('visibility') && <td>{product.isActive ? 'Visible' : 'Hidden'}</td>}
-                  {show('featured') && <td>{product.isFeatured ? 'Yes' : 'No'}</td>}
+                  {show('featured') && (
+                    <td>
+                      <span className={product.isFeatured ? 'font-semibold text-amber-700' : 'text-slate-400'}>
+                        {product.isFeatured ? 'Yes' : 'No'}
+                      </span>
+                    </td>
+                  )}
                   {show('created') && <td>{formatDate(product.createdAt)}</td>}
                   {show('updated') && <td>{formatDate(product.updatedAt)}</td>}
                   {show('actions') && (

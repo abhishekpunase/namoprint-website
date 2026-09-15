@@ -123,6 +123,12 @@ import { headerMenuSchema, headerMenuUpdateSchema } from '../validators/headerMe
 import { getAdminFooter, updateAdminFooter } from '../controllers/footer.controller.js';
 import { footerUpdateSchema } from '../validators/footer.validator.js';
 import {
+  getAdminLegalPage,
+  listAdminLegalPages,
+  updateAdminLegalPage,
+} from '../controllers/legalPage.controller.js';
+import { legalPageUpdateSchema } from '../validators/legalPage.validator.js';
+import {
   listAdminSupportTickets,
   replyAdminSupportTicket,
   updateAdminSupportTicket,
@@ -181,6 +187,10 @@ adminRoutes.delete('/header-menu/:id', deleteHeaderMenuItem);
 
 adminRoutes.get('/footer', getAdminFooter);
 adminRoutes.put('/footer', validate(footerUpdateSchema), updateAdminFooter);
+
+adminRoutes.get('/legal-pages', listAdminLegalPages);
+adminRoutes.get('/legal-pages/:slug', getAdminLegalPage);
+adminRoutes.put('/legal-pages/:slug', validate(legalPageUpdateSchema), updateAdminLegalPage);
 
 adminRoutes.get('/home-offer-marquee', listAdminHomeOfferMarquee);
 adminRoutes.put('/home-offer-marquee', validate(homeOfferMarqueeReplaceSchema), replaceHomeOfferMarquee);

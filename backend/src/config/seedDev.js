@@ -16,6 +16,7 @@ import { ensureTShirtProducts } from './seedTShirtProducts.js';
 import { ensureHomeTestimonials } from './seedHomeTestimonials.js';
 import { ensureHomeOfferMarquee } from './seedHomeOfferMarquee.js';
 import { ensureStoreSettings } from './seedStoreSettings.js';
+import { ensureLegalPages } from './seedLegalPages.js';
 
 export {
   ensureDevCatalog,
@@ -35,6 +36,7 @@ export {
   ensureTShirtProducts,
   ensureHomeTestimonials,
   ensureHomeOfferMarquee,
+  ensureLegalPages,
 };
 
 const PRIMARY_ADMIN_EMAIL = 'admin@omgs.com';

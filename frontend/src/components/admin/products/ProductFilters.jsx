@@ -85,11 +85,11 @@ export function ProductFilters({ filters, onChange, categories, brands }) {
           </select>
         </label>
         <label>
-          Featured
+          Best Seller
           <select value={filters.featured} onChange={(e) => onChange({ ...filters, featured: e.target.value })}>
             <option value="">All</option>
-            <option value="yes">Featured</option>
-            <option value="no">Not featured</option>
+            <option value="yes">In Best Sellers</option>
+            <option value="no">Not in Best Sellers</option>
           </select>
         </label>
         <label>

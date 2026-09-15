@@ -29,6 +29,7 @@ const PUBLIC_GET_PREFIXES = [
   '/product-reels',
   '/header-menu',
   '/footer',
+  '/legal-pages',
   '/product-of-the-month',
   '/support-tickets',
   '/health',

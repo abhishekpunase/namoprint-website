@@ -61,12 +61,12 @@ export function BulkOrdersPage() {
   </a>
 
 
-   <a
+   {/* <a
     href={`tel:${phoneNumber}`}
     className="inline-flex items-center gap-2 bg-white text-black font-semibold px-8 py-3 rounded-full hover:bg-yellow-500 transition"
   >
     Call Now
-  </a>
+  </a> */}
 </div>
         </div>
         <div className="absolute -top-10 -right-10 w-72 h-72 bg-yellow-500/10 rounded-full blur-3xl" />
