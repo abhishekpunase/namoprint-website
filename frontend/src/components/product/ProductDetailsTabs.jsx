@@ -330,29 +330,34 @@ function DescriptionMediaGrid({ items = [] }) {
   if (!media.length) return null
 
   return (
-    <div className="mt-6 grid grid-cols-1 gap-5">
+    <div className="relative z-10 mt-6 space-y-5 [transform:translateZ(0)] [isolation:isolate]">
       {media.map((item, index) => {
         const src = resolveMediaUrl(item.url)
         const isReel = item.type === 'reel' || item.type === 'video'
         return (
           <figure
             key={`${src}-${index}`}
-            className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
+            className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
           >
-            <div className="flex w-full items-center justify-center p-2 sm:p-3">
+            <div className="relative w-full bg-white">
               {isReel ? (
                 <video
                   src={src}
                   poster={resolveMediaUrl(item.posterUrl) || undefined}
                   controls
                   playsInline
-                  className="max-h-[80vh] w-full object-contain"
+                  preload="metadata"
+                  className="block h-auto w-full max-w-full bg-black object-contain"
+                  style={{ maxHeight: 'min(80vh, 720px)' }}
                 />
               ) : (
                 <img
                   src={src}
                   alt={item.caption || 'Product detail'}
-                  className="max-h-[80vh] w-full object-contain"
+                  loading="lazy"
+                  decoding="async"
+                  className="block h-auto w-full max-w-full bg-white object-contain"
+                  style={{ maxHeight: 'min(80vh, 900px)' }}
                 />
               )}
             </div>
@@ -392,7 +397,7 @@ export function ProductDetailsTabs({ product, reviews }) {
   }
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-8">
+    <section className="relative z-10 mx-auto w-full max-w-7xl bg-slate-50 px-4 py-10 sm:px-8 [isolation:isolate] [transform:translateZ(0)]">
       {/* Trust strip */}
       <div className="mb-8 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-3">
         {[
@@ -411,7 +416,7 @@ export function ProductDetailsTabs({ product, reviews }) {
       </div>
 
       {/* Description (no tab switcher — always visible, with reviews right below) */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <div className="relative z-10 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-8 [isolation:isolate]">
         <div className="mb-6 flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-widest text-rose-500">Product Details</span>
           <span className="text-xs font-semibold uppercase tracking-widest text-slate-300">
@@ -419,8 +424,8 @@ export function ProductDetailsTabs({ product, reviews }) {
           </span>
         </div>
 
-        <div className="overflow-hidden rounded-2xl bg-slate-900">
-          <div className="flex flex-col justify-center gap-4 p-8 sm:p-12">
+        <div className="relative z-0 overflow-hidden rounded-2xl bg-slate-900 [transform:translateZ(0)]">
+          <div className="relative z-10 flex flex-col justify-center gap-4 p-6 sm:p-12">
             <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-400">
               <span className="text-amber-400">✦</span> Premium Wall Décor by {product?.brand || 'NAMOPRINT'}
             </span>

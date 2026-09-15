@@ -1578,7 +1578,7 @@ export function PreviewFrame({
       )}
 
       {/* ---------- Flat editing stage (2D — drag photo/text here) ---------- */}
-      <div style={{ perspective: 1400 }} className={`flex w-full items-center justify-center rounded-2xl bg-gray-100 ${minimal ? 'p-1' : 'p-3 sm:p-6'}`}>
+      <div className={`flex w-full items-center justify-center overflow-hidden rounded-2xl bg-gray-100 ${minimal ? 'p-1' : 'p-3 sm:p-6'}`}>
         <div
           ref={stageRef}
           onPointerDown={() => setEditingId(null)}
@@ -1594,6 +1594,9 @@ export function PreviewFrame({
             borderRadius: useFrameOverlay ? 0 : showClockDial ? 16 : box.borderRadius ? `${Math.min(box.borderRadius, 24)}px` : 12,
             overflow: 'hidden',
             isolation: 'isolate',
+            transform: 'translateZ(0)',
+            WebkitTransform: 'translateZ(0)',
+            contain: 'paint',
             background: useFrameOverlay || useLiveProductImage ? 'transparent' : showClockDial ? '#f3f4f6' : undefined,
           }}
           className={showClockDial ? 'clock-preview-shell' : ''}

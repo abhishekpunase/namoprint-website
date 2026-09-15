@@ -2263,7 +2263,12 @@
   .product-frame-stage {
     width: 100%;
     max-width: 100%;
+    overflow: hidden;
     overflow-x: clip;
+    isolation: isolate;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    contain: paint;
   }
 
   .clock-preview-shell {

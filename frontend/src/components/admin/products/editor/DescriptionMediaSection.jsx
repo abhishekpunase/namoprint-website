@@ -37,7 +37,7 @@ export function DescriptionMediaSection({
   return (
     <div className="flex flex-col gap-3">
       <p className="peditor-hint">
-        These images and reels appear in the product description on the storefront. Upload what you want customers to see.
+        These images and reels appear full-size in the product description (no crop). Upload clear photos or videos.
       </p>
       <div className="flex flex-wrap gap-2">
         <button
