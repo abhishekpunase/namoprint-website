@@ -420,60 +420,35 @@ export function ProductDetailsTabs({ product, reviews }) {
         </div>
 
         <div className="overflow-hidden rounded-2xl bg-slate-900">
-          <div className="grid grid-cols-1 md:grid-cols-2">
-            {/* Image side */}
-            <div className="relative flex items-center justify-center overflow-hidden p-8 sm:p-12">
-              <div
-                className="absolute inset-0 opacity-40"
-                style={{
-                  backgroundImage:
-                    'linear-gradient(135deg, rgba(120,113,108,0.4), rgba(0,0,0,0.6)), url(' +
-                    (product?.heroBgUrl || '') +
-                    ')',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}
-              />
-              <div className="relative z-10 rotate-[-2deg] rounded-sm border-[10px] border-amber-300/90 bg-white shadow-2xl">
-                <img
-                  src={product?.previewImageUrl || product?.heroImageUrl}
-                  alt={product?.title || 'Product preview'}
-                  className="h-64 w-52 object-cover sm:h-80 sm:w-64"
-                />
-              </div>
-            </div>
+          <div className="flex flex-col justify-center gap-4 p-8 sm:p-12">
+            <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-400">
+              <span className="text-amber-400">✦</span> Premium Wall Décor by {product?.brand || 'NAMOPRINT'}
+            </span>
+            <h2 className="text-3xl font-heading leading-tight text-white sm:text-4xl">
+              Your photo.
+              <br />
+              <span className="font-heading italic text-amber-300">Gallery-worthy.</span>
+              <br />
+              On your wall.
+            </h2>
+            <p className="max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
+              {product?.description ||
+                'Stop scrolling past your favourite memories. Turn them into a piece of art that demands to be seen — every single day.'}
+            </p>
 
-            {/* Copy side */}
-            <div className="flex flex-col justify-center gap-4 p-8 sm:p-12">
-              <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-400">
-                <span className="text-amber-400">✦</span> Premium Wall Décor by {product?.brand || 'NAMOPRINT'}
-              </span>
-              <h2 className="text-3xl font-heading leading-tight text-white sm:text-4xl">
-                Your photo.
-                <br />
-                <span className="font-heading italic text-amber-300">Gallery-worthy.</span>
-                <br />
-                On your wall.
-              </h2>
-              <p className="text-sm leading-relaxed text-slate-300 sm:text-base">
-                {product?.description ||
-                  'Stop scrolling past your favourite memories. Turn them into a piece of art that demands to be seen — every single day.'}
-              </p>
-
-              <div className="mt-2 flex flex-wrap gap-2">
-                {badges.map((label) => {
-                  const Icon = BADGE_ICONS[label.toLowerCase()] || FiCheckCircle
-                  return (
-                    <span
-                      key={label}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/30 bg-white/5 px-3 py-1.5 text-xs font-medium text-amber-100"
-                    >
-                      <Icon className="h-3.5 w-3.5 text-amber-300" />
-                      {label}
-                    </span>
-                  )
-                })}
-              </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {badges.map((label) => {
+                const Icon = BADGE_ICONS[label.toLowerCase()] || FiCheckCircle
+                return (
+                  <span
+                    key={label}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/30 bg-white/5 px-3 py-1.5 text-xs font-medium text-amber-100"
+                  >
+                    <Icon className="h-3.5 w-3.5 text-amber-300" />
+                    {label}
+                  </span>
+                )
+              })}
             </div>
           </div>
         </div>
