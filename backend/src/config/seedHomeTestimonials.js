@@ -4,9 +4,9 @@ import { HomeTestimonialSection } from '../models/HomeTestimonialSection.js';
 const DEFAULT_SECTION = {
   key: 'default',
   badge: 'Customer Testimonials',
-  heading: 'What Our Happy Customers\nSay About Namo Print',
+  heading: 'What Our Happy Customers\nSay About Namo Prints',
   subtitle:
-    'Thousands of customers trust Namo Print for premium quality customized products, fast delivery and excellent customer support.',
+    'Thousands of customers trust Namo Prints for premium quality customized products, fast delivery and excellent customer support.',
 };
 
 const DEFAULT_HOME_TESTIMONIALS = [
@@ -17,7 +17,7 @@ const DEFAULT_HOME_TESTIMONIALS = [
       'https://img.magnific.com/free-photo/young-indian-man-dressed-trendy-outfit-monitoring-information-from-social-networks_231208-2766.jpg?semt=ais_hybrid&w=740&q=80',
     title: 'Excellent Printing Quality',
     review:
-      'I ordered acrylic photo frames from Namo Print and the quality was outstanding. Premium finishing, secure packaging, and fast delivery. I will definitely order again.',
+      'I ordered acrylic photo frames from Namo Prints and the quality was outstanding. Premium finishing, secure packaging, and fast delivery. I will definitely order again.',
     sortOrder: 0,
   },
   {
@@ -70,14 +70,38 @@ const DEFAULT_HOME_TESTIMONIALS = [
 ];
 
 export async function ensureHomeTestimonials() {
-  await HomeTestimonialSection.findOneAndUpdate(
-    { key: 'default' },
-    { $setOnInsert: DEFAULT_SECTION },
-    { upsert: true },
-  );
+  const rename = (text = '') => String(text).replace(/Namo Print(?!s)/g, 'Namo Prints');
+
+  const section = await HomeTestimonialSection.findOne({ key: 'default' });
+  if (section) {
+    let changed = false;
+    const nextHeading = rename(section.heading);
+    const nextSubtitle = rename(section.subtitle);
+    if (nextHeading !== section.heading) {
+      section.heading = nextHeading;
+      changed = true;
+    }
+    if (nextSubtitle !== section.subtitle) {
+      section.subtitle = nextSubtitle;
+      changed = true;
+    }
+    if (changed) await section.save();
+  } else {
+    await HomeTestimonialSection.create(DEFAULT_SECTION);
+  }
 
   const count = await HomeTestimonial.countDocuments();
-  if (count > 0) return;
+  if (count > 0) {
+    const items = await HomeTestimonial.find({ review: /Namo Print/ });
+    for (const item of items) {
+      const next = rename(item.review);
+      if (next !== item.review) {
+        item.review = next;
+        await item.save();
+      }
+    }
+    return;
+  }
 
   await HomeTestimonial.insertMany(DEFAULT_HOME_TESTIMONIALS);
   console.log(`Home testimonials seeded (${DEFAULT_HOME_TESTIMONIALS.length} items).`);

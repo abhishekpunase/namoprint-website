@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { DesignContext } from './DesignContextBase'
 import { api } from '../services/api'
+import { getPermanentAssetUrl } from '../utils/composeDesignPreview'
 
 export function DesignProvider({ children }) {
   const [design, setDesign] = useState({
@@ -28,7 +29,12 @@ export function DesignProvider({ children }) {
         const localUrl = URL.createObjectURL(file)
         try {
           const payload = await api.uploadPhoto(file)
-          setDesign((current) => ({ ...current, asset: payload.asset, photoUrl: payload.asset.previewUrl || localUrl }))
+          const permanentUrl = getPermanentAssetUrl(payload.asset) || payload.asset?.previewUrl || localUrl
+          setDesign((current) => ({
+            ...current,
+            asset: payload.asset,
+            photoUrl: permanentUrl,
+          }))
           return payload.asset
         } catch {
           const asset = { _id: `local-${Date.now()}`, previewUrl: localUrl }

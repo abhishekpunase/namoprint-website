@@ -412,6 +412,6 @@ export function formatNotifDate(value) {
 }
 
 export function getWhatsAppLink(message = '') {
-  const text = message || 'Hi Namo Print, I am interested in your products.'
+  const text = message || 'Hi Namo Prints, I am interested in your products.'
   return `https://wa.me/${WHATSAPP_NUMBER.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`
 }

@@ -10,7 +10,7 @@ export function AboutPage() {
             Since Idea to Impression
           </span>
           <h1 className="text-4xl md:text-6xl font-extrabold text-black mb-4">
-            About <span className="text-yellow-600">Namo Print</span>
+            About <span className="text-yellow-600">Namo Prints</span>
           </h1>
           <p className="max-w-2xl mx-auto text-gray-600 text-lg leading-relaxed">
             We turn your ideas into premium printed reality — precision,
@@ -28,7 +28,7 @@ export function AboutPage() {
             Our <span className="text-yellow-600">Story</span>
           </h2>
           <p className="text-gray-600 leading-relaxed mb-4">
-            Namo Print was founded with a simple mission — to make high
+            Namo Prints was founded with a simple mission — to make high
             quality, fully customizable printing accessible to everyone.
             From business cards to custom apparel, we combine modern
             technology with old-school craftsmanship to deliver prints
@@ -40,18 +40,23 @@ export function AboutPage() {
             in the printing industry.
           </p>
         </div>
-        <div className="bg-black rounded-2xl p-10 shadow-xl">
-          <ul className="space-y-6">
+        <div className="overflow-hidden rounded-2xl bg-black shadow-xl">
+          <ul className="divide-y divide-white/10">
             {[
               ['10+', 'Years of Experience'],
               ['5000+', 'Happy Customers'],
               ['100%', 'Quality Guaranteed'],
             ].map(([num, label]) => (
-              <li key={label} className="flex items-center gap-4">
-                <span className="text-3xl font-extrabold text-yellow-500">
+              <li
+                key={label}
+                className="flex items-center justify-between gap-6 px-8 py-7 sm:px-10 sm:py-8"
+              >
+                <span className="text-left text-base font-medium text-white/85 sm:text-lg">
+                  {label}
+                </span>
+                <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-4xl font-extrabold text-transparent sm:text-5xl">
                   {num}
                 </span>
-                <span className="text-white/80">{label}</span>
               </li>
             ))}
           </ul>

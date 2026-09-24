@@ -1,10 +1,10 @@
 /** Storefront SEO defaults — override site URL via VITE_SITE_URL in .env */
-export const SITE_NAME = 'Namo Print'
+export const SITE_NAME = 'Namo Prints'
 export const SITE_TAGLINE = 'Custom Photo Frames, Name Plates & T-Shirt Printing'
 export const SITE_DESCRIPTION =
-  'Namo Print — order custom photo frames, acrylic name plates, canvas frames, and printed t-shirts online. Upload your design, choose size, and get fast delivery across India.'
+  'Namo Prints — order custom photo frames, acrylic name plates, canvas frames, and printed t-shirts online. Upload your design, choose size, and get fast delivery across India.'
 export const SITE_KEYWORDS =
-  'custom photo frames, name plate, house name plate, canvas frame, t-shirt printing, custom t-shirt, photo printing, personalized gifts, Namo Print, India'
+  'custom photo frames, name plate, house name plate, canvas frame, t-shirt printing, custom t-shirt, photo printing, personalized gifts, Namo Prints, India'
 export const SITE_LOCALE = 'en_IN'
 export const TWITTER_HANDLE = '@namoprint'
 
@@ -56,7 +56,7 @@ export const ROUTE_SEO = {
     title: 'Shop All Products',
     description:
       'Browse custom photo frames, wall clocks, albums, name plates, canvas frames, and t-shirt printing. Design online and order with easy checkout.',
-    keywords: 'shop photo frames, custom prints, personalized products, Namo Print catalog',
+    keywords: 'shop photo frames, custom prints, personalized products, Namo Prints catalog',
   },
   '/god-photo-frames': {
     title: 'Canvas Frames',
@@ -114,11 +114,11 @@ export const ROUTE_SEO = {
   },
   '/about': {
     title: 'About Us',
-    description: 'Learn about Namo Print — your trusted partner for custom printing, photo frames, and personalized gifts.',
+    description: 'Learn about Namo Prints — your trusted partner for custom printing, photo frames, and personalized gifts.',
   },
   '/contact': {
     title: 'Contact Us',
-    description: 'Get in touch with Namo Print for orders, bulk enquiries, and support. We are happy to help.',
+    description: 'Get in touch with Namo Prints for orders, bulk enquiries, and support. We are happy to help.',
   },
   '/bulk-orders': {
     title: 'Bulk Orders',
@@ -126,32 +126,32 @@ export const ROUTE_SEO = {
   },
   '/faq': {
     title: 'FAQ',
-    description: 'Frequently asked questions about ordering, customization, shipping, and payments at Namo Print.',
+    description: 'Frequently asked questions about ordering, customization, shipping, and payments at Namo Prints.',
   },
   '/privacy-policy': {
     title: 'Privacy Policy',
-    description: 'How Namo Print collects, uses, and protects your personal information.',
+    description: 'How Namo Prints collects, uses, and protects your personal information.',
   },
   '/terms-and-conditions': {
     title: 'Terms & Conditions',
-    description: 'Terms and conditions for using Namo Print website and placing orders.',
+    description: 'Terms and conditions for using Namo Prints website and placing orders.',
   },
   '/refund-policy': {
     title: 'Refund Policy',
-    description: 'Refund and cancellation policy for Namo Print orders.',
+    description: 'Refund and cancellation policy for Namo Prints orders.',
   },
   '/shipping-policy': {
     title: 'Shipping Policy',
-    description: 'Shipping timelines, delivery areas, and tracking information for Namo Print orders.',
+    description: 'Shipping timelines, delivery areas, and tracking information for Namo Prints orders.',
   },
   '/login': {
     title: 'Login',
-    description: 'Sign in to your Namo Print account to track orders and checkout faster.',
+    description: 'Sign in to your Namo Prints account to track orders and checkout faster.',
     noindex: true,
   },
   '/register': {
     title: 'Create Account',
-    description: 'Create a Namo Print account to save designs and manage orders.',
+    description: 'Create a Namo Prints account to save designs and manage orders.',
     noindex: true,
   },
   '/cart': {

@@ -14,7 +14,7 @@ export default function FloatingWhatsApp() {
   const showSupport = !HIDE_SUPPORT_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-    "Hi Namo Print, I am interested in your products."
+    "Hi Namo Prints, I am interested in your products."
   )}`;
 
   return (

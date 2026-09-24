@@ -3,22 +3,37 @@
 import { motion } from "framer-motion";
 import { Gift, Percent, Truck, ArrowRight, Sparkles } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { HOME_OFFERS, storeCoupon } from "../../data/coupons";
+import { storeCoupon } from "../../data/coupons";
 import { useAuth } from "../../hooks/useAuth";
+import { useSpecialOffers } from "../../hooks/useSpecialOffers";
 
 const iconMap = {
   percent: Percent,
   gift: Gift,
   truck: Truck,
+  sparkles: Sparkles,
 };
 
 export default function SpecialOffers() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const offers = useSpecialOffers();
+
+  if (!offers.isActive || !offers.cards?.length) {
+    return null;
+  }
 
   const claimOffer = (offer) => {
     if (offer.action === "bulk") {
-      navigate("/bulk-orders");
+      navigate(offer.href || "/bulk-orders");
+      return;
+    }
+    if (offer.action === "link" && offer.href) {
+      if (offer.href.startsWith("http")) {
+        window.open(offer.href, "_blank", "noopener,noreferrer");
+        return;
+      }
+      navigate(offer.href);
       return;
     }
     if (offer.code) storeCoupon(offer.code);
@@ -44,26 +59,29 @@ export default function SpecialOffers() {
         >
           <span className="inline-flex items-center gap-2 rounded-full bg-orange-100 px-5 py-2 text-sm font-semibold text-orange-600">
             <Sparkles size={16} />
-            Limited Time Exclusive Deals
+            {offers.eyebrow}
           </span>
 
           <h2 className="mt-6 text-5xl font-bold text-slate-900">
-            Unlock Premium
-            <span className="block text-orange-500">Furniture Savings</span>
+            {offers.title}
+            {offers.titleAccent ? (
+              <span className="block text-orange-500">{offers.titleAccent}</span>
+            ) : null}
           </h2>
 
-          <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-500">
-            Transform your space with handcrafted furniture and enjoy exclusive offers designed especially for you.
-          </p>
+          {offers.subtitle ? (
+            <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-500">{offers.subtitle}</p>
+          ) : null}
         </motion.div>
 
         <div className="mt-16 grid gap-8 lg:grid-cols-3">
-          {HOME_OFFERS.map((offer, index) => {
+          {offers.cards.map((offer, index) => {
             const Icon = iconMap[offer.icon] || Gift;
+            const key = offer._id || `${offer.title}-${index}`;
 
             return (
               <motion.div
-                key={offer.id}
+                key={key}
                 initial={{ opacity: 0, y: 70 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -102,12 +120,12 @@ export default function SpecialOffers() {
                   </motion.div>
                 ) : null}
 
-                {offer.action === "bulk" ? (
+                {offer.action === "bulk" || (offer.action === "link" && offer.href && !offer.href.startsWith("http")) ? (
                   <Link
-                    to="/bulk-orders"
+                    to={offer.href || "/bulk-orders"}
                     className="relative z-10 mt-10 inline-flex items-center gap-3 rounded-xl bg-white px-6 py-3 font-semibold text-orange-600 transition-all group-hover:shadow-xl"
                   >
-                    {offer.cta || "Bulk Order"}
+                    {offer.cta || (offer.action === "bulk" ? "Bulk Order" : "View Offer")}
                     <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                   </Link>
                 ) : (
@@ -127,7 +145,6 @@ export default function SpecialOffers() {
           })}
         </div>
       </div>
-
     </section>
   );
 }

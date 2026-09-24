@@ -5,7 +5,7 @@ export function BulkOrdersPage() {
   const phoneNumber = '+918349313800' // apna call number yaha daalein
 
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-    'Hi Namo Print, I am interested in a bulk order. Can you share details on pricing?'
+    'Hi Namo Prints, I am interested in a bulk order. Can you share details on pricing?'
   )}`
 
   const perks = [
@@ -46,7 +46,7 @@ export function BulkOrdersPage() {
             Custom Pricing on <span className="text-yellow-500">Bulk Orders</span>
           </h1>
           <p className="max-w-2xl mx-auto text-white/70 text-lg leading-relaxed mb-8">
-            Printing in bulk for your business, event, or brand? Namo Print
+            Printing in bulk for your business, event, or brand? Namo Prints
             offers premium quality, fast turnaround, and unbeatable pricing
             for large volume orders.
           </p>

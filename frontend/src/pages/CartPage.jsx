@@ -28,9 +28,19 @@ function CartItemCard({ item, onUpdateQty, onRemove }) {
         ) : (
         <div className="relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-xl border border-[#E8E4DC] bg-[#FAFAF8] sm:mx-0 sm:h-24 sm:w-24">
           {previewUrl ? (
-            <img src={resolveMediaUrl(previewUrl)} alt="" className="h-full w-full object-contain p-1" />
+            <img
+              src={resolveMediaUrl(previewUrl)}
+              alt=""
+              className="h-full w-full object-contain p-1"
+              onError={(event) => {
+                if (product.images?.[0]) {
+                  event.currentTarget.src = resolveMediaUrl(product.images[0])
+                  event.currentTarget.className = 'h-full w-full object-cover'
+                }
+              }}
+            />
           ) : product.images?.[0] ? (
-            <img src={product.images[0]} alt="" className="h-full w-full object-cover" />
+            <img src={resolveMediaUrl(product.images[0])} alt="" className="h-full w-full object-cover" />
           ) : (
             <span className="flex h-full w-full items-center justify-center text-sm font-semibold text-[#8B9D83]">
               {product.title?.slice(0, 2)?.toUpperCase()}

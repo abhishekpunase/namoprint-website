@@ -14,12 +14,12 @@ export const DEFAULT_LEGAL_PAGES = [
     titleAccent: 'Policy',
     updatedLabel: 'Last updated: July 14, 2026',
     intro:
-      'At Namo Print, your trust matters to us. This page outlines how we collect, use, and safeguard your personal information whenever you use our website or services.',
+      'At Namo Prints, your trust matters to us. This page outlines how we collect, use, and safeguard your personal information whenever you use our website or services.',
     sections: [
       {
         title: '1. Introduction',
         content:
-          'Namo Print ("we", "us", "our") respects your privacy and is committed to protecting the personal information you share with us. This Privacy Policy explains how we collect, use, store, and protect your information when you visit our website or place an order with us.',
+          'Namo Prints ("we", "us", "our") respects your privacy and is committed to protecting the personal information you share with us. This Privacy Policy explains how we collect, use, store, and protect your information when you visit our website or place an order with us.',
       },
       {
         title: '2. Information We Collect',
@@ -78,12 +78,12 @@ export const DEFAULT_LEGAL_PAGES = [
     titleAccent: 'Conditions',
     updatedLabel: 'Last updated: July 14, 2026',
     intro:
-      'Please read these Terms and Conditions carefully before using the Namo Print website or placing an order with us.',
+      'Please read these Terms and Conditions carefully before using the Namo Prints website or placing an order with us.',
     sections: [
       {
         title: '1. Acceptance of Terms',
         content:
-          'By accessing or using the Namo Print website and services, you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, please do not use our website or services.',
+          'By accessing or using the Namo Prints website and services, you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, please do not use our website or services.',
       },
       {
         title: '2. Orders and Payments',
@@ -113,7 +113,7 @@ export const DEFAULT_LEGAL_PAGES = [
       {
         title: '7. Intellectual Property',
         content:
-          'All content on this website, including logos, graphics, and designs created by Namo Print, remain our intellectual property. You may not reproduce, distribute, or use our original designs without written permission.',
+          'All content on this website, including logos, graphics, and designs created by Namo Prints, remain our intellectual property. You may not reproduce, distribute, or use our original designs without written permission.',
       },
       {
         title: '8. User-Submitted Content',
@@ -123,7 +123,7 @@ export const DEFAULT_LEGAL_PAGES = [
       {
         title: '9. Limitation of Liability',
         content:
-          'To the maximum extent permitted by law, Namo Print shall not be liable for any indirect, incidental, or consequential damages arising from the use of our website or products.',
+          'To the maximum extent permitted by law, Namo Prints shall not be liable for any indirect, incidental, or consequential damages arising from the use of our website or products.',
       },
       {
         title: '10. Contact',
@@ -142,10 +142,10 @@ export const DEFAULT_LEGAL_PAGES = [
     titleAccent: 'Policy',
     updatedLabel: 'Last updated: July 14, 2026',
     intro:
-      'At Namo Print, we strive to deliver high-quality, damage-free products to every customer. However, if your product arrives cracked or damaged during transit, you must follow the process outlined below to be eligible for a refund or replacement.',
-    highlightTitle: 'Mandatory Requirement — Unboxing Video',
+      'At Namo Prints, we strive to deliver high-quality, damage-free products to every customer. However, if your product arrives cracked or damaged during transit, you must follow the process outlined below to be eligible for a refund or replacement.',
+    highlightTitle: 'Mandatory Requirement â€” Unboxing Video',
     highlightContent:
-      'If your product arrives cracked or damaged, you must record a video of the product — showing it in front of the delivery person and while opening the box. This video must be sent to us on WhatsApp, and only then will your refund be processed. Without this video, no damage/crack claim will be accepted under any circumstances.',
+      'If your product arrives cracked or damaged, you must record a video of the product â€” showing it in front of the delivery person and while opening the box. This video must be sent to us on WhatsApp, and only then will your refund be processed. Without this video, no damage/crack claim will be accepted under any circumstances.',
     sections: [
       {
         title: '1. Record in Front of the Delivery Person',
@@ -155,12 +155,12 @@ export const DEFAULT_LEGAL_PAGES = [
       {
         title: '2. Record While Opening the Box',
         content:
-          'From the sealed package to opening the box, the entire process must be recorded on camera — no editing or cutting is allowed at any point.',
+          'From the sealed package to opening the box, the entire process must be recorded on camera â€” no editing or cutting is allowed at any point.',
       },
       {
         title: '3. Clearly Show the Product',
         content:
-          'If the product is cracked or damaged, it must be clearly shown in the video — zoom in on the damaged area and capture it from multiple angles.',
+          'If the product is cracked or damaged, it must be clearly shown in the video â€” zoom in on the damaged area and capture it from multiple angles.',
       },
       {
         title: '4. Send the Video on WhatsApp',
@@ -180,11 +180,11 @@ export const DEFAULT_LEGAL_PAGES = [
     ],
     bulletsTitle: 'Refund Conditions',
     bullets: [
-      'The video must be recorded in front of the delivery person, without any breaks — videos recorded afterward will not be accepted.',
+      'The video must be recorded in front of the delivery person, without any breaks â€” videos recorded afterward will not be accepted.',
       'The package seal, label, and order ID must be clearly visible in the video.',
       'The entire process, from opening the box to removing the product, must be included in the video.',
       'The damaged area must be shown in close-up in the video.',
-      'The video must not be edited, cut, or stitched together from multiple clips — only a single, unedited video will be accepted.',
+      'The video must not be edited, cut, or stitched together from multiple clips â€” only a single, unedited video will be accepted.',
       'The video must be sent to us on WhatsApp within 24 hours of delivery.',
     ],
     ctaTitle: 'Received a Damaged Product?',
@@ -245,11 +245,34 @@ export const DEFAULT_LEGAL_PAGES = [
 ];
 
 export async function ensureLegalPages() {
+  const rename = (text = '') => String(text).replace(/Namo Print(?!s)/g, 'Namo Prints');
+
   for (const page of DEFAULT_LEGAL_PAGES) {
-    const existing = await LegalPage.findOne({ slug: page.slug }).lean();
+    const existing = await LegalPage.findOne({ slug: page.slug });
     if (!existing) {
       await LegalPage.create(page);
+      continue;
     }
+
+    let changed = false;
+    const nextIntro = rename(existing.intro);
+    if (nextIntro !== existing.intro) {
+      existing.intro = nextIntro;
+      changed = true;
+    }
+    existing.sections?.forEach((section) => {
+      const nextContent = rename(section.content);
+      const nextTitle = rename(section.title);
+      if (nextContent !== section.content) {
+        section.content = nextContent;
+        changed = true;
+      }
+      if (nextTitle !== section.title) {
+        section.title = nextTitle;
+        changed = true;
+      }
+    });
+    if (changed) await existing.save();
   }
   return LegalPage.find({ slug: { $in: LEGAL_PAGE_SLUGS } }).lean();
 }

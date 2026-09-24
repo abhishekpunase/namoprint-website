@@ -9,6 +9,7 @@ import {
   Menu,
   MessageSquareQuote,
   PanelBottom,
+  Percent,
   FileText,
   Headphones,
   LayoutDashboard,
@@ -109,6 +110,12 @@ export const adminNavigation = [
     label: 'Offer Marquee',
     to: '/admin/home-offer-marquee',
     icon: Megaphone,
+  },
+  {
+    id: 'special-offers',
+    label: 'Special Offers',
+    to: '/admin/special-offers',
+    icon: Percent,
   },
   {
     id: 'header-menu',
@@ -286,6 +293,9 @@ export function getAdminPageMeta(pathname) {
   }
   if (pathname.startsWith('/admin/home-offer-marquee')) {
     return { title: 'Offer Marquee', description: 'Edit the scrolling offer lines on header, homepage, and footer' }
+  }
+  if (pathname.startsWith('/admin/special-offers')) {
+    return { title: 'Special Offers', description: 'Manage homepage special offers section, cards, and coupons' }
   }
   if (pathname.startsWith('/admin/header-menu')) {
     return { title: 'Header Menu', description: 'Manage website header links' }

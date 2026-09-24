@@ -136,7 +136,7 @@ export const replyAdminSupportTicket = asyncHandler(async (req, res) => {
 
   ticket.messages.push({
     sender: 'support',
-    name: req.user?.name || 'Namo Print Support',
+    name: req.user?.name || 'Namo Prints Support',
     message: req.body.message,
     attachments: Array.isArray(req.body.attachments) ? req.body.attachments.filter(Boolean) : [],
   });

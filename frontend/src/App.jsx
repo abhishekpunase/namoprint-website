@@ -109,6 +109,7 @@ const AdminHomeTestimonialsPage = named(() => import('./pages/admin/AdminHomeTes
 const AdminHomeOfferMarqueePage = named(() => import('./pages/admin/AdminHomeOfferMarqueePage'), 'AdminHomeOfferMarqueePage')
 const AdminHeaderMenuPage = named(() => import('./pages/admin/AdminHeaderMenuPage'), 'AdminHeaderMenuPage')
 const AdminFooterPage = named(() => import('./pages/admin/AdminFooterPage'), 'AdminFooterPage')
+const AdminSpecialOffersPage = named(() => import('./pages/admin/AdminSpecialOffersPage'), 'AdminSpecialOffersPage')
 const AdminLegalPagesPage = named(() => import('./pages/admin/AdminLegalPagesPage'), 'AdminLegalPagesPage')
 const AdminBestSellersPage = named(() => import('./pages/admin/AdminBestSellersPage'), 'AdminBestSellersPage')
 const AdminProductOfTheMonthPage = named(() => import('./pages/admin/AdminProductOfTheMonthPage'), 'AdminProductOfTheMonthPage')
@@ -193,6 +194,7 @@ function App() {
                 <Route path="home-offer-marquee" element={<AdminHomeOfferMarqueePage />} />
                 <Route path="header-menu" element={<AdminHeaderMenuPage />} />
                 <Route path="footer" element={<AdminFooterPage />} />
+                <Route path="special-offers" element={<AdminSpecialOffersPage />} />
                 <Route path="legal-pages" element={<AdminLegalPagesPage />} />
                 <Route path="best-sellers" element={<AdminBestSellersPage />} />
                 <Route path="product-of-the-month" element={<AdminProductOfTheMonthPage />} />

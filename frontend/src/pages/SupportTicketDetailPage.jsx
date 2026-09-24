@@ -122,7 +122,7 @@ export function SupportTicketDetailPage() {
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-sm font-semibold text-slate-800">
-                      {isSupport ? 'Namo Print Support' : message.name || 'You'}
+                      {isSupport ? 'Namo Prints Support' : message.name || 'You'}
                     </p>
                     <p className="text-xs text-slate-400">{formatSupportDateTime(message.createdAt)}</p>
                   </div>

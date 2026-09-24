@@ -72,10 +72,25 @@ function pushLine(lines, label, value) {
 /** Preview image URL from cart/order line item */
 export function getCustomizationPreviewUrl(item) {
   if (!item) return ''
-  if (item.productionFileUrl) return item.productionFileUrl
+  if (item.productionFileUrl && !String(item.productionFileUrl).startsWith('blob:')) {
+    return item.productionFileUrl
+  }
   const c = item.customization || item
   if (typeof c !== 'object') return ''
-  return c.designImageUrl || c.previewUrl || c.photoUrl || ''
+  const candidates = [
+    c.designImageUrl,
+    c.previewUrl,
+    c.productionFileUrl,
+    c.photoUrl,
+    Array.isArray(c.photoUrls) ? c.photoUrls[0] : '',
+    c.logoUrl,
+    c.labelImageUrl,
+  ]
+  for (const candidate of candidates) {
+    const value = String(candidate || '').trim()
+    if (value && !value.startsWith('blob:')) return value
+  }
+  return ''
 }
 
 /** Human-readable customization lines for any product type */

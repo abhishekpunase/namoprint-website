@@ -109,14 +109,34 @@ function drawPhotoInBox(ctx, img, box, crop = {}) {
   ctx.restore()
 }
 
+/** Prefer a durable public URL (never blob:) for cart / order storage */
+export function getPermanentAssetUrl(assetOrUrl) {
+  if (!assetOrUrl) return ''
+  if (typeof assetOrUrl === 'string') {
+    const value = assetOrUrl.trim()
+    if (!value || value.startsWith('blob:')) return ''
+    return value
+  }
+  const candidates = [
+    assetOrUrl.optimizedUrl,
+    assetOrUrl.url,
+    assetOrUrl.previewUrl,
+  ]
+  for (const candidate of candidates) {
+    const value = String(candidate || '').trim()
+    if (value && !value.startsWith('blob:')) return value
+  }
+  return ''
+}
+
 function resolvePhotoSources({ slotPhotos = [], design = {}, photoUrl }) {
   if (slotPhotos.length) {
     return slotPhotos.map((entry) => ({
-      url: entry?.url,
+      url: getPermanentAssetUrl(entry?.url) || entry?.url || '',
       crop: entry?.crop,
     }))
   }
-  const url = photoUrl || design.photoUrl
+  const url = getPermanentAssetUrl(photoUrl) || getPermanentAssetUrl(design.photoUrl) || photoUrl || design.photoUrl
   if (url) return [{ url, crop: design.crop }]
   return []
 }
@@ -346,5 +366,13 @@ export async function composeAndUploadDesignPreview(params, uploadPhoto) {
   const file = new File([blob], `${slug}-design-${Date.now()}.jpg`, { type: 'image/jpeg' })
   const payload = await uploadPhoto(file)
   const asset = payload?.asset || payload
-  return asset?.optimizedUrl || asset?.url || asset?.previewUrl || ''
+  const url =
+    getPermanentAssetUrl(asset) ||
+    getPermanentAssetUrl(asset?.optimizedUrl) ||
+    getPermanentAssetUrl(asset?.url) ||
+    getPermanentAssetUrl(asset?.previewUrl)
+  if (!url) {
+    throw new Error('Design uploaded but no public URL was returned')
+  }
+  return url
 }

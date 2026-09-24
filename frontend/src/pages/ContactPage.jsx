@@ -50,7 +50,7 @@ export function ContactPage() {
 
   const whatsappNumber = String(contactInfo.whatsappNumber || FALLBACK_CONTACT.whatsappNumber).replace(/\D/g, '')
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-    'Hi Namo Print, I would like to know more about your services.',
+    'Hi Namo Prints, I would like to know more about your services.',
   )}`
 
   return (
@@ -61,7 +61,7 @@ export function ContactPage() {
             Get In Touch
           </span>
           <h1 className="text-4xl md:text-5xl font-extrabold text-black">
-            Contact <span className="text-yellow-600">Namo Print</span>
+            Contact <span className="text-yellow-600">Namo Prints</span>
           </h1>
           <p className="max-w-xl mx-auto text-gray-600 mt-4">
             Questions, custom orders, or bulk pricing — we're here to help.

@@ -5,7 +5,7 @@ export function AdminSeo() {
   return (
     <Seo
       title="Admin Panel"
-      description="Namo Print store administration."
+      description="Namo Prints store administration."
       noindex
     />
   )

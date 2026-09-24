@@ -10,11 +10,11 @@ export function BrandLogo({
   return (
     <Link
       to="/"
-      aria-label="Namo Print — go to home"
+      aria-label="Namo Prints — go to home"
       className={`shrink-0 transition hover:opacity-90 ${className}`.trim()}
       onClick={onClick}
     >
-      <img src={logo} alt="Namo Print" className={imgClassName} />
+      <img src={logo} alt="Namo Prints" className={imgClassName} />
     </Link>
   )
 }
@@ -24,7 +24,7 @@ export function BrandHomeLink({ children, className = '', onClick }) {
   return (
     <Link
       to="/"
-      aria-label="Namo Print — go to home"
+      aria-label="Namo Prints — go to home"
       className={className}
       onClick={onClick}
     >

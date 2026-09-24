@@ -6,13 +6,13 @@ const homeTestimonialSectionSchema = new mongoose.Schema(
     badge: { type: String, default: 'Customer Testimonials', trim: true },
     heading: {
       type: String,
-      default: 'What Our Happy Customers\nSay About Namo Print',
+      default: 'What Our Happy Customers\nSay About Namo Prints',
       trim: true,
     },
     subtitle: {
       type: String,
       default:
-        'Thousands of customers trust Namo Print for premium quality customized products, fast delivery and excellent customer support.',
+        'Thousands of customers trust Namo Prints for premium quality customized products, fast delivery and excellent customer support.',
       trim: true,
     },
   },

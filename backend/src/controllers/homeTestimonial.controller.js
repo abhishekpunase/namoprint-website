@@ -3,11 +3,25 @@ import { HomeTestimonialSection } from '../models/HomeTestimonialSection.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 async function getOrCreateSection() {
-  let section = await HomeTestimonialSection.findOne({ key: 'default' }).lean();
+  let section = await HomeTestimonialSection.findOne({ key: 'default' });
   if (!section) {
-    section = (await HomeTestimonialSection.create({ key: 'default' })).toObject();
+    return (await HomeTestimonialSection.create({ key: 'default' })).toObject();
   }
-  return section;
+
+  const rename = (text = '') => String(text).replace(/Namo Print(?!s)/g, 'Namo Prints');
+  let changed = false;
+  const nextHeading = rename(section.heading);
+  const nextSubtitle = rename(section.subtitle);
+  if (nextHeading !== section.heading) {
+    section.heading = nextHeading;
+    changed = true;
+  }
+  if (nextSubtitle !== section.subtitle) {
+    section.subtitle = nextSubtitle;
+    changed = true;
+  }
+  if (changed) await section.save();
+  return section.toObject();
 }
 
 export const listPublicHomeTestimonials = asyncHandler(async (_req, res) => {

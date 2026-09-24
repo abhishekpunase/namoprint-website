@@ -1,8 +1,8 @@
 export const DEFAULT_HOME_TESTIMONIAL_SECTION = {
   badge: 'Customer Testimonials',
-  heading: 'What Our Happy Customers\nSay About Namo Print',
+  heading: 'What Our Happy Customers\nSay About Namo Prints',
   subtitle:
-    'Thousands of customers trust Namo Print for premium quality customized products, fast delivery and excellent customer support.',
+    'Thousands of customers trust Namo Prints for premium quality customized products, fast delivery and excellent customer support.',
 };
 
 export const DEFAULT_HOME_TESTIMONIALS = [
@@ -13,7 +13,7 @@ export const DEFAULT_HOME_TESTIMONIALS = [
       'https://img.magnific.com/free-photo/young-indian-man-dressed-trendy-outfit-monitoring-information-from-social-networks_231208-2766.jpg?semt=ais_hybrid&w=740&q=80',
     title: 'Excellent Printing Quality',
     review:
-      'I ordered acrylic photo frames from Namo Print and the quality was outstanding. Premium finishing, secure packaging, and fast delivery. I will definitely order again.',
+      'I ordered acrylic photo frames from Namo Prints and the quality was outstanding. Premium finishing, secure packaging, and fast delivery. I will definitely order again.',
     rating: 5,
   },
   {
@@ -78,9 +78,10 @@ export function mapApiHomeTestimonial(item) {
 }
 
 export function mapApiHomeTestimonialSection(section) {
+  const rename = (text = '') => String(text).replace(/Namo\s*Prints?/gi, 'Namo Prints')
   return {
     badge: section?.badge || DEFAULT_HOME_TESTIMONIAL_SECTION.badge,
-    heading: section?.heading || DEFAULT_HOME_TESTIMONIAL_SECTION.heading,
-    subtitle: section?.subtitle || DEFAULT_HOME_TESTIMONIAL_SECTION.subtitle,
-  };
+    heading: rename(section?.heading || DEFAULT_HOME_TESTIMONIAL_SECTION.heading),
+    subtitle: rename(section?.subtitle || DEFAULT_HOME_TESTIMONIAL_SECTION.subtitle),
+  }
 }

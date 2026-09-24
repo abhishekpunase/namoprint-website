@@ -6,7 +6,7 @@ export function FaqPage() {
 
   const faqs = [
     {
-      question: 'What products does Namo Print offer?',
+      question: 'What products does Namo Prints offer?',
       answer: `We offer a wide range of custom-printed products including
       business cards, apparel, mugs, packaging, banners, and more. Every
       product can be personalized with your own design, text, or logo.`,

@@ -338,7 +338,30 @@ export const createOrderFromCart = asyncHandler(async (req, res) => {
       variantSnapshot: variant.toObject(),
       quantity: item.quantity,
       unitPrice: item.unitPrice,
-      customization: item.customization
+      customization: {
+        ...(item.customization || {}),
+        designImageUrl:
+          item.customization?.designImageUrl ||
+          item.customization?.previewUrl ||
+          item.customization?.productionFileUrl ||
+          '',
+        previewUrl:
+          item.customization?.previewUrl ||
+          item.customization?.designImageUrl ||
+          item.customization?.productionFileUrl ||
+          '',
+        productionFileUrl:
+          item.customization?.productionFileUrl ||
+          item.customization?.designImageUrl ||
+          item.customization?.previewUrl ||
+          '',
+      },
+      productionFileUrl:
+        item.productionFileUrl ||
+        item.customization?.productionFileUrl ||
+        item.customization?.designImageUrl ||
+        item.customization?.previewUrl ||
+        '',
     });
   }
 

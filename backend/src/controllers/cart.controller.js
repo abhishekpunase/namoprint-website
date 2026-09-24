@@ -65,7 +65,24 @@ const buildProductCartItem = async (incoming) => {
     variantId: variant._id,
     quantity: incoming.quantity,
     unitPrice: variant.price,
-    customization: incoming.customization || {},
+    customization: {
+      ...(incoming.customization || {}),
+      previewUrl:
+        incoming.customization?.designImageUrl ||
+        incoming.customization?.previewUrl ||
+        incoming.customization?.productionFileUrl ||
+        '',
+      designImageUrl:
+        incoming.customization?.designImageUrl ||
+        incoming.customization?.previewUrl ||
+        incoming.customization?.productionFileUrl ||
+        '',
+      productionFileUrl:
+        incoming.customization?.productionFileUrl ||
+        incoming.customization?.designImageUrl ||
+        incoming.customization?.previewUrl ||
+        '',
+    },
   };
 };
 

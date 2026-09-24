@@ -15,6 +15,7 @@ import {
   ensureHomeSlides,
   ensureHomeTestimonials,
   ensureLegalPages,
+  ensureSpecialOffers,
   ensurePenPrints,
   ensureProductLabelStickers,
   ensureProductReels,
@@ -56,6 +57,7 @@ const run = async () => {
   await runOne('Home testimonials', ensureHomeTestimonials);
   await runOne('Home offer marquee', ensureHomeOfferMarquee);
   await runOne('Legal pages', ensureLegalPages);
+  await runOne('Special offers', ensureSpecialOffers);
 
   console.log('Seed finished. Admin (if created): admin@omgs.com');
   await disconnectDb();

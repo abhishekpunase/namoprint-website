@@ -168,7 +168,7 @@ function buildAdhocPayload(order, pickupLocation) {
     order_id: String(order.orderNo).slice(0, 50),
     order_date: formatOrderDate(order.createdAt || new Date()),
     pickup_location: pickupLocation,
-    comment: `Namo Print order ${order.orderNo}`,
+    comment: `Namo Prints order ${order.orderNo}`,
     billing_customer_name: customerName.first,
     billing_last_name: customerName.last,
     billing_address: address.line1,

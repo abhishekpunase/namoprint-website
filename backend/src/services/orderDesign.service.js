@@ -67,12 +67,20 @@ export async function resolveOrderItemDesignSource(item) {
 
   const customization = item.customization || {};
 
-  if (customization.designImageUrl) {
+  if (customization.productionFileUrl && !String(customization.productionFileUrl).startsWith('blob:')) {
+    return { url: customization.productionFileUrl, kind: 'production' };
+  }
+
+  if (customization.designImageUrl && !String(customization.designImageUrl).startsWith('blob:')) {
     return { url: customization.designImageUrl, kind: 'design' };
   }
 
   if (customization.previewUrl && !String(customization.previewUrl).startsWith('blob:')) {
     return { url: customization.previewUrl, kind: 'preview' };
+  }
+
+  if (customization.photoUrl && !String(customization.photoUrl).startsWith('blob:')) {
+    return { url: customization.photoUrl, kind: 'photo' };
   }
 
   const assetId =

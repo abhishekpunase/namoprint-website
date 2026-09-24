@@ -3,7 +3,7 @@ import { FooterSettings } from '../models/FooterSettings.js';
 export const DEFAULT_FOOTER = {
   aboutText:
     "India's trusted online printing partner for T-Shirts, Photo Frames, Mugs, Stickers, Corporate Gifts, Packaging Boxes and Custom Printing Solutions.",
-  copyright: '© 2026 Namo Print. All Rights Reserved. | Designed & Developed by Jainzmedia',
+  copyright: '© 2026 Namo Prints. All Rights Reserved. | Designed & Developed by Jainzmedia',
   headings: {
     categories: 'Categories',
     quick: 'Quick Links',
@@ -41,6 +41,10 @@ export const DEFAULT_FOOTER = {
   ],
 };
 
+function renameBrand(text = '') {
+  return String(text).replace(/Namo Print(?!s)/g, 'Namo Prints');
+}
+
 export async function ensureFooter() {
   const existing = await FooterSettings.findOne({ key: 'default' });
   if (existing) {
@@ -51,6 +55,16 @@ export async function ensureFooter() {
         changed = true;
       }
     });
+    const nextCopyright = renameBrand(existing.copyright);
+    const nextAbout = renameBrand(existing.aboutText);
+    if (nextCopyright !== existing.copyright) {
+      existing.copyright = nextCopyright;
+      changed = true;
+    }
+    if (nextAbout !== existing.aboutText) {
+      existing.aboutText = nextAbout;
+      changed = true;
+    }
     if (changed) await existing.save();
     return existing;
   }

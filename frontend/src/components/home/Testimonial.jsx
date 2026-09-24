@@ -13,6 +13,42 @@ import { resolveMediaUrl } from "../../utils/mediaUrl";
 
 import "swiper/css";
 
+const BRAND_NAME = "Namo Prints";
+const BRAND_PATTERN = /Namo\s*Prints?/gi;
+
+function normalizeBrand(text = "") {
+  return String(text).replace(BRAND_PATTERN, BRAND_NAME);
+}
+
+function highlightBrand(text = "") {
+  const source = normalizeBrand(text);
+  const nodes = [];
+  let lastIndex = 0;
+  const pattern = new RegExp(BRAND_NAME, "g");
+  let match;
+
+  while ((match = pattern.exec(source)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(source.slice(lastIndex, match.index));
+    }
+    nodes.push(
+      <span
+        key={`brand-${match.index}`}
+        className="bg-gradient-to-r from-orange-500 via-orange-500 to-red-500 bg-clip-text text-transparent"
+      >
+        {BRAND_NAME}
+      </span>,
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < source.length) {
+    nodes.push(source.slice(lastIndex));
+  }
+
+  return nodes.length > 0 ? nodes : source;
+}
+
 const Testimonial = () => {
   const [section, setSection] = useState(DEFAULT_HOME_TESTIMONIAL_SECTION);
   const [testimonials, setTestimonials] = useState(
@@ -41,8 +77,13 @@ const Testimonial = () => {
   }, []);
 
   const headingLines = useMemo(
-    () => (section.heading || "").split("\n").filter(Boolean),
+    () => normalizeBrand(section.heading || "").split("\n").filter(Boolean),
     [section.heading],
+  );
+
+  const subtitle = useMemo(
+    () => normalizeBrand(section.subtitle || ""),
+    [section.subtitle],
   );
 
   return (
@@ -61,7 +102,7 @@ const Testimonial = () => {
           {headingLines.length > 0 ? (
             headingLines.map((line, index) => (
               <React.Fragment key={`${line}-${index}`}>
-                {line}
+                {highlightBrand(line)}
                 {index < headingLines.length - 1 ? <br /> : null}
               </React.Fragment>
             ))
@@ -69,12 +110,14 @@ const Testimonial = () => {
             <>
               What Our Happy Customers
               <br />
-              Say About Namo Print
+              Say About {highlightBrand(BRAND_NAME)}
             </>
           )}
         </h2>
 
-        <p className="mx-auto mt-5 max-w-2xl text-center text-gray-600">{section.subtitle}</p>
+        <p className="mx-auto mt-5 max-w-2xl text-center text-gray-600">
+          {highlightBrand(subtitle)}
+        </p>
 
         <div className="mt-16">
           <Swiper
@@ -113,7 +156,7 @@ const Testimonial = () => {
                   </h3>
 
                   <p className="mt-5 flex-1 overflow-hidden break-words text-base leading-7 text-gray-600">
-                    &ldquo;{item.review}&rdquo;
+                    &ldquo;{highlightBrand(item.review)}&rdquo;
                   </p>
 
                   <div className="my-6 h-px bg-gradient-to-r from-transparent via-orange-300 to-transparent"></div>

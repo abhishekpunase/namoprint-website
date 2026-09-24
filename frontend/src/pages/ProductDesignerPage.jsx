@@ -25,7 +25,7 @@ import { getDefaultOptions } from '../data/customizationTemplates'
 import { findMatchingVariant, getProductFramePresets } from '../data/productFrameGallery'
 import { getRequiredPhotoSlotCount } from '../data/collageFrameMockup'
 import { enrichProductMockup } from '../utils/enrichProductMockup'
-import { composeAndUploadDesignPreview } from '../utils/composeDesignPreview'
+import { composeAndUploadDesignPreview, getPermanentAssetUrl } from '../utils/composeDesignPreview'
 import { usesLiveProductImage } from '../data/fallbackCatalog'
 import { api } from '../services/api'
 import { formatCurrency } from '../utils/format'
@@ -224,11 +224,12 @@ export function ProductDesignerPage({
     setActiveSlot(slotIndex)
     try {
       const asset = await uploadPhoto(file)
+      const permanentUrl = getPermanentAssetUrl(asset)
       setSlotPhotos((current) => {
         const next = [...current]
         next[slotIndex] = {
           assetId: asset._id,
-          url: asset.previewUrl || URL.createObjectURL(file),
+          url: permanentUrl || asset.previewUrl || URL.createObjectURL(file),
         }
         return next
       })
@@ -260,9 +261,20 @@ export function ProductDesignerPage({
     setSubmitting(true)
     setMessage('')
     try {
-      const uploadedSlotPhotos = slotPhotos
+      const preparedSlotPhotos = slotPhotos.map((photo, index) => {
+        if (!photo) return null
+        const permanentUrl = getPermanentAssetUrl(photo.url)
+        return {
+          ...photo,
+          url: permanentUrl || photo.url,
+          assetId: photo.assetId,
+          crop: photo.crop || (index === 0 ? design.crop : DEFAULT_CROP),
+        }
+      }).filter(Boolean)
+
+      const uploadedSlotPhotos = preparedSlotPhotos
         .map((photo, index) =>
-          photo?.assetId
+          photo?.assetId && !String(photo.assetId).startsWith('local-')
             ? {
                 asset: photo.assetId,
                 crop: photo.crop || design.crop,
@@ -273,41 +285,56 @@ export function ProductDesignerPage({
         .filter(Boolean)
 
       const hasUploadedPhotos = Boolean(
-        uploadedSlotPhotos.length || design.asset || slotPhotos.some((photo) => photo?.url) || design.photoUrl,
+        preparedSlotPhotos.some((photo) => photo?.url || photo?.assetId) ||
+          design.asset ||
+          design.photoUrl,
       )
+
+      const photoUrlForCompose =
+        getPermanentAssetUrl(displayPhotoUrl) ||
+        getPermanentAssetUrl(design.photoUrl) ||
+        getPermanentAssetUrl(design.asset) ||
+        preparedSlotPhotos.find((photo) => getPermanentAssetUrl(photo.url))?.url ||
+        displayPhotoUrl
 
       let composedDesignUrl = ''
       const skipDesignCompose = usesLiveProductImage(product)
 
       if (hasUploadedPhotos && !skipDesignCompose) {
-        composedDesignUrl = await composeAndUploadDesignPreview(
-          {
-            product,
-            variant,
-            options: selectedOptions,
-            slotPhotos,
-            design,
-            photoUrl: displayPhotoUrl,
-            frameColor: previewState.frameColor,
-            frameThicknessPx: previewState.thicknessPx,
-          },
-          (file) => api.uploadPhoto(file),
-        )
-        if (!composedDesignUrl) {
-          throw new Error('Could not save your framed design. Please try again.')
+        try {
+          composedDesignUrl = await composeAndUploadDesignPreview(
+            {
+              product,
+              variant,
+              options: selectedOptions,
+              slotPhotos: preparedSlotPhotos,
+              design: {
+                ...design,
+                photoUrl: photoUrlForCompose,
+              },
+              photoUrl: photoUrlForCompose,
+              frameColor: previewState.frameColor,
+              frameThicknessPx: previewState.thicknessPx,
+            },
+            (file) => api.uploadPhoto(file),
+          )
+        } catch (composeError) {
+          console.warn('Framed design compose failed, using uploaded photo:', composeError?.message)
         }
       }
 
-      const fallbackPreview = skipDesignCompose
-        ? design.photoUrl ||
-          slotPhotos.find((photo) => photo?.url)?.url ||
-          getProductBaseImage(product) ||
-          product?.images?.[0] ||
-          ''
-        : ''
-      const previewUrl = composedDesignUrl || fallbackPreview
+      const fallbackPreview =
+        getPermanentAssetUrl(composedDesignUrl) ||
+        getPermanentAssetUrl(design.asset) ||
+        getPermanentAssetUrl(photoUrlForCompose) ||
+        getPermanentAssetUrl(preparedSlotPhotos.find((photo) => photo?.url)?.url) ||
+        (skipDesignCompose
+          ? getPermanentAssetUrl(getProductBaseImage(product)) || getPermanentAssetUrl(product?.images?.[0])
+          : '')
+
+      const previewUrl = getPermanentAssetUrl(composedDesignUrl) || fallbackPreview
       if (!previewUrl) {
-        throw new Error('Could not save your design preview. Please try again.')
+        throw new Error('Could not save your framed design. Please re-upload the photo and try again.')
       }
 
       await addItem({
@@ -315,13 +342,18 @@ export function ProductDesignerPage({
         variant,
         quantity,
         customization: {
-          photos: design.asset && !uploadedSlotPhotos.length ? [{ asset: design.asset._id, crop: design.crop, placement: 'front' }] : [],
+          photos:
+            design.asset && !uploadedSlotPhotos.length && !String(design.asset._id).startsWith('local-')
+              ? [{ asset: design.asset._id, crop: design.crop, placement: 'front' }]
+              : [],
           text: design.text,
           notes: design.notes,
           options: selectedOptions,
           slotPhotos: uploadedSlotPhotos,
           previewUrl,
           designImageUrl: previewUrl,
+          productionFileUrl: previewUrl,
+          photoUrl: getPermanentAssetUrl(photoUrlForCompose) || previewUrl,
           frameColor: previewState.frameColor,
           frameColorName: previewState.frameColorName,
           thickness: previewState.thickness,
@@ -534,7 +566,7 @@ export function ProductDesignerPage({
           description: product.description,
           heroImageUrl: design.photoUrl || getProductImage(product),
           previewImageUrl: design.photoUrl || getProductImage(product),
-          brand: product.brand || 'NAMO PRINT',
+          brand: product.brand || 'Namo Prints',
           badges: product.badges,
           longDescription: product.longDescription,
           descriptionMedia: product.descriptionMedia,

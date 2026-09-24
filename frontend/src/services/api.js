@@ -442,6 +442,10 @@ export const api = {
   footer: () => apiRequest(`/footer?t=${Date.now()}`, { cache: 'no-store' }),
   adminFooter: () => apiRequest(`/admin/footer?t=${Date.now()}`, { cache: 'no-store' }),
   adminUpdateFooter: (payload) => apiRequest('/admin/footer', { method: 'PUT', body: payload }),
+  specialOffers: () => apiRequest(`/special-offers?t=${Date.now()}`, { cache: 'no-store' }),
+  adminSpecialOffers: () => apiRequest(`/admin/special-offers?t=${Date.now()}`, { cache: 'no-store' }),
+  adminUpdateSpecialOffers: (payload) =>
+    apiRequest('/admin/special-offers', { method: 'PUT', body: payload }),
   legalPage: (slug) => apiRequest(`/legal-pages/${slug}?t=${Date.now()}`, { cache: 'no-store' }),
   legalPages: () => apiRequest(`/legal-pages?t=${Date.now()}`, { cache: 'no-store' }),
   adminLegalPages: () => apiRequest(`/admin/legal-pages?t=${Date.now()}`, { cache: 'no-store' }),

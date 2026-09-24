@@ -143,7 +143,7 @@ export function Footer() {
         <div className="border-t border-white/10 mt-16 pt-8 relative">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
             <p className="text-gray-400 text-center lg:text-left">
-              © 2026 Namo Print. All Rights Reserved. | Designed & Developed by{' '}
+              © 2026 Namo Prints. All Rights Reserved. | Designed & Developed by{' '}
               <a
                 href="https://jainzmedia.com"
                 target="_blank"

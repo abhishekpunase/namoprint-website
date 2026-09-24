@@ -32,7 +32,7 @@ function digitsOnly(value) {
 
 function buildWhatsAppText(form) {
   const lines = [
-    'Hi Namo Print, I want to place a bulk order.',
+    'Hi Namo Prints, I want to place a bulk order.',
     form.name ? `Name: ${form.name}` : null,
     form.phone ? `Phone: ${form.phone}` : null,
     form.company ? `Company: ${form.company}` : null,
