@@ -297,34 +297,30 @@ export function ProductDesignerPage({
         preparedSlotPhotos.find((photo) => getPermanentAssetUrl(photo.url))?.url ||
         displayPhotoUrl
 
-      let composedDesignUrl = ''
+      let composedDesign = null
       const skipDesignCompose = usesLiveProductImage(product)
 
       if (hasUploadedPhotos && !skipDesignCompose) {
-        try {
-          composedDesignUrl = await composeAndUploadDesignPreview(
-            {
-              product,
-              variant,
-              options: selectedOptions,
-              slotPhotos: preparedSlotPhotos,
-              design: {
-                ...design,
-                photoUrl: photoUrlForCompose,
-              },
+        composedDesign = await composeAndUploadDesignPreview(
+          {
+            product,
+            variant,
+            options: selectedOptions,
+            slotPhotos: preparedSlotPhotos,
+            design: {
+              ...design,
               photoUrl: photoUrlForCompose,
-              frameColor: previewState.frameColor,
-              frameThicknessPx: previewState.thicknessPx,
             },
-            (file) => api.uploadPhoto(file),
-          )
-        } catch (composeError) {
-          console.warn('Framed design compose failed, using uploaded photo:', composeError?.message)
-        }
+            photoUrl: photoUrlForCompose,
+            frameColor: previewState.frameColor,
+            frameThicknessPx: previewState.thicknessPx,
+          },
+          (file) => api.uploadPhoto(file),
+        )
       }
 
       const fallbackPreview =
-        getPermanentAssetUrl(composedDesignUrl) ||
+        getPermanentAssetUrl(composedDesign?.url) ||
         getPermanentAssetUrl(design.asset) ||
         getPermanentAssetUrl(photoUrlForCompose) ||
         getPermanentAssetUrl(preparedSlotPhotos.find((photo) => photo?.url)?.url) ||
@@ -332,8 +328,9 @@ export function ProductDesignerPage({
           ? getPermanentAssetUrl(getProductBaseImage(product)) || getPermanentAssetUrl(product?.images?.[0])
           : '')
 
-      const previewUrl = getPermanentAssetUrl(composedDesignUrl) || fallbackPreview
-      if (!previewUrl) {
+      const previewUrl = getPermanentAssetUrl(composedDesign?.url) || fallbackPreview
+      const productionFileKey = composedDesign?.key || ''
+      if (!previewUrl && !productionFileKey) {
         throw new Error('Could not save your framed design. Please re-upload the photo and try again.')
       }
 
@@ -353,6 +350,7 @@ export function ProductDesignerPage({
           previewUrl,
           designImageUrl: previewUrl,
           productionFileUrl: previewUrl,
+          productionFileKey,
           photoUrl: getPermanentAssetUrl(photoUrlForCompose) || previewUrl,
           frameColor: previewState.frameColor,
           frameColorName: previewState.frameColorName,
