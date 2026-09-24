@@ -355,17 +355,12 @@ export const createOrderFromCart = asyncHandler(async (req, res) => {
           item.customization?.designImageUrl ||
           item.customization?.previewUrl ||
           '',
-        productionFileKey: item.customization?.productionFileKey || '',
       },
       productionFileUrl:
         item.productionFileUrl ||
         item.customization?.productionFileUrl ||
         item.customization?.designImageUrl ||
         item.customization?.previewUrl ||
-        '',
-      productionFileKey:
-        item.productionFileKey ||
-        item.customization?.productionFileKey ||
         '',
     });
   }

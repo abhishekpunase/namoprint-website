@@ -1,8 +1,6 @@
 const CUSTOMIZATION_SKIP_KEYS = new Set([
   'previewUrl',
   'designImageUrl',
-  'productionFileUrl',
-  'productionFileKey',
   'photoUrl',
   'photos',
   'slotPhotos',

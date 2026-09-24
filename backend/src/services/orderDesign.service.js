@@ -3,9 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import mongoose from 'mongoose';
 import sharp from 'sharp';
-import { isS3Enabled } from '../config/s3.js';
 import { UploadAsset } from '../models/UploadAsset.js';
-import { extractS3Key, getObjectBuffer } from './storage.service.js';
 import { ApiError } from '../utils/apiError.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -43,17 +41,10 @@ export function resolveOrderSizeLabel(item) {
   );
 }
 
-export async function loadImageBuffer(url, keyHint = '') {
-  if (!url && !keyHint) throw new ApiError(404, 'Design image URL missing');
+export async function loadImageBuffer(url) {
+  if (!url) throw new ApiError(404, 'Design image URL missing');
 
-  const key = keyHint || extractS3Key(url);
-  if (isS3Enabled && key) {
-    const object = await getObjectBuffer(key);
-    return object.buffer;
-  }
-
-  const resolved = String(url || '').trim();
-  if (!resolved) throw new ApiError(404, 'Design image URL missing');
+  const resolved = String(url).trim();
 
   if (resolved.startsWith('http://') || resolved.startsWith('https://')) {
     const response = await fetch(resolved);
@@ -61,51 +52,35 @@ export async function loadImageBuffer(url, keyHint = '') {
     return Buffer.from(await response.arrayBuffer());
   }
 
-  const localKey = resolved.includes('/uploads/')
+  const key = resolved.includes('/uploads/')
     ? resolved.split('/uploads/').pop().split('?')[0]
     : resolved.replace(/^\/+/, '');
 
-  const filePath = path.join(uploadDir, localKey.replaceAll('/', path.sep));
+  const filePath = path.join(uploadDir, key.replaceAll('/', path.sep));
   return fs.readFile(filePath);
 }
 
 export async function resolveOrderItemDesignSource(item) {
-  if (item.productionFileUrl || item.productionFileKey) {
-    return {
-      url: item.productionFileUrl || '',
-      key: item.productionFileKey || '',
-      kind: 'production',
-    };
+  if (item.productionFileUrl) {
+    return { url: item.productionFileUrl, kind: 'production' };
   }
 
   const customization = item.customization || {};
 
   if (customization.productionFileUrl && !String(customization.productionFileUrl).startsWith('blob:')) {
-    return {
-      url: customization.productionFileUrl,
-      key: customization.productionFileKey || '',
-      kind: 'production',
-    };
+    return { url: customization.productionFileUrl, kind: 'production' };
   }
 
   if (customization.designImageUrl && !String(customization.designImageUrl).startsWith('blob:')) {
-    return {
-      url: customization.designImageUrl,
-      key: customization.productionFileKey || '',
-      kind: 'design',
-    };
+    return { url: customization.designImageUrl, kind: 'design' };
   }
 
   if (customization.previewUrl && !String(customization.previewUrl).startsWith('blob:')) {
-    return {
-      url: customization.previewUrl,
-      key: customization.productionFileKey || '',
-      kind: 'preview',
-    };
+    return { url: customization.previewUrl, kind: 'preview' };
   }
 
   if (customization.photoUrl && !String(customization.photoUrl).startsWith('blob:')) {
-    return { url: customization.photoUrl, key: '', kind: 'photo' };
+    return { url: customization.photoUrl, kind: 'photo' };
   }
 
   const assetId =
@@ -115,10 +90,9 @@ export async function resolveOrderItemDesignSource(item) {
 
   if (assetId && mongoose.Types.ObjectId.isValid(assetId)) {
     const asset = await UploadAsset.findById(assetId);
-    if (asset?.url || asset?.key) {
+    if (asset?.url) {
       return {
-        url: asset.url || '',
-        key: asset.key || asset.optimizedKey || '',
+        url: asset.url,
         kind: 'print',
         width: asset.width,
         height: asset.height,
@@ -146,11 +120,11 @@ export function resolveTShirtAssetUrl(item, assetType) {
  */
 export async function exportOrderItemDesignJpeg({ item, dpi = 320 }) {
   const source = await resolveOrderItemDesignSource(item);
-  if (!source?.url && !source?.key) throw new ApiError(404, 'No customer design found for this item');
+  if (!source?.url) throw new ApiError(404, 'No customer design found for this item');
 
   const sizeLabel = resolveOrderSizeLabel(item);
   const { widthPx, heightPx } = parsePrintSizePixels(sizeLabel, dpi);
-  const input = await loadImageBuffer(source.url, source.key);
+  const input = await loadImageBuffer(source.url);
 
   return sharp(input, { failOn: 'none' })
     .rotate()

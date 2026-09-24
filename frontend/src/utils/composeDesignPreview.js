@@ -109,45 +109,24 @@ function drawPhotoInBox(ctx, img, box, crop = {}) {
   ctx.restore()
 }
 
-/** Strip short-lived S3 signed query so cart/order store a durable object URL. */
-export function stripSignedQuery(url) {
-  const value = String(url || '').trim()
-  if (!value || value.startsWith('blob:') || value.startsWith('data:')) return ''
-  try {
-    const parsed = new URL(value)
-    if (/X-Amz-/i.test(parsed.search)) {
-      parsed.search = ''
-      parsed.hash = ''
-      return parsed.toString()
-    }
-    return value
-  } catch {
-    return value.split('?')[0] || ''
-  }
-}
-
-/** Prefer a durable public URL (never blob: / never signed GET) for cart / order storage */
+/** Prefer a durable public URL (never blob:) for cart / order storage */
 export function getPermanentAssetUrl(assetOrUrl) {
   if (!assetOrUrl) return ''
   if (typeof assetOrUrl === 'string') {
-    return stripSignedQuery(assetOrUrl)
+    const value = assetOrUrl.trim()
+    if (!value || value.startsWith('blob:')) return ''
+    return value
   }
   const candidates = [
-    assetOrUrl.url,
     assetOrUrl.optimizedUrl,
+    assetOrUrl.url,
     assetOrUrl.previewUrl,
   ]
   for (const candidate of candidates) {
-    const value = stripSignedQuery(candidate)
-    if (value) return value
+    const value = String(candidate || '').trim()
+    if (value && !value.startsWith('blob:')) return value
   }
   return ''
-}
-
-/** S3/local object key from an upload asset (preferred for admin download). */
-export function getAssetStorageKey(assetOrUrl) {
-  if (!assetOrUrl || typeof assetOrUrl === 'string') return ''
-  return String(assetOrUrl.key || assetOrUrl.optimizedKey || '').trim()
 }
 
 function resolvePhotoSources({ slotPhotos = [], design = {}, photoUrl }) {
@@ -387,14 +366,13 @@ export async function composeAndUploadDesignPreview(params, uploadPhoto) {
   const file = new File([blob], `${slug}-design-${Date.now()}.jpg`, { type: 'image/jpeg' })
   const payload = await uploadPhoto(file)
   const asset = payload?.asset || payload
-  const url = getPermanentAssetUrl(asset)
-  const key = getAssetStorageKey(asset)
-  if (!url && !key) {
+  const url =
+    getPermanentAssetUrl(asset) ||
+    getPermanentAssetUrl(asset?.optimizedUrl) ||
+    getPermanentAssetUrl(asset?.url) ||
+    getPermanentAssetUrl(asset?.previewUrl)
+  if (!url) {
     throw new Error('Design uploaded but no public URL was returned')
   }
-  return {
-    url,
-    key,
-    assetId: asset?._id || asset?.id || '',
-  }
+  return url
 }

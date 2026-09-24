@@ -82,7 +82,6 @@ const buildProductCartItem = async (incoming) => {
         incoming.customization?.designImageUrl ||
         incoming.customization?.previewUrl ||
         '',
-      productionFileKey: incoming.customization?.productionFileKey || '',
     },
   };
 };
