@@ -127,8 +127,11 @@ const AdminProfilePage = named(() => import('./pages/admin/AdminProfilePage'), '
 
 function RouteFallback() {
   return (
-    <div className="grid min-h-[calc(100dvh-8rem)] place-items-center p-6">
-      <div className="sys-skeleton w-full max-w-3xl min-h-[120px] rounded-xl" />
+    <div className="flex min-h-[calc(100dvh-8rem)] items-center justify-center p-6">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-slate-200 border-t-orange-500" />
+        <p className="text-sm font-semibold text-slate-600">Loading...</p>
+      </div>
     </div>
   )
 }

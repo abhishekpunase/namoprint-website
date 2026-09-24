@@ -46,6 +46,7 @@ export function ProductDesignerPage({
   const { design, uploadPhoto, setCrop, setText, setNotes } = useDesign()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [mockupLoading, setMockupLoading] = useState(false)
   const [variantId, setVariantId] = useState('')
   const [quantity, setQuantity] = useState(1)
@@ -90,6 +91,7 @@ export function ProductDesignerPage({
   useEffect(() => {
     let cancelled = false
     setLoading(true)
+    setLoadError(false)
     setMockupLoading(true)
     setProduct(null)
     setMessage('')
@@ -97,6 +99,7 @@ export function ProductDesignerPage({
     api
       .product(slug)
       .then(async (payload) => {
+        if (!payload?.product) throw new Error('missing product')
         const enriched = await enrichProductMockup(payload.product)
         if (cancelled) return
         setProduct(enriched)
@@ -104,16 +107,24 @@ export function ProductDesignerPage({
         setSelectedOptions({ ...getDefaultOptions(enriched.productType, enriched), ...enriched.defaultOptions })
         setSlotPhotos([])
         setActiveSlot(0)
+        setLoadError(false)
       })
       .catch(async () => {
         const fallback = fallbackProducts.find((item) => item.slug === slug)
-        const enriched = fallback ? await enrichProductMockup(fallback) : null
+        if (fallback) {
+          const enriched = await enrichProductMockup(fallback)
+          if (cancelled) return
+          setProduct(enriched)
+          setVariantId(enriched?.variants?.[0]?._id || '')
+          setSelectedOptions({ ...getDefaultOptions(enriched?.productType, enriched), ...enriched?.defaultOptions })
+          setSlotPhotos([])
+          setActiveSlot(0)
+          setLoadError(false)
+          return
+        }
         if (cancelled) return
-        setProduct(enriched)
-        setVariantId(enriched?.variants?.[0]?._id || '')
-        setSelectedOptions({ ...getDefaultOptions(enriched?.productType, enriched), ...enriched?.defaultOptions })
-        setSlotPhotos([])
-        setActiveSlot(0)
+        setProduct(null)
+        setLoadError(true)
       })
       .finally(() => {
         if (cancelled) return
@@ -177,22 +188,10 @@ export function ProductDesignerPage({
     [product, variantId],
   )
 
-  if (loading) {
-    return <ProductPageLoading />
-  }
-
-  if (!product) {
-    return (
-      <section className="flex min-h-[60vh] items-center justify-center px-4">
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white px-8 py-10 text-center shadow-sm">
-          <FiAlertCircle className="h-10 w-10 text-rose-400" />
-          <p className="text-lg font-semibold text-slate-700">Product not found.</p>
-          <Link to={catalogBase} className="mt-2 text-sm font-semibold text-orange-600 hover:underline">
-            Back to products
-          </Link>
-        </div>
-      </section>
-    )
+  // Never flash "Product not found" while the page is still resolving.
+  // Keep showing Loading until we have a product; only then render the page.
+  if (loading || !product) {
+    return <ProductPageLoading label="Loading..." />
   }
 
   const requiredSlots = getRequiredPhotoSlotCount(product, variant, selectedOptions)
