@@ -1600,6 +1600,7 @@ export function PreviewFrame({
             background: useFrameOverlay || useLiveProductImage ? 'transparent' : showClockDial ? '#f3f4f6' : undefined,
           }}
           className={showClockDial ? 'clock-preview-shell' : ''}
+          data-product-design-preview
         >
           {/* Finish shine — not on collage frame overlay */}
           {finishStyle.shine !== 'none' && !useCollageSlots && (

@@ -17,6 +17,7 @@
     "@react-three/fiber": "^9.6.1",
     "@tailwindcss/vite": "^4.3.2",
     "framer-motion": "^12.42.2",
+    "html-to-image": "^1.11.13",
     "konva": "^10.3.0",
     "lucide-react": "^1.24.0",
     "react": "^19.2.7",

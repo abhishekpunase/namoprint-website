@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { toBlob as captureNodeAsBlob } from 'html-to-image'
 import {
   FiLock,
   FiMinus,
@@ -314,7 +315,32 @@ export function ProductDesignerPage({
       let composedDesignUrl = ''
       const skipDesignCompose = usesLiveProductImage(product)
 
-      if (hasUploadedPhotos && !skipDesignCompose) {
+      if (hasUploadedPhotos) {
+        try {
+          const previewElement = document.querySelector('[data-product-design-preview]')
+          if (!previewElement) throw new Error('Product preview is not available')
+
+          const previewBlob = await captureNodeAsBlob(previewElement, {
+            pixelRatio: 3,
+            filter: (node) => {
+              if (!(node instanceof HTMLElement)) return true
+              return node.tagName !== 'BUTTON' && node.tagName !== 'INPUT'
+            },
+          })
+          if (!previewBlob) throw new Error('Could not capture product preview')
+
+          const previewFile = new File([previewBlob], `${product.slug || 'product'}-design-${Date.now()}.png`, {
+            type: 'image/png',
+          })
+          const payload = await api.uploadPhoto(previewFile)
+          composedDesignUrl = getPermanentAssetUrl(payload?.asset || payload)
+          if (!composedDesignUrl) throw new Error('Preview upload returned no image URL')
+        } catch (captureError) {
+          console.warn('Could not save the visible product preview:', captureError?.message)
+        }
+      }
+
+      if (hasUploadedPhotos && !composedDesignUrl && !skipDesignCompose) {
         try {
           composedDesignUrl = await composeAndUploadDesignPreview(
             {
