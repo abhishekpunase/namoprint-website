@@ -277,10 +277,6 @@ export async function composeDesignPreview({
       }
     }),
   )
-  if (loadedPhotos.some((img) => !img)) {
-    throw new Error('Could not load every uploaded photo for the framed preview')
-  }
-
   const photosUnderFrame = Boolean(frameUrl)
 
   if (photosUnderFrame) {
@@ -328,7 +324,11 @@ export async function composeDesignPreview({
       drawClockFace(ctx, primaryBox, options)
     }
 
-    await drawFrameOverlay(ctx, frameUrl, canvas, layoutBoxes)
+    try {
+      await drawFrameOverlay(ctx, frameUrl, canvas, layoutBoxes)
+    } catch {
+      /* keep photos-only export if frame fails */
+    }
   } else {
     for (let i = 0; i < photoBoxes.length; i += 1) {
       const img = loadedPhotos[i]

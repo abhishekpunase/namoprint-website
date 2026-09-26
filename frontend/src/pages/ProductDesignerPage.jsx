@@ -318,8 +318,8 @@ export function ProductDesignerPage({
             },
             (file) => api.uploadPhoto(file),
           )
-        } catch {
-          throw new Error('Could not create your framed preview. Please re-upload the photo and try again.')
+        } catch (composeError) {
+          console.warn('Framed design compose failed, using uploaded photo:', composeError?.message)
         }
       }
 
