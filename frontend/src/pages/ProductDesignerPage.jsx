@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   FiLock,
   FiMinus,
@@ -60,6 +60,15 @@ export function ProductDesignerPage({
   const [previewState, setPreviewState] = useState({})
   const [galleryPhotoUrl, setGalleryPhotoUrl] = useState(null)
   const [activePresetId, setActivePresetId] = useState(null)
+  const localPhotoUrls = useRef(new Set())
+
+  useEffect(
+    () => () => {
+      localPhotoUrls.current.forEach((url) => URL.revokeObjectURL(url))
+      localPhotoUrls.current.clear()
+    },
+    [],
+  )
 
   const framePresets = useMemo(() => getProductFramePresets(product), [product])
 
@@ -222,6 +231,8 @@ export function ProductDesignerPage({
 
   const uploadSlotPhoto = async (file, slotIndex = 0) => {
     setActiveSlot(slotIndex)
+    const localUrl = URL.createObjectURL(file)
+    localPhotoUrls.current.add(localUrl)
     try {
       const asset = await uploadPhoto(file)
       const permanentUrl = getPermanentAssetUrl(asset)
@@ -230,6 +241,7 @@ export function ProductDesignerPage({
         next[slotIndex] = {
           assetId: asset._id,
           url: permanentUrl || asset.previewUrl || URL.createObjectURL(file),
+          localUrl,
         }
         return next
       })
@@ -237,7 +249,8 @@ export function ProductDesignerPage({
       setSlotPhotos((current) => {
         const next = [...current]
         next[slotIndex] = {
-          url: URL.createObjectURL(file),
+          url: localUrl,
+          localUrl,
         }
         return next
       })
@@ -267,6 +280,7 @@ export function ProductDesignerPage({
         return {
           ...photo,
           url: permanentUrl || photo.url,
+          localUrl: photo.localUrl,
           assetId: photo.assetId,
           crop: photo.crop || (index === 0 ? design.crop : DEFAULT_CROP),
         }

@@ -147,7 +147,7 @@ export function getPermanentAssetUrl(assetOrUrl) {
 function resolvePhotoSources({ slotPhotos = [], design = {}, photoUrl }) {
   if (slotPhotos.length) {
     return slotPhotos.map((entry) => ({
-      url: getPermanentAssetUrl(entry?.url) || entry?.url || '',
+      url: entry?.localUrl || getPermanentAssetUrl(entry?.url) || entry?.url || '',
       crop: entry?.crop,
     }))
   }
