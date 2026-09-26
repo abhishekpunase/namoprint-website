@@ -432,6 +432,7 @@ function PhotoSlot({
               src={resolveMediaUrl(src)}
               alt={label}
               draggable={false}
+              data-product-uploaded-photo
               className="preview-slot__img select-none object-cover"
               style={{
                 position: 'absolute',
@@ -1759,6 +1760,7 @@ export function PreviewFrame({
               src={resolveMediaUrl(displayFrameUrl)}
               alt=""
               aria-hidden
+              data-product-frame-overlay
               className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
               style={{
                 zIndex: frameLayerZ,

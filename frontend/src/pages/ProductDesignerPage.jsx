@@ -26,7 +26,7 @@ import { getDefaultOptions } from '../data/customizationTemplates'
 import { findMatchingVariant, getProductFramePresets } from '../data/productFrameGallery'
 import { getRequiredPhotoSlotCount } from '../data/collageFrameMockup'
 import { enrichProductMockup } from '../utils/enrichProductMockup'
-import { composeAndUploadDesignPreview, getPermanentAssetUrl } from '../utils/composeDesignPreview'
+import { getPermanentAssetUrl } from '../utils/composeDesignPreview'
 import { usesLiveProductImage } from '../data/fallbackCatalog'
 import { api } from '../services/api'
 import { formatCurrency } from '../utils/format'
@@ -304,77 +304,56 @@ export function ProductDesignerPage({
           design.asset ||
           design.photoUrl,
       )
-
-      const photoUrlForCompose =
+      const uploadedPhotoUrl =
         getPermanentAssetUrl(displayPhotoUrl) ||
         getPermanentAssetUrl(design.photoUrl) ||
         getPermanentAssetUrl(design.asset) ||
         preparedSlotPhotos.find((photo) => getPermanentAssetUrl(photo.url))?.url ||
-        displayPhotoUrl
+        ''
 
       let composedDesignUrl = ''
       const skipDesignCompose = usesLiveProductImage(product)
 
       if (hasUploadedPhotos) {
-        try {
-          const previewElement = document.querySelector('[data-product-design-preview]')
-          if (!previewElement) throw new Error('Product preview is not available')
+        const previewElement = document.querySelector('[data-product-design-preview]')
+        if (!previewElement) throw new Error('Product preview is not available. Please try again.')
 
-          const previewBlob = await captureNodeAsBlob(previewElement, {
-            pixelRatio: 3,
-            filter: (node) => {
-              if (!(node instanceof HTMLElement)) return true
-              return node.tagName !== 'BUTTON' && node.tagName !== 'INPUT'
-            },
-          })
-          if (!previewBlob) throw new Error('Could not capture product preview')
-
-          const previewFile = new File([previewBlob], `${product.slug || 'product'}-design-${Date.now()}.png`, {
-            type: 'image/png',
-          })
-          const payload = await api.uploadPhoto(previewFile)
-          composedDesignUrl = getPermanentAssetUrl(payload?.asset || payload)
-          if (!composedDesignUrl) throw new Error('Preview upload returned no image URL')
-        } catch (captureError) {
-          console.warn('Could not save the visible product preview:', captureError?.message)
+        const uploadedPhotos = Array.from(
+          previewElement.querySelectorAll('[data-product-uploaded-photo]'),
+        ).filter((image) => image instanceof HTMLImageElement)
+        if (
+          !uploadedPhotos.length ||
+          uploadedPhotos.some((image) => !image.complete || !image.naturalWidth)
+        ) {
+          throw new Error('Uploaded photo is still loading in the frame. Please try again.')
         }
+        const frameOverlay = previewElement.querySelector('[data-product-frame-overlay]')
+        if (product.mockup?.frameImage && !usesLiveProductImage(product) && !frameOverlay) {
+          throw new Error('Product frame is still loading. Please try again.')
+        }
+
+        const previewImages = [...uploadedPhotos, ...(frameOverlay instanceof HTMLImageElement ? [frameOverlay] : [])]
+        await Promise.all(previewImages.map((image) => image.decode()))
+        await document.fonts?.ready
+
+        const previewBlob = await captureNodeAsBlob(previewElement, { pixelRatio: 3 })
+        if (!previewBlob) throw new Error('Could not capture the framed product preview.')
+
+        const previewFile = new File([previewBlob], `${product.slug || 'product'}-design-${Date.now()}.png`, {
+          type: 'image/png',
+        })
+        const payload = await api.uploadPhoto(previewFile)
+        composedDesignUrl = getPermanentAssetUrl(payload?.asset || payload)
+        if (!composedDesignUrl) throw new Error('Could not save the framed product preview. Please try again.')
       }
 
-      if (hasUploadedPhotos && !composedDesignUrl && !skipDesignCompose) {
-        try {
-          composedDesignUrl = await composeAndUploadDesignPreview(
-            {
-              product,
-              variant,
-              options: selectedOptions,
-              slotPhotos: preparedSlotPhotos,
-              design: {
-                ...design,
-                photoUrl: photoUrlForCompose,
-              },
-              photoUrl: photoUrlForCompose,
-              frameColor: previewState.frameColor,
-              frameThicknessPx: previewState.thicknessPx,
-            },
-            (file) => api.uploadPhoto(file),
-          )
-        } catch (composeError) {
-          console.warn('Framed design compose failed, using uploaded photo:', composeError?.message)
-        }
-      }
-
-      const fallbackPreview =
+      const previewUrl =
         getPermanentAssetUrl(composedDesignUrl) ||
-        getPermanentAssetUrl(design.asset) ||
-        getPermanentAssetUrl(photoUrlForCompose) ||
-        getPermanentAssetUrl(preparedSlotPhotos.find((photo) => photo?.url)?.url) ||
-        (skipDesignCompose
+        (!hasUploadedPhotos && skipDesignCompose
           ? getPermanentAssetUrl(getProductBaseImage(product)) || getPermanentAssetUrl(product?.images?.[0])
           : '')
-
-      const previewUrl = getPermanentAssetUrl(composedDesignUrl) || fallbackPreview
       if (!previewUrl) {
-        throw new Error('Could not save your framed design. Please re-upload the photo and try again.')
+        throw new Error('Could not save your framed photo preview. Please try adding it to cart again.')
       }
 
       await addItem({
@@ -393,7 +372,7 @@ export function ProductDesignerPage({
           previewUrl,
           designImageUrl: previewUrl,
           productionFileUrl: previewUrl,
-          photoUrl: getPermanentAssetUrl(photoUrlForCompose) || previewUrl,
+          photoUrl: uploadedPhotoUrl || previewUrl,
           frameColor: previewState.frameColor,
           frameColorName: previewState.frameColorName,
           thickness: previewState.thickness,
