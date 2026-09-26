@@ -1,11 +1,26 @@
-import { resolveCollageMockup, resolvePreviewPhotoBoxes, isBuiltInCatalogMockup } from '../data/collageFrameMockup'
+import {
+  resolveCollageMockup,
+  resolvePreviewPhotoBoxes,
+  resolveUploadedFrameImage,
+  isBuiltInCatalogMockup,
+} from '../data/collageFrameMockup'
 import { getProductFrameImage, usesLiveProductImage } from '../data/fallbackCatalog'
 import { getMockupFrameUrl } from './enrichProductMockup'
 import { prepareFrameOverlayForExport, shouldPunchFrameHoles, inferSlotClipPathsFromFrame, createFrameOpeningMask } from './frameImageUtils'
-import { applyFitToPhotoBoxes, getObjectContainFit, resolveMockupLayout } from './mockupLayout'
+import {
+  applyFitToPhotoBoxes,
+  fitPhotoBoxesToMockupOpening,
+  getObjectContainFit,
+  resolveMockupLayout,
+} from './mockupLayout'
 import { resolveMediaUrl } from './mediaUrl'
 import { drawClockFace, drawCssClockFrame, shouldShowClockDial } from './clockCanvasExport'
-import { HEX_PHOTO_FILL_SCALE, isHexClipPath } from './mockupSlotShapes'
+import {
+  HEX_PHOTO_FILL_SCALE,
+  forceCircularPhotoSlot,
+  isHexClipPath,
+  shouldUseCircularPhotoSlot,
+} from './mockupSlotShapes'
 
 const imageCache = new Map()
 
@@ -143,10 +158,26 @@ function resolvePhotoSources({ slotPhotos = [], design = {}, photoUrl }) {
 
 function resolvePhotoBoxes(product, variant, options, collageMockup) {
   const fromPreview = resolvePreviewPhotoBoxes(product, variant, options)
-  if (fromPreview.length) return fromPreview
-  if (collageMockup?.photoBoxes?.length) return collageMockup.photoBoxes
-  if (product?.mockup?.photoBox?.width) return [product.mockup.photoBox]
-  return [{ x: 120, y: 120, width: 760, height: 760, borderRadius: 20 }]
+  const boxes = fromPreview.length
+    ? fromPreview
+    : collageMockup?.photoBoxes?.length
+      ? collageMockup.photoBoxes
+      : product?.mockup?.photoBox?.width
+        ? [product.mockup.photoBox]
+        : [{ x: 120, y: 120, width: 760, height: 760, borderRadius: 20 }]
+  const uploadedFrame = resolveUploadedFrameImage(product)
+  if (!uploadedFrame || !boxes.length) return boxes
+
+  const circular = boxes.length === 1 && shouldUseCircularPhotoSlot(product, options, boxes[0])
+  const adjustedBoxes = circular ? boxes.map(forceCircularPhotoSlot) : boxes
+  return fitPhotoBoxesToMockupOpening(
+    adjustedBoxes,
+    product?.mockup?.canvas || { width: 1000, height: 1000 },
+    {
+      circular,
+      expandRatio: circular ? (product?.mockup?.slotsFromMockup ? 0.025 : 0.05) : 0,
+    },
+  )
 }
 
 /** Same frame source chain as PreviewFrame / enrichProductMockup */
@@ -171,18 +202,20 @@ async function resolveExportLayout(product, variant, options) {
   const collageMockup = resolveCollageMockup(product, variant, options)
   const frameUrl = resolveFrameOverlayUrl(product, variant, options)
   const photoBoxesList = resolvePhotoBoxes(product, variant, options, collageMockup)
-  const canvas = collageMockup?.canvas || product?.mockup?.canvas || { width: 1000, height: 1000 }
+  const sourceCanvas = collageMockup?.canvas || product?.mockup?.canvas || { width: 1000, height: 1000 }
+  let canvas = sourceCanvas
 
   let layoutBoxes = photoBoxesList
   let fit = { left: 0, top: 0, width: 100, height: 100 }
   if (frameUrl) {
-    const layout = await resolveMockupLayout(frameUrl, canvas, photoBoxesList)
+    const layout = await resolveMockupLayout(frameUrl, sourceCanvas, photoBoxesList)
+    canvas = layout.canvas || sourceCanvas
     layoutBoxes = layout.photoBoxes?.length ? layout.photoBoxes : photoBoxesList
     fit = layout.fit || fit
     layoutBoxes = await inferSlotClipPathsFromFrame(frameUrl, layoutBoxes, canvas)
   }
 
-  // Punch/clip stay in authored canvas coords; drawing uses the same letterbox as PreviewFrame.
+  // Use the same frame-sized canvas and slots as PreviewFrame for the saved cart image.
   const drawBoxes = applyFitToPhotoBoxes(layoutBoxes, canvas, fit)
 
   return { frameUrl, canvas, layoutBoxes, drawBoxes, fit, useCollageSlots: layoutBoxes.length > 1 }
