@@ -5,7 +5,7 @@ import { CouponBox } from '../components/checkout/CouponBox'
 import { getStoredCoupon } from '../data/coupons'
 import { useAuth } from '../hooks/useAuth'
 import { resolveCartProduct, useCart } from '../hooks/useCart'
-import { CustomizationSummary } from '../components/shared/CustomizationSummary'
+import { CustomizationPreview, CustomizationSummary, canShowFramedPreview } from '../components/shared/CustomizationSummary'
 import { TShirtPrintAssets } from '../components/shared/TShirtPrintAssets'
 import { getCustomizationPreviewUrl } from '../utils/customizationDisplay'
 import { isTShirtLineItem } from '../utils/tShirtOrderAssets'
@@ -18,6 +18,7 @@ function CartItemCard({ item, onUpdateQty, onRemove }) {
   const previewUrl = getCustomizationPreviewUrl(item)
   const lineTotal = (item.unitPrice || 0) * (item.quantity || 1)
   const isTShirt = isTShirtLineItem(item)
+  const showPreview = Boolean(previewUrl) || canShowFramedPreview(item, product)
 
   return (
     <article className="overflow-hidden rounded-2xl border border-[#E8E4DC] bg-white shadow-sm transition-shadow hover:shadow-md">
@@ -27,18 +28,8 @@ function CartItemCard({ item, onUpdateQty, onRemove }) {
           <TShirtPrintAssets item={item} variant="cart" className="mx-auto sm:mx-0" />
         ) : (
         <div className="relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-xl border border-[#E8E4DC] bg-[#FAFAF8] sm:mx-0 sm:h-24 sm:w-24">
-          {previewUrl ? (
-            <img
-              src={resolveMediaUrl(previewUrl)}
-              alt=""
-              className="h-full w-full object-contain p-1"
-              onError={(event) => {
-                if (product.images?.[0]) {
-                  event.currentTarget.src = resolveMediaUrl(product.images[0])
-                  event.currentTarget.className = 'h-full w-full object-cover'
-                }
-              }}
-            />
+          {showPreview ? (
+            <CustomizationPreview item={item} previewUrl={previewUrl} product={product} className="p-1" />
           ) : product.images?.[0] ? (
             <img src={resolveMediaUrl(product.images[0])} alt="" className="h-full w-full object-cover" />
           ) : (

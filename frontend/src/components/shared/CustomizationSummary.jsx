@@ -4,6 +4,65 @@ import {
   getCustomizationSummaryText,
 } from '../../utils/customizationDisplay'
 import { resolveMediaUrl } from '../../utils/mediaUrl'
+import { PreviewFrame } from '../product/PreviewFrame'
+
+function getPreviewProduct(item, productOverride) {
+  if (productOverride && typeof productOverride === 'object') return productOverride
+  return item?.product && typeof item.product === 'object' ? item.product : null
+}
+
+export function canShowFramedPreview(item, productOverride) {
+  const customization = item?.customization || {}
+  const product = getPreviewProduct(item, productOverride)
+  const photoCount = Math.max(customization.slotPhotos?.length || 0, customization.photos?.length || 0)
+  const hasMockup = Boolean(
+    product?.mockup?.frameImage || product?.mockup?.photoBox || product?.mockup?.photoBoxes?.length,
+  )
+  return Boolean(customization.photoUrl && photoCount <= 1 && hasMockup)
+}
+
+export function CustomizationPreview({ item, previewUrl, product: productOverride, className = '' }) {
+  const customization = item?.customization || {}
+  const product = getPreviewProduct(item, productOverride)
+  const sourcePhotoUrl = customization.photoUrl
+  const showFramed = canShowFramedPreview(item, productOverride)
+  const variant = product?.variants?.find((entry) => String(entry._id) === String(item?.variantId))
+  const canvas = product?.mockup?.canvas || { width: 1, height: 1 }
+  const aspectRatio = Number(canvas.width) / Number(canvas.height) || 1
+  const frameWidth = Math.min(100, 100 * aspectRatio)
+  const frameHeight = Math.min(100, 100 / aspectRatio)
+
+  if (showFramed) {
+    return (
+      <div className={`flex h-full w-full items-center justify-center overflow-hidden ${className}`.trim()}>
+        <div
+          className="relative flex max-h-full max-w-full items-center justify-center"
+          style={{ width: `${frameWidth}%`, height: `${frameHeight}%` }}
+        >
+          <PreviewFrame
+            product={product}
+            variant={variant}
+            photoUrl={sourcePhotoUrl}
+            crop={customization.slotPhotos?.[0]?.crop || customization.photos?.[0]?.crop}
+            text={customization.text || {}}
+            options={customization.options || {}}
+            compact
+            minimal
+          />
+        </div>
+      </div>
+    )
+  }
+
+  if (!previewUrl) return null
+  return (
+    <img
+      src={resolveMediaUrl(previewUrl)}
+      alt="Customer design preview"
+      className={`h-full w-full object-contain ${className}`.trim()}
+    />
+  )
+}
 
 export function CustomizationSummary({
   customization,
@@ -66,7 +125,7 @@ export function CustomizationSummary({
       {showTitle ? <strong>{isAdmin ? 'Customization' : 'Your design'}</strong> : null}
       {showPreview && previewUrl ? (
         <div className={isAdmin ? 'ord-customization__preview' : 'customization-summary__preview'}>
-          <img src={resolveMediaUrl(previewUrl)} alt="Customer design preview" />
+          <CustomizationPreview item={item || { customization }} previewUrl={previewUrl} />
         </div>
       ) : null}
       {lines.length ? (

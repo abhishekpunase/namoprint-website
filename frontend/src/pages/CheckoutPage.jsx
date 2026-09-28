@@ -5,9 +5,8 @@ import { CouponBox } from '../components/checkout/CouponBox'
 import { getStoredCoupon, calculateLocalCouponDiscount, clearStoredCoupon } from '../data/coupons'
 import { useAuth } from '../hooks/useAuth'
 import { resolveCartProduct, useCart } from '../hooks/useCart'
-import { CustomizationSummary } from '../components/shared/CustomizationSummary'
+import { CustomizationPreview, CustomizationSummary, canShowFramedPreview } from '../components/shared/CustomizationSummary'
 import { getCustomizationPreviewUrl } from '../utils/customizationDisplay'
-import { resolveMediaUrl } from '../utils/mediaUrl'
 import { api } from '../services/api'
 import { formatCurrency } from '../utils/format'
 import { calculateCheckoutTotals } from '../utils/checkoutTotals'
@@ -344,15 +343,12 @@ export function CheckoutPage() {
                 {cart.items.map((item) => {
                   const product = resolveCartProduct(item)
                   const previewUrl = getCustomizationPreviewUrl(item)
+                  const showPreview = Boolean(previewUrl) || canShowFramedPreview(item, product)
                   return (
                     <div key={item._id} className="flex gap-3">
                       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-                        {previewUrl ? (
-                          <img
-                            src={resolveMediaUrl(previewUrl)}
-                            alt=""
-                            className="h-full w-full object-contain"
-                          />
+                        {showPreview ? (
+                          <CustomizationPreview item={item} previewUrl={previewUrl} product={product} />
                         ) : product.images?.[0] ? (
                           <img src={product.images[0]} alt="" className="h-full w-full object-cover" />
                         ) : null}
