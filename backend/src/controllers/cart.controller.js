@@ -67,6 +67,12 @@ const buildProductCartItem = async (incoming) => {
     unitPrice: variant.price,
     customization: {
       ...(incoming.customization || {}),
+      framePreviewUrl:
+        incoming.customization?.framePreviewUrl ||
+        incoming.customization?.designImageUrl ||
+        incoming.customization?.previewUrl ||
+        incoming.customization?.productionFileUrl ||
+        '',
       previewUrl:
         incoming.customization?.designImageUrl ||
         incoming.customization?.previewUrl ||

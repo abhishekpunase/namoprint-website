@@ -340,6 +340,12 @@ export const createOrderFromCart = asyncHandler(async (req, res) => {
       unitPrice: item.unitPrice,
       customization: {
         ...(item.customization || {}),
+        framePreviewUrl:
+          item.customization?.framePreviewUrl ||
+          item.customization?.designImageUrl ||
+          item.customization?.previewUrl ||
+          item.customization?.productionFileUrl ||
+          '',
         designImageUrl:
           item.customization?.designImageUrl ||
           item.customization?.previewUrl ||

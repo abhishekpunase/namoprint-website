@@ -370,6 +370,7 @@ export function ProductDesignerPage({
           options: selectedOptions,
           slotPhotos: uploadedSlotPhotos,
           previewUrl,
+          framePreviewUrl: previewUrl,
           designImageUrl: previewUrl,
           productionFileUrl: previewUrl,
           photoUrl: uploadedPhotoUrl || previewUrl,

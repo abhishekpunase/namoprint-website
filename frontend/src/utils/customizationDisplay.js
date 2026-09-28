@@ -1,5 +1,6 @@
 const CUSTOMIZATION_SKIP_KEYS = new Set([
   'previewUrl',
+  'framePreviewUrl',
   'designImageUrl',
   'photoUrl',
   'photos',
@@ -72,10 +73,14 @@ function pushLine(lines, label, value) {
 /** Preview image URL from cart/order line item */
 export function getCustomizationPreviewUrl(item) {
   if (!item) return ''
+  const c = item.customization || item
+  if (typeof c === 'object') {
+    const framePreview = String(c.framePreviewUrl || item.framePreviewUrl || '').trim()
+    if (framePreview && !framePreview.startsWith('blob:')) return framePreview
+  }
   if (item.productionFileUrl && !String(item.productionFileUrl).startsWith('blob:')) {
     return item.productionFileUrl
   }
-  const c = item.customization || item
   if (typeof c !== 'object') return ''
   const candidates = [
     c.designImageUrl,
