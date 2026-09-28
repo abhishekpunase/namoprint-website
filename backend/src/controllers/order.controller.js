@@ -424,13 +424,19 @@ export const listMyOrders = asyncHandler(async (req, res) => {
 export const getOrder = asyncHandler(async (req, res) => {
   const filter = { _id: req.params.id };
   if (req.user.role !== 'admin') filter.user = req.user._id;
-  const order = await Order.findOne(filter).populate('items.tShirtProduct');
+  const order = await Order.findOne(filter)
+    .populate('items.product', 'title slug images thumbnail mockup defaultOptions productType personalization')
+    .populate('items.tShirtProduct');
   if (!order) throw new ApiError(404, 'Order not found');
   res.json({ success: true, order });
 });
 
 export const listAdminOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find().sort('-createdAt').limit(200).populate('items.tShirtProduct');
+  const orders = await Order.find()
+    .sort('-createdAt')
+    .limit(200)
+    .populate('items.product', 'title slug images thumbnail mockup defaultOptions productType personalization')
+    .populate('items.tShirtProduct');
   res.json({ success: true, orders });
 });
 

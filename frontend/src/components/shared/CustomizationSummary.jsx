@@ -17,7 +17,9 @@ export function CustomizationPreview({ item, previewUrl, className = '' }) {
   const hasMockup = Boolean(
     product?.mockup?.frameImage || product?.mockup?.photoBox || product?.mockup?.photoBoxes?.length,
   )
-  const variant = product?.variants?.find((entry) => String(entry._id) === String(item?.variantId))
+  const variant =
+    product?.variants?.find((entry) => String(entry._id) === String(item?.variantId)) ||
+    item?.variantSnapshot
   const canvas = product?.mockup?.canvas || { width: 1, height: 1 }
   const aspectRatio = Number(canvas.width) / Number(canvas.height) || 1
   const frameWidth = Math.min(100, 100 * aspectRatio)

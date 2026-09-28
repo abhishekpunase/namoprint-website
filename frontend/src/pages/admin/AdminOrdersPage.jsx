@@ -5,24 +5,22 @@ import { useOrderList } from '../../hooks/useOrderList'
 import { OrderAnalyticsBar, OrderPaymentMethod } from '../../components/admin/orders/OrderAnalytics'
 import { OrderPagination } from '../../components/admin/orders/OrderTable'
 import { OrderDetailsModal } from '../../components/admin/orders/OrderDetailsModal'
-import { getOrderFramePreviewUrl, ORDER_STATUSES } from '../../utils/orderAdminUtils'
+import { getOrderFramePreviewUrl, getOrderItemFramePreviewUrl, ORDER_STATUSES } from '../../utils/orderAdminUtils'
 import { formatCurrency } from '../../utils/format'
-import { resolveMediaUrl } from '../../utils/mediaUrl'
+import { CustomizationPreview } from '../../components/shared/CustomizationSummary'
 import { Skeleton } from '../../components/admin/ui/Loader'
 
 function OrderFrameThumb({ order }) {
-  const src = resolveMediaUrl(getOrderFramePreviewUrl(order))
+  const firstItem = order.items?.[0]
+  const src = getOrderFramePreviewUrl(order)
   const title = order.items?.[0]?.title || 'Order frame'
   if (!src) {
     return <span className="ord-frame-thumb ord-frame-thumb--empty" aria-hidden="true" />
   }
   return (
-    <img
-      src={src}
-      alt={title}
-      title={title}
-      className="ord-frame-thumb"
-    />
+    <span className="ord-frame-thumb" title={title}>
+      <CustomizationPreview item={firstItem} previewUrl={getOrderItemFramePreviewUrl(firstItem)} />
+    </span>
   )
 }
 

@@ -1,8 +1,8 @@
 import { Eye, MoreHorizontal, Printer } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { formatCurrency } from '../../../utils/format'
-import { getCustomerInitials, getItemsCount, getOrderFramePreviewUrl, getProductPreview } from '../../../utils/orderAdminUtils'
-import { resolveMediaUrl } from '../../../utils/mediaUrl'
+import { getCustomerInitials, getItemsCount, getOrderFramePreviewUrl, getOrderItemFramePreviewUrl, getProductPreview } from '../../../utils/orderAdminUtils'
+import { CustomizationPreview } from '../../shared/CustomizationSummary'
 import { Skeleton } from '../ui/Loader'
 import { OrderEmptyState, OrderStatusBadge, PaymentStatusBadge, ShippingStatusBadge } from './OrderStatusBadge'
 
@@ -95,11 +95,12 @@ export function OrderTable({
                   <td>
                     <Link to={`/admin/orders/${order._id}`} className="ord-name-link ord-name-link--with-frame">
                       {getOrderFramePreviewUrl(order) ? (
-                        <img
-                          src={resolveMediaUrl(getOrderFramePreviewUrl(order))}
-                          alt={order.items?.[0]?.title || 'Order frame'}
-                          className="ord-frame-thumb"
-                        />
+                        <span className="ord-frame-thumb">
+                          <CustomizationPreview
+                            item={order.items?.[0]}
+                            previewUrl={getOrderItemFramePreviewUrl(order.items?.[0])}
+                          />
+                        </span>
                       ) : (
                         <span className="ord-frame-thumb ord-frame-thumb--empty" aria-hidden="true" />
                       )}

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Download, Eye, X } from 'lucide-react'
 import { OrderStatusBadge } from './OrderStatusBadge'
-import { CustomizationSummary } from '../../shared/CustomizationSummary'
+import { CustomizationPreview, CustomizationSummary } from '../../shared/CustomizationSummary'
 import { TShirtPrintAssets } from '../../shared/TShirtPrintAssets'
 import { formatCurrency } from '../../../utils/format'
 import {
@@ -159,7 +159,7 @@ export function OrderDetailsModal({ order, open, onClose }) {
                           className="ord-detail-modal__thumb-btn"
                           onClick={() => setLightbox({ url: itemDesignUrl, title: item.title })}
                         >
-                          <img src={resolveMediaUrl(itemDesignUrl)} alt="" />
+                          <CustomizationPreview item={item} previewUrl={itemDesignUrl} />
                         </button>
                       ) : (
                         <div className="ord-detail-modal__thumb-empty">No preview saved</div>
