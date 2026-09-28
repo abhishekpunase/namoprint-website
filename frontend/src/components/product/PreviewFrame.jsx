@@ -390,12 +390,20 @@ function PhotoSlot({
     }
   }
 
-  const handleWheel = (e) => {
-    if (!draggable || !src) return
-    e.preventDefault()
-    e.stopPropagation()
-    emitCrop({ scale: clampCrop((effCrop.scale || 1) + (e.deltaY < 0 ? 0.1 : -0.1), 1, 3) })
-  }
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return undefined
+
+    const handleWheel = (event) => {
+      if (!draggable || !src) return
+      event.preventDefault()
+      event.stopPropagation()
+      emitCrop({ scale: clampCrop((effCrop.scale || 1) + (event.deltaY < 0 ? 0.1 : -0.1), 1, 3) })
+    }
+
+    container.addEventListener('wheel', handleWheel, { passive: false })
+    return () => container.removeEventListener('wheel', handleWheel)
+  }, [draggable, src, effCrop, emitCrop])
 
   const zoomBy = (delta) => emitCrop({ scale: clampCrop((effCrop.scale || 1) + delta, 1, 3) })
   const resetCrop = () => onCropChange?.({ x: 0, y: 0, scale: 1, rotate: effCrop.rotate || 0 })
@@ -409,7 +417,6 @@ function PhotoSlot({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      onWheel={handleWheel}
       style={{
         cursor: draggable && src ? (dragging ? 'grabbing' : 'grab') : onClick ? 'pointer' : 'default',
         width: '100%',

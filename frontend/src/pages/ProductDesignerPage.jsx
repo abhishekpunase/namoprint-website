@@ -332,23 +332,27 @@ export function ProductDesignerPage({
           throw new Error('Product frame is still loading. Please try again.')
         }
 
-        const previewImages = [...uploadedPhotos, ...(frameOverlay instanceof HTMLImageElement ? [frameOverlay] : [])]
-        await Promise.all(previewImages.map((image) => image.decode()))
-        await document.fonts?.ready
+        try {
+          const previewImages = [...uploadedPhotos, ...(frameOverlay instanceof HTMLImageElement ? [frameOverlay] : [])]
+          await Promise.all(previewImages.map((image) => image.decode()))
+          await document.fonts?.ready
 
-        const previewBlob = await captureNodeAsBlob(previewElement, { pixelRatio: 3, skipFonts: true })
-        if (!previewBlob) throw new Error('Could not capture the framed product preview.')
+          const previewBlob = await captureNodeAsBlob(previewElement, { pixelRatio: 3, skipFonts: true })
+          if (!previewBlob) throw new Error('Could not capture the framed product preview.')
 
-        const previewFile = new File([previewBlob], `${product.slug || 'product'}-design-${Date.now()}.png`, {
-          type: 'image/png',
-        })
-        const payload = await api.uploadPhoto(previewFile)
-        composedDesignUrl = getPermanentAssetUrl(payload?.asset || payload)
-        if (!composedDesignUrl) throw new Error('Could not save the framed product preview. Please try again.')
+          const previewFile = new File([previewBlob], `${product.slug || 'product'}-design-${Date.now()}.png`, {
+            type: 'image/png',
+          })
+          const payload = await api.uploadPhoto(previewFile)
+          composedDesignUrl = getPermanentAssetUrl(payload?.asset || payload)
+        } catch (error) {
+          console.warn('Could not save the composed preview; using the uploaded photo for the cart preview.', error)
+        }
       }
 
       const previewUrl =
         getPermanentAssetUrl(composedDesignUrl) ||
+        getPermanentAssetUrl(uploadedPhotoUrl) ||
         (!hasUploadedPhotos && skipDesignCompose
           ? getPermanentAssetUrl(getProductBaseImage(product)) || getPermanentAssetUrl(product?.images?.[0])
           : '')

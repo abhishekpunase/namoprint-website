@@ -275,8 +275,21 @@ export function CartProvider({ children }) {
       const serverCart = payload.cart || { items: [] }
 
       if (serverCart.items?.length) {
-        persist(serverCart)
-        return serverCart
+        const serverItemIds = new Set(serverCart.items.map((item) => String(item._id)))
+        const pendingItems = localItems.filter((item) => !serverItemIds.has(String(item._id)))
+        if (!pendingItems.length) {
+          persist(serverCart)
+          return serverCart
+        }
+
+        const mergedItems = toSyncPayload([...serverCart.items, ...pendingItems])
+        const synced = await api.syncCart({ items: mergedItems })
+        if (!synced.cart?.items?.length) {
+          throw new Error('Could not save your cart. Please go back to Cart and try again.')
+        }
+
+        persist(synced.cart)
+        return synced.cart
       }
 
       if (!syncableItems.length) {
