@@ -336,7 +336,7 @@ export function ProductDesignerPage({
         await Promise.all(previewImages.map((image) => image.decode()))
         await document.fonts?.ready
 
-        const previewBlob = await captureNodeAsBlob(previewElement, { pixelRatio: 3 })
+        const previewBlob = await captureNodeAsBlob(previewElement, { pixelRatio: 3, skipFonts: true })
         if (!previewBlob) throw new Error('Could not capture the framed product preview.')
 
         const previewFile = new File([previewBlob], `${product.slug || 'product'}-design-${Date.now()}.png`, {
