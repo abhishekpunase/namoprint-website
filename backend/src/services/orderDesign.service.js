@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import mongoose from 'mongoose';
 import sharp from 'sharp';
 import { UploadAsset } from '../models/UploadAsset.js';
+import { extractS3Key, getObjectBuffer, isS3Enabled } from './storage.service.js';
 import { ApiError } from '../utils/apiError.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -41,12 +42,23 @@ export function resolveOrderSizeLabel(item) {
   );
 }
 
-export async function loadImageBuffer(url) {
+export async function loadImageBuffer(url, storageKey) {
   if (!url) throw new ApiError(404, 'Design image URL missing');
 
   const resolved = String(url).trim();
 
+  if (storageKey && isS3Enabled) {
+    const { buffer } = await getObjectBuffer(storageKey);
+    return buffer;
+  }
+
   if (resolved.startsWith('http://') || resolved.startsWith('https://')) {
+    const s3Key = extractS3Key(resolved);
+    if (s3Key) {
+      const { buffer } = await getObjectBuffer(s3Key);
+      return buffer;
+    }
+
     const response = await fetch(resolved);
     if (!response.ok) throw new ApiError(502, 'Could not fetch design image');
     return Buffer.from(await response.arrayBuffer());
@@ -62,13 +74,17 @@ export async function loadImageBuffer(url) {
 
 export async function resolveOrderItemDesignSource(item) {
   if (item.productionFileUrl) {
-    return { url: item.productionFileUrl, kind: 'production' };
+    return { url: item.productionFileUrl, key: item.productionFileKey, kind: 'production' };
   }
 
   const customization = item.customization || {};
 
   if (customization.productionFileUrl && !String(customization.productionFileUrl).startsWith('blob:')) {
-    return { url: customization.productionFileUrl, kind: 'production' };
+    return {
+      url: customization.productionFileUrl,
+      key: customization.productionFileKey,
+      kind: 'production',
+    };
   }
 
   if (customization.designImageUrl && !String(customization.designImageUrl).startsWith('blob:')) {
@@ -93,6 +109,7 @@ export async function resolveOrderItemDesignSource(item) {
     if (asset?.url) {
       return {
         url: asset.url,
+        key: asset.key,
         kind: 'print',
         width: asset.width,
         height: asset.height,
@@ -124,7 +141,7 @@ export async function exportOrderItemDesignJpeg({ item, dpi = 320 }) {
 
   const sizeLabel = resolveOrderSizeLabel(item);
   const { widthPx, heightPx } = parsePrintSizePixels(sizeLabel, dpi);
-  const input = await loadImageBuffer(source.url);
+  const input = await loadImageBuffer(source.url, source.key);
 
   return sharp(input, { failOn: 'none' })
     .rotate()
